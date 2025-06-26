@@ -28,46 +28,51 @@ export function useCadets() {
         }
     }, []);
 
-    const saveCadets = useCallback((updatedCadets: Cadet[]) => {
-        setCadets(updatedCadets);
-        try {
-            localStorage.setItem('cadetRoster', JSON.stringify(updatedCadets));
-        } catch (error) {
-            console.error("Failed to save cadets to localStorage", error);
-        }
-    }, []);
-    
-    const saveAttendance = useCallback((updatedAttendance: AttendanceState) => {
-        setAttendance(updatedAttendance);
-        try {
-            localStorage.setItem('cadetAttendance', JSON.stringify(updatedAttendance));
-        } catch (error) {
-            console.error("Failed to save attendance to localStorage", error);
-        }
-    }, []);
-
-    const addCadet = (cadet: Omit<Cadet, 'id'>) => {
+    const addCadet = useCallback((cadet: Omit<Cadet, 'id'>) => {
         const newCadet = { ...cadet, id: new Date().toISOString() };
-        saveCadets([...cadets, newCadet]);
-    };
+        setCadets(prevCadets => {
+            const updatedCadets = [...prevCadets, newCadet];
+            try {
+                localStorage.setItem('cadetRoster', JSON.stringify(updatedCadets));
+            } catch (error) {
+                console.error("Failed to save cadets to localStorage", error);
+            }
+            return updatedCadets;
+        });
+    }, []);
 
-    const removeCadet = (cadetId: string) => {
-        saveCadets(cadets.filter(c => c.id !== cadetId));
-    };
+    const removeCadet = useCallback((cadetId: string) => {
+        setCadets(prevCadets => {
+            const updatedCadets = prevCadets.filter(c => c.id !== cadetId);
+            try {
+                localStorage.setItem('cadetRoster', JSON.stringify(updatedCadets));
+            } catch (error) {
+                console.error("Failed to save cadets to localStorage", error);
+            }
+            return updatedCadets;
+        });
+    }, []);
     
-    const getAttendanceForDate = (date: string): AttendanceRecord[] => {
+    const getAttendanceForDate = useCallback((date: string): AttendanceRecord[] => {
         return attendance[date] || cadets.map(c => ({
             cadetId: c.id,
             status: 'present',
             arrivedLate: false,
             leftEarly: false
         }));
-    };
+    }, [attendance, cadets]);
 
-    const saveAttendanceForDate = (date: string, records: AttendanceRecord[]) => {
-        const newAttendance = { ...attendance, [date]: records };
-        saveAttendance(newAttendance);
-    };
+    const saveAttendanceForDate = useCallback((date: string, records: AttendanceRecord[]) => {
+        setAttendance(prevAttendance => {
+            const newAttendance = { ...prevAttendance, [date]: records };
+            try {
+                localStorage.setItem('cadetAttendance', JSON.stringify(newAttendance));
+            } catch (error) {
+                console.error("Failed to save attendance to localStorage", error);
+            }
+            return newAttendance;
+        });
+    }, []);
 
 
     return { cadets, addCadet, removeCadet, isLoaded, getAttendanceForDate, saveAttendanceForDate };
