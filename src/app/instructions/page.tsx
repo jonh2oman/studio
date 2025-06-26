@@ -106,7 +106,7 @@ export default function InstructionsPage() {
            <Card id="lda-planner">
             <AccordionItem value="lda-planner" className="border-b-0">
               <AccordionTrigger className="p-6 text-xl">
-                <div className="flex items-center gap-3"><ClipboardPlus className="h-6 w-6" />LDA Day Planner & CSAR</div>
+                <div className="flex items-center gap-3"><ClipboardPlus className="h-6 w-6" />LDA Day Planner</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">Use this planner for single, ad-hoc training days (LDAs). It shares all data with the other planners.</p>
