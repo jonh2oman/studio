@@ -6,7 +6,11 @@ import { CalendarView } from "@/components/planner/calendar-view";
 import type { Schedule, EO, ScheduledItem } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
-export default function Planner() {
+interface PlannerProps {
+  viewMode: string;
+}
+
+export default function Planner({ viewMode }: PlannerProps) {
     const [schedule, setSchedule] = useState<Schedule>({});
     const { toast } = useToast();
 
@@ -76,6 +80,7 @@ export default function Planner() {
                     onDrop={handleDrop} 
                     onUpdate={handleUpdate}
                     onRemove={handleRemove}
+                    viewMode={viewMode}
                 />
             </div>
         </div>
