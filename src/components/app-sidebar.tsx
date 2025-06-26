@@ -38,7 +38,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col">
             <h1 className="text-lg font-semibold text-primary">{settings.corpsName}</h1>
-            <p className="text-xs text-muted-foreground">Training Planner</p>
+            <p className="text-xs text-muted-foreground">Training Officer Planning Tool</p>
           </div>
         </div>
       </SidebarHeader>

@@ -62,7 +62,7 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title="Dashboard"
-        description="Welcome to your training planner. Select a module to get started."
+        description="Welcome to your Training Officer Planning Tool. Select a module to get started."
       />
       <div className="mt-8 grid gap-8">
         <Card>

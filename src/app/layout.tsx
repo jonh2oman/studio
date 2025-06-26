@@ -5,7 +5,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
-  title: 'RCSCC 288 Ardent Training Planner',
+  title: 'RCSCC 288 Ardent Training Officer Planning Tool',
   description: 'Interactive web app for planning Sea Cadet Corps training.',
 };
 
