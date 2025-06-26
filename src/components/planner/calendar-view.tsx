@@ -68,19 +68,6 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
     if (!currentDate) return;
     let newDate;
     switch (viewMode) {
-      case 'day':
-        const currentIndex = getTrainingDaysForYear.findIndex(d => format(d, 'yyyy-MM-dd') >= format(currentDate, 'yyyy-MM-dd'));
-        let nextIndex = (currentIndex === -1 ? getTrainingDaysForYear.length : currentIndex) + amount;
-        if (amount < 0 && format(currentDate, 'yyyy-MM-dd') > format(getTrainingDaysForYear[currentIndex], 'yyyy-MM-dd')) {
-          nextIndex = currentIndex + amount;
-        } else if (amount < 0 && format(currentDate, 'yyyy-MM-dd') === format(getTrainingDaysForYear[currentIndex], 'yyyy-MM-dd')) {
-          nextIndex = currentIndex + amount;
-        }
-
-        if (nextIndex >= 0 && nextIndex < getTrainingDaysForYear.length) {
-          setCurrentDate(getTrainingDaysForYear[nextIndex]);
-        }
-        return;
       case 'week': newDate = addWeeks(currentDate, amount); break;
       case 'year': newDate = addYears(currentDate, amount); break;
       case 'month':
@@ -96,10 +83,6 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
     let days: Date[] = [];
 
     switch (viewMode) {
-      case 'day':
-        text = format(currentDate, "EEEE, MMMM do, yyyy");
-        days = getTrainingDaysForYear.filter(d => format(d, 'yyyy-MM-dd') === format(currentDate, 'yyyy-MM-dd'));
-        break;
       case 'week':
         const weekStart = startOfWeek(currentDate);
         const weekEnd = endOfWeek(currentDate);

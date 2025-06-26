@@ -17,7 +17,6 @@ export default function PlannerPage() {
       >
         <Tabs value={viewMode} onValueChange={setViewMode} className="hidden md:block">
           <TabsList>
-            <TabsTrigger value="day">Day</TabsTrigger>
             <TabsTrigger value="week">Week</TabsTrigger>
             <TabsTrigger value="month">Month</TabsTrigger>
             <TabsTrigger value="year">Year</TabsTrigger>

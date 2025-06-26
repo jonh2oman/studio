@@ -31,7 +31,7 @@ export default function Planner({ viewMode }: PlannerProps) {
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={75}>
-                <div className="h-full overflow-hidden">
+                <div className="h-full overflow-hidden min-w-0">
                     <CalendarView 
                         schedule={schedule} 
                         onDrop={handleDrop} 
