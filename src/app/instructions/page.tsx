@@ -91,6 +91,14 @@ export default function InstructionsPage() {
                     <li>Drag and drop lessons from the Objectives list on the left, just like in the main Training Planner.</li>
                     <li>Any lesson scheduled here will count towards the overall training completion on the Dashboard.</li>
                 </ol>
+                <h4 className="font-semibold">CSAR Planning</h4>
+                <p>Each day card in the LDA and Weekend planners includes a CSAR (Cadet Support and Activity Request) section.</p>
+                 <ul className="list-disc list-inside space-y-1">
+                    <li>Toggle "CSAR Required?" to 'Yes'. This will enable the other toggles and show the "Plan CSAR" button.</li>
+                    <li>Click "Plan CSAR" to open a detailed planning sheet.</li>
+                    <li>Fill out the form across the "Details", "Meal Plan", and "J4" tabs. The data is saved automatically as you fill it out.</li>
+                    <li>You can track the submission and approval status using the toggles on the main planner page.</li>
+                </ul>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -210,5 +218,7 @@ export default function InstructionsPage() {
     </>
   );
 }
+
+    
 
     
