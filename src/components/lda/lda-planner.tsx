@@ -106,20 +106,22 @@ export function LdaPlanner() {
                                     )}
                                 </div>
                             </Card>
-                            {metadata.csarDetails && (
-                                <SheetContent className="w-full sm:max-w-4xl p-0">
-                                     <SheetHeader className="p-6 border-b">
-                                        <SheetTitle>CSAR Planner for {format(day, "PPP")}</SheetTitle>
-                                    </SheetHeader>
-                                    <CsarPlanner
-                                        initialData={metadata.csarDetails}
-                                        onSave={(data) => handleSaveCsar(dateStr, data)}
-                                        onClose={() => setIsCsarSheetOpen(false)}
-                                        startDate={format(day, "PPP")}
-                                        endDate={format(day, "PPP")}
-                                    />
-                                </SheetContent>
-                            )}
+                            <SheetContent className="w-full sm:max-w-4xl p-0">
+                                <SheetHeader className="p-6 border-b">
+                                   <SheetTitle>CSAR Planner for {format(day, "PPP")}</SheetTitle>
+                               </SheetHeader>
+                               {metadata.csarDetails ? (
+                                   <CsarPlanner
+                                       initialData={metadata.csarDetails}
+                                       onSave={(data) => handleSaveCsar(dateStr, data)}
+                                       onClose={() => setIsCsarSheetOpen(false)}
+                                       startDate={format(day, "PPP")}
+                                       endDate={format(day, "PPP")}
+                                   />
+                               ) : (
+                                   <div className="p-6">Loading CSAR data or no CSAR required...</div>
+                               )}
+                           </SheetContent>
                         </Sheet>
                     </div>
                 </CardHeader>
