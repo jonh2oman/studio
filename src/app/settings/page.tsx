@@ -7,16 +7,22 @@ import { useSettings } from "@/hooks/use-settings";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+
 
 const settingsSchema = z.object({
   trainingDay: z.coerce.number().min(0).max(6),
   corpsName: z.string().min(1, "Corps name is required"),
+  firstTrainingNight: z.date({ required_error: "First training night is required" }),
 });
 
 export default function SettingsPage() {
@@ -27,23 +33,27 @@ export default function SettingsPage() {
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    values: {
-      trainingDay: settings.trainingDay,
-      corpsName: settings.corpsName,
-    },
   });
 
   useEffect(() => {
     if (isLoaded) {
+      // Create a date object from the string, being careful about timezones
+      // by splitting and creating a new Date to ensure it's local.
+      const [year, month, day] = settings.firstTrainingNight.split('-').map(Number);
       form.reset({
         trainingDay: settings.trainingDay,
         corpsName: settings.corpsName,
+        firstTrainingNight: new Date(year, month - 1, day),
       });
     }
   }, [isLoaded, settings, form]);
 
   const onSubmit = (data: z.infer<typeof settingsSchema>) => {
-    saveSettings(data);
+    const settingsToSave = {
+      ...data,
+      firstTrainingNight: format(data.firstTrainingNight, 'yyyy-MM-dd'),
+    };
+    saveSettings(settingsToSave);
     toast({
       title: "Settings saved",
       description: "Your changes have been saved successfully.",
@@ -106,30 +116,69 @@ export default function SettingsPage() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="trainingDay"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Training Night</FormLabel>
-                        <Select onValueChange={field.onChange} value={String(field.value)}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a day" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {weekDays.map((day, index) => (
-                              <SelectItem key={index} value={String(index)}>
-                                {day}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FormField
+                      control={form.control}
+                      name="trainingDay"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Weekly Training Night</FormLabel>
+                          <Select onValueChange={field.onChange} value={String(field.value)}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a day" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {weekDays.map((day, index) => (
+                                <SelectItem key={index} value={String(index)}>
+                                  {day}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="firstTrainingNight"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>First Training Night</FormLabel>
+                           <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormDescription>
+                            This will be the first date shown in the planner.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <Button type="submit">Save Changes</Button>
                 </form>
               </Form>

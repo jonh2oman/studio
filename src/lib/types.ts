@@ -33,4 +33,5 @@ export interface Settings {
   corpsName: string;
   instructors: string[];
   classrooms: string[];
+  firstTrainingNight: string; // YYYY-MM-DD
 }

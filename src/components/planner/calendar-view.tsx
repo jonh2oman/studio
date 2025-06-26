@@ -37,23 +37,28 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarV
   const { settings, isLoaded } = useSettings();
 
   useEffect(() => {
-    const now = new Date();
+    if (!isLoaded) return;
+
+    // Use a helper to parse YYYY-MM-DD to avoid timezone issues.
+    const parseDate = (dateString: string) => {
+        const [year, month, day] = dateString.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    }
+    
+    const firstNight = parseDate(settings.firstTrainingNight);
     // A training year runs from September to June.
-    // If we are in June, July or August (months 5, 6, 7), we are likely planning for the upcoming training year.
-    const startYear = now.getMonth() >= 5 ? getYear(now) : getYear(now) - 1; // June is month 5 (0-indexed)
+    const startYear = firstNight.getMonth() >= 8 ? firstNight.getFullYear() : firstNight.getFullYear() - 1;
+
     const ty = {
       start: new Date(startYear, 8, 1), // September
       end: new Date(startYear + 1, 5, 30), // June
     };
     setTrainingYear(ty);
 
-    const septemberOfTrainingYear = new Date(startYear, 8, 1);
-    if (now >= septemberOfTrainingYear && now <= ty.end) {
-      setCurrentMonth(startOfMonth(now));
-    } else {
-      setCurrentMonth(septemberOfTrainingYear);
-    }
-  }, []);
+    setCurrentMonth(startOfMonth(firstNight));
+
+  }, [isLoaded, settings.firstTrainingNight]);
+
 
   const weeks = useMemo(() => {
     if (!currentMonth) return [];
@@ -90,8 +95,8 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarV
   
   const trainingDay = settings.trainingDay;
   const trainingDaysInMonth = weeks
-    .map(week => eachDayOfInterval({ start: week, end: endOfWeek(week) })[trainingDay])
-    .filter(day => day.getMonth() === currentMonth.getMonth() && day >= trainingYear.start && day <= trainingYear.end);
+    .flatMap(week => eachDayOfInterval({ start: week, end: endOfWeek(week) }))
+    .filter(day => day.getDay() === trainingDay && day.getMonth() === currentMonth.getMonth() && day >= trainingYear.start && day <= trainingYear.end);
 
   return (
     <div className="flex flex-col h-full bg-card">
