@@ -116,7 +116,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
   const renderTrainingDayCard = useCallback((day: Date) => {
     const dateStr = format(day, "yyyy-MM-dd");
     return (
-      <Card key={dateStr} className={cn("overflow-hidden", viewMode === 'year' && "w-[22rem] flex-shrink-0")}>
+      <Card key={dateStr} className={cn("overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", viewMode === 'year' && "w-[22rem] flex-shrink-0")}>
         <CardHeader>
           <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
         </CardHeader>
@@ -183,8 +183,8 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
   }, {} as Record<string, Date[]>);
 
   return (
-    <div className="flex flex-col h-full bg-card min-w-0">
-      <header className="flex items-center justify-between p-4 border-b">
+    <div className="flex flex-col h-full bg-card min-w-0 print:h-auto">
+      <header className="flex items-center justify-between p-4 border-b print:hidden">
         <h2 className="text-xl font-bold">{headerText}</h2>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => changeDate(-1)}>
@@ -197,12 +197,12 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
       </header>
       
       {viewMode === 'year' ? (
-        <ScrollArea className="flex-1">
-            <div className="p-4 flex gap-8">
+        <ScrollArea className="flex-1 print:h-auto print:overflow-visible">
+            <div className="p-4 flex gap-8 print:block">
               {Object.entries(groupedByMonth).map(([month, days]) => (
-                <div key={month} className="space-y-4">
+                <div key={month} className="space-y-4 print:break-after-page">
                   <h3 className="text-lg font-bold sticky left-0">{month}</h3>
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 print:flex-wrap">
                     {days.map(renderTrainingDayCard)}
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
             </div>
         </ScrollArea>
       ) : (
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 print:h-auto print:overflow-visible">
           <div className="p-4 space-y-8">
             {trainingDaysToShow.length > 0 ? (
               trainingDaysToShow.map(renderTrainingDayCard)

@@ -35,16 +35,20 @@ export default function RootLayout({
         <TooltipProvider delayDuration={0}>
           <SidebarProvider>
             <div className="flex min-h-screen">
-              <AppSidebar />
+              <div className="print:hidden">
+                <AppSidebar />
+              </div>
               <SidebarInset>
-                <div className="p-4 sm:p-6 lg:p-8 w-full">
+                <div className="p-4 sm:p-6 lg:p-8 w-full print:p-0">
                   {children}
                 </div>
               </SidebarInset>
             </div>
           </SidebarProvider>
           <Toaster />
-          <HelpButton />
+          <div className="print:hidden">
+            <HelpButton />
+          </div>
         </TooltipProvider>
       </body>
     </html>
