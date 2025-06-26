@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { format } from 'date-fns';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
-import type { EO, DayMetadata } from '@/lib/types';
+import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
 import { ObjectivesList } from '@/components/planner/objectives-list';
 import { ScheduleDialog } from '@/components/planner/schedule-dialog';
 import { Button } from '@/components/ui/button';
@@ -17,11 +18,14 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { CsarPlanner } from '@/components/csar/csar-planner';
 
 export function LdaPlanner() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
+    const [isCsarSheetOpen, setIsCsarSheetOpen] = useState(false);
 
     const plannedDates = useMemo(() => {
         const dates = new Set<string>();
@@ -58,6 +62,10 @@ export function LdaPlanner() {
         addScheduleItem(slotId, eo);
         setDragOverSlot(null);
     };
+
+    const handleSaveCsar = (dateStr: string, data: CsarDetails) => {
+        updateCsarDetails(dateStr, data);
+    };
     
     const renderDayCard = (day: Date) => {
         const dateStr = format(day, "yyyy-MM-dd");
@@ -72,21 +80,47 @@ export function LdaPlanner() {
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
                         <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
-                        <div className="flex flex-col gap-2 border p-2 rounded-md bg-muted/50 w-64">
-                            <h4 className="text-sm font-semibold text-muted-foreground">CSAR Status</h4>
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor={`csar-required-${dateStr}`} className="text-sm">Required?</Label>
-                                <Switch id={`csar-required-${dateStr}`} checked={metadata.csarRequired} onCheckedChange={(val) => handleCsarChange('csarRequired', val)} />
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor={`csar-submitted-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Submitted?</Label>
-                                <Switch id={`csar-submitted-${dateStr}`} checked={metadata.csarSubmitted} onCheckedChange={(val) => handleCsarChange('csarSubmitted', val)} disabled={!metadata.csarRequired} />
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <Label htmlFor={`csar-approved-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Approved?</Label>
-                                <Switch id={`csar-approved-${dateStr}`} checked={metadata.csarApproved} onCheckedChange={(val) => handleCsarChange('csarApproved', val)} disabled={!metadata.csarRequired} />
-                            </div>
-                        </div>
+                         <Sheet open={isCsarSheetOpen} onOpenChange={setIsCsarSheetOpen}>
+                            <Card className="p-3 bg-muted/50 w-72">
+                                <CardTitle className="text-base mb-2">CSAR Status</CardTitle>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor={`csar-required-${dateStr}`} className="text-sm">Required?</Label>
+                                        <Switch id={`csar-required-${dateStr}`} checked={metadata.csarRequired} onCheckedChange={(val) => handleCsarChange('csarRequired', val)} />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor={`csar-submitted-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Submitted?</Label>
+                                        <Switch id={`csar-submitted-${dateStr}`} checked={metadata.csarSubmitted} onCheckedChange={(val) => handleCsarChange('csarSubmitted', val)} disabled={!metadata.csarRequired} />
+                                    </div>
+                                     <div className="flex items-center justify-between">
+                                        <Label htmlFor={`csar-approved-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Approved?</Label>
+                                        <Switch id={`csar-approved-${dateStr}`} checked={metadata.csarApproved} onCheckedChange={(val) => handleCsarChange('csarApproved', val)} disabled={!metadata.csarRequired} />
+                                    </div>
+                                    {metadata.csarRequired && (
+                                        <>
+                                            <div className="border-t pt-2 mt-2" />
+                                            <SheetTrigger asChild>
+                                                <Button className="w-full">Plan CSAR</Button>
+                                            </SheetTrigger>
+                                        </>
+                                    )}
+                                </div>
+                            </Card>
+                            {metadata.csarDetails && (
+                                <SheetContent className="w-full sm:max-w-4xl p-0">
+                                     <SheetHeader className="p-6 border-b">
+                                        <SheetTitle>CSAR Planner for {format(day, "PPP")}</SheetTitle>
+                                    </SheetHeader>
+                                    <CsarPlanner
+                                        initialData={metadata.csarDetails}
+                                        onSave={(data) => handleSaveCsar(dateStr, data)}
+                                        onClose={() => setIsCsarSheetOpen(false)}
+                                        startDate={format(day, "PPP")}
+                                        endDate={format(day, "PPP")}
+                                    />
+                                </SheetContent>
+                            )}
+                        </Sheet>
                     </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

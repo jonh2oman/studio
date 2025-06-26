@@ -1,11 +1,55 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Schedule, EO, ScheduledItem, DayMetadata, DayMetadataState } from '@/lib/types';
+import type { Schedule, EO, ScheduledItem, DayMetadata, DayMetadataState, CsarDetails } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 
 const defaultSchedule: Schedule = {};
 const defaultDayMetadata: DayMetadataState = {};
+
+const defaultCsarDetails: CsarDetails = {
+    activityName: '',
+    activityType: '',
+    activityLocation: '',
+    startTime: '09:00',
+    endTime: '17:00',
+    isMultiUnit: false,
+    multiUnitDetails: '',
+    numCadetsMale: 0,
+    numCadetsFemale: 0,
+    numStaffMale: 0,
+    numStaffFemale: 0,
+    transportRequired: false,
+    transportation: {
+        schoolBus44: 0,
+        cruiser55: 0,
+    },
+    supportVehiclesRequired: false,
+    supportVehicles: {
+        van8: 0,
+        crewCab: 0,
+        cubeVan: 0,
+        miniVan7: 0,
+        panelVan: 0,
+        staffCar: 0,
+    },
+    fuelCardRequired: false,
+    accommodationsRequired: false,
+    accommodation: {
+        type: '',
+        cost: 0,
+    },
+    mealsRequired: false,
+    mealPlanDetails: '',
+    j4Plan: {
+        quartermasterLocation: '',
+        items: [],
+        submitted: false,
+        approved: false,
+    },
+};
+
 
 export function useSchedule() {
     const [schedule, setSchedule] = useState<Schedule>(defaultSchedule);
@@ -106,8 +150,12 @@ export function useSchedule() {
     const updateDayMetadata = useCallback((date: string, metadataUpdate: Partial<DayMetadata>) => {
         setDayMetadata(prev => {
             const currentMetadata = prev[date] || { csarRequired: false, csarSubmitted: false, csarApproved: false };
-            const updatedMetadata = { ...currentMetadata, ...metadataUpdate };
+            let updatedMetadata: DayMetadata = { ...currentMetadata, ...metadataUpdate };
             
+            if (metadataUpdate.csarRequired && !currentMetadata.csarDetails) {
+                updatedMetadata.csarDetails = defaultCsarDetails;
+            }
+
             const newDayMetadataState = {
                 ...prev,
                 [date]: updatedMetadata,
@@ -122,5 +170,23 @@ export function useSchedule() {
         });
     }, []);
 
-    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata };
+    const updateCsarDetails = useCallback((date: string, newDetails: CsarDetails) => {
+        setDayMetadata(prev => {
+            const currentMetadata = prev[date];
+            if (!currentMetadata) return prev;
+
+            const updatedMetadata = { ...currentMetadata, csarDetails: newDetails };
+            
+            const newDayMetadataState = { ...prev, [date]: updatedMetadata };
+
+            try {
+                localStorage.setItem('dayMetadata', JSON.stringify(newDayMetadataState));
+            } catch (error) {
+                console.error("Failed to save day metadata to localStorage", error);
+            }
+            return newDayMetadataState;
+        });
+    }, []);
+
+    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails };
 }

@@ -1,3 +1,4 @@
+
 export interface EO {
   id: string;
   title: string;
@@ -56,10 +57,68 @@ export interface AttendanceState {
     [date: string]: AttendanceRecord[];
 }
 
+export interface J4Item {
+    id: string;
+    description: string;
+    quantity: number;
+}
+
+export interface J4Plan {
+    quartermasterLocation?: string;
+    items: J4Item[];
+    submitted: boolean;
+    approved: boolean;
+}
+
+export interface CsarDetails {
+    activityName: string;
+    activityType?: 'discretionary_supported' | 'elemental_training' | 'fundamental_supported' | '';
+    activityLocation: string;
+    startTime: string; 
+    endTime: string; 
+    isMultiUnit: boolean;
+    multiUnitDetails?: string;
+    
+    numCadetsMale: number;
+    numCadetsFemale: number;
+    numStaffMale: number;
+    numStaffFemale: number;
+
+    transportRequired: boolean;
+    transportation: {
+        schoolBus44: number;
+        cruiser55: number;
+    };
+
+    supportVehiclesRequired: boolean;
+    supportVehicles: {
+        van8: number;
+        crewCab: number;
+        cubeVan: number;
+        miniVan7: number;
+        panelVan: number;
+        staffCar: number;
+    };
+
+    fuelCardRequired: boolean;
+
+    accommodationsRequired: boolean;
+    accommodation: {
+        type?: 'military' | 'commercial' | 'private' | '';
+        cost: number;
+    };
+
+    mealsRequired: boolean;
+    mealPlanDetails?: string; 
+    
+    j4Plan: J4Plan;
+}
+
 export interface DayMetadata {
     csarRequired: boolean;
     csarSubmitted: boolean;
     csarApproved: boolean;
+    csarDetails?: CsarDetails;
 }
 
 export interface DayMetadataState {
