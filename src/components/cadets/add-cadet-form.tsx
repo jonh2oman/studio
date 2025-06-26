@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CADET_RANKS } from "@/lib/constants";
+import { useSettings } from "@/hooks/use-settings";
 import type { Cadet } from "@/lib/types";
 
 const cadetSchema = z.object({
@@ -24,6 +24,7 @@ interface AddCadetFormProps {
 }
 
 export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
+  const { settings } = useSettings();
   const form = useForm<z.infer<typeof cadetSchema>>({
     resolver: zodResolver(cadetSchema),
     defaultValues: {
@@ -61,7 +62,7 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            {CADET_RANKS.map((rank) => (
+                            {settings.ranks.map((rank) => (
                             <SelectItem key={rank} value={rank}>
                                 {rank}
                             </SelectItem>

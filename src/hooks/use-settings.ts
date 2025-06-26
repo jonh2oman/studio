@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -17,6 +18,14 @@ const defaultSettings: Settings = {
     corpsName: "RCSCC 288 ARDENT",
     instructors: ["CI Smith", "Lt(N) Jones", "OCdt Picard"],
     classrooms: ["#1", "#2", "#3", "Parade Deck", "Boathouse"],
+    ranks: [
+        "Able Cadet (AC)",
+        "Leading Cadet (LC)",
+        "Petty Officer 2nd Class (PO2)",
+        "Petty Officer 1st Class (PO1)",
+        "Chief Petty Officer 2nd Class (CPO2)",
+        "Chief Petty Officer 1st Class (CPO1)",
+    ],
     firstTrainingNight: getFirstTuesdayOfSeptember(new Date().getFullYear()),
 };
 
@@ -29,7 +38,14 @@ export function useSettings() {
             const storedSettings = localStorage.getItem('trainingSettings');
             if (storedSettings) {
                 const parsedSettings = JSON.parse(storedSettings);
-                setSettings({ ...defaultSettings, ...parsedSettings });
+                // Merge stored settings with defaults to ensure all keys are present
+                const mergedSettings = { ...defaultSettings, ...parsedSettings };
+                // Ensure arrays are not empty if they exist in localStorage but are empty
+                mergedSettings.instructors = mergedSettings.instructors.length > 0 ? mergedSettings.instructors : defaultSettings.instructors;
+                mergedSettings.classrooms = mergedSettings.classrooms.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
+                mergedSettings.ranks = mergedSettings.ranks && mergedSettings.ranks.length > 0 ? mergedSettings.ranks : defaultSettings.ranks;
+
+                setSettings(mergedSettings);
             } else {
                 setSettings(defaultSettings);
             }

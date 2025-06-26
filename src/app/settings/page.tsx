@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -30,6 +31,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [newInstructor, setNewInstructor] = useState("");
   const [newClassroom, setNewClassroom] = useState("");
+  const [newRank, setNewRank] = useState("");
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -73,6 +75,17 @@ export default function SettingsPage() {
 
   const handleRemoveClassroom = (classroom: string) => {
     saveSettings({ classrooms: settings.classrooms.filter(c => c !== classroom) });
+  };
+
+  const handleAddRank = () => {
+    if (newRank.trim() && !settings.ranks.includes(newRank.trim())) {
+      saveSettings({ ranks: [...settings.ranks, newRank.trim()] });
+      setNewRank("");
+    }
+  };
+
+  const handleRemoveRank = (rank: string) => {
+    saveSettings({ ranks: settings.ranks.filter(r => r !== rank) });
   };
 
 
@@ -227,6 +240,33 @@ export default function SettingsPage() {
                 <div key={classroom} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                   <span>{classroom}</span>
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveClassroom(classroom)}>
+                    <X className="h-4 w-4"/>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Manage Ranks</CardTitle>
+            <CardDescription>Add or remove cadet ranks from the list available in the app.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input 
+                value={newRank}
+                onChange={(e) => setNewRank(e.target.value)}
+                placeholder="New rank name"
+              />
+              <Button onClick={handleAddRank}>Add</Button>
+            </div>
+            <div className="space-y-2">
+              {settings.ranks.map(rank => (
+                <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                  <span>{rank}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveRank(rank)}>
                     <X className="h-4 w-4"/>
                   </Button>
                 </div>

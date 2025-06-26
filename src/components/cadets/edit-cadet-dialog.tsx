@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CADET_RANKS } from "@/lib/constants";
+import { useSettings } from "@/hooks/use-settings";
 import type { Cadet } from "@/lib/types";
 
 const cadetSchema = z.object({
@@ -27,6 +27,7 @@ interface EditCadetDialogProps {
 }
 
 export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCadetDialogProps) {
+  const { settings } = useSettings();
   const form = useForm<z.infer<typeof cadetSchema>>({
     resolver: zodResolver(cadetSchema),
     defaultValues: cadet,
@@ -58,7 +59,7 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            {CADET_RANKS.map((rank) => (
+                            {settings.ranks.map((rank) => (
                             <SelectItem key={rank} value={rank}>
                                 {rank}
                             </SelectItem>
