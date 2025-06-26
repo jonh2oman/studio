@@ -11,7 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -33,20 +33,13 @@ export default function SettingsPage() {
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
+    values: {
+      trainingDay: settings.trainingDay,
+      corpsName: settings.corpsName,
+      // Correctly handle YYYY-MM-DD format to avoid timezone issues by replacing hyphens.
+      firstTrainingNight: new Date(settings.firstTrainingNight.replace(/-/g, '/')),
+    },
   });
-
-  useEffect(() => {
-    if (isLoaded) {
-      // Create a date object from the string, being careful about timezones
-      // by splitting and creating a new Date to ensure it's local.
-      const [year, month, day] = settings.firstTrainingNight.split('-').map(Number);
-      form.reset({
-        trainingDay: settings.trainingDay,
-        corpsName: settings.corpsName,
-        firstTrainingNight: new Date(year, month - 1, day),
-      });
-    }
-  }, [isLoaded, settings, form]);
 
   const onSubmit = (data: z.infer<typeof settingsSchema>) => {
     const settingsToSave = {

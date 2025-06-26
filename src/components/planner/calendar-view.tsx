@@ -36,18 +36,17 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarV
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
   const { settings, isLoaded } = useSettings();
 
-  useEffect(() => {
-    if (!isLoaded) return;
+  const firstNightDate = useMemo(() => {
+    if (!isLoaded) return null;
+    const [year, month, day] = settings.firstTrainingNight.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }, [isLoaded, settings.firstTrainingNight]);
 
-    // Use a helper to parse YYYY-MM-DD to avoid timezone issues.
-    const parseDate = (dateString: string) => {
-        const [year, month, day] = dateString.split('-').map(Number);
-        return new Date(year, month - 1, day);
-    }
+  useEffect(() => {
+    if (!isLoaded || !firstNightDate) return;
     
-    const firstNight = parseDate(settings.firstTrainingNight);
     // A training year runs from September to June.
-    const startYear = firstNight.getMonth() >= 8 ? firstNight.getFullYear() : firstNight.getFullYear() - 1;
+    const startYear = firstNightDate.getMonth() >= 8 ? firstNightDate.getFullYear() : firstNightDate.getFullYear() - 1;
 
     const ty = {
       start: new Date(startYear, 8, 1), // September
@@ -55,9 +54,9 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarV
     };
     setTrainingYear(ty);
 
-    setCurrentMonth(startOfMonth(firstNight));
+    setCurrentMonth(startOfMonth(firstNightDate));
 
-  }, [isLoaded, settings.firstTrainingNight]);
+  }, [isLoaded, firstNightDate]);
 
 
   const weeks = useMemo(() => {
@@ -89,14 +88,14 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarV
     }
   };
 
-  if (!isLoaded || !currentMonth || !trainingYear) {
+  if (!isLoaded || !currentMonth || !trainingYear || !firstNightDate) {
     return <div className="flex items-center justify-center h-full"><p>Loading calendar...</p></div>;
   }
   
   const trainingDay = settings.trainingDay;
   const trainingDaysInMonth = weeks
     .flatMap(week => eachDayOfInterval({ start: week, end: endOfWeek(week) }))
-    .filter(day => day.getDay() === trainingDay && day.getMonth() === currentMonth.getMonth() && day >= trainingYear.start && day <= trainingYear.end);
+    .filter(day => day.getDay() === trainingDay && day.getMonth() === currentMonth.getMonth() && day >= firstNightDate && day <= trainingYear.end);
 
   return (
     <div className="flex flex-col h-full bg-card">
