@@ -1,13 +1,27 @@
+
 "use client";
 
+import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { AddCadetForm } from "@/components/cadets/add-cadet-form";
 import { CadetList } from "@/components/cadets/cadet-list";
 import { useCadets } from "@/hooks/use-cadets";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EditCadetDialog } from "@/components/cadets/edit-cadet-dialog";
+import type { Cadet } from "@/lib/types";
 
 export default function CadetsPage() {
-  const { cadets, addCadet, removeCadet, isLoaded } = useCadets();
+  const { cadets, addCadet, updateCadet, removeCadet, isLoaded } = useCadets();
+  const [editingCadet, setEditingCadet] = useState<Cadet | null>(null);
+
+  const handleEdit = (cadet: Cadet) => {
+    setEditingCadet(cadet);
+  };
+
+  const handleUpdateCadet = (updatedCadet: Cadet) => {
+    updateCadet(updatedCadet);
+    setEditingCadet(null);
+  }
 
   return (
     <>
@@ -26,7 +40,11 @@ export default function CadetsPage() {
                 </CardHeader>
                 <CardContent>
                     {isLoaded ? (
-                        <CadetList cadets={cadets} onRemoveCadet={removeCadet} />
+                        <CadetList 
+                            cadets={cadets} 
+                            onRemoveCadet={removeCadet} 
+                            onEditCadet={handleEdit}
+                        />
                     ) : (
                         <p>Loading cadets...</p>
                     )}
@@ -34,6 +52,13 @@ export default function CadetsPage() {
             </Card>
         </div>
       </div>
+       {editingCadet && (
+        <EditCadetDialog
+            cadet={editingCadet}
+            onUpdateCadet={handleUpdateCadet}
+            onOpenChange={(isOpen) => !isOpen && setEditingCadet(null)}
+        />
+      )}
     </>
   );
 }

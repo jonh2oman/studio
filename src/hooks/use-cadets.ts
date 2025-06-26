@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -41,6 +42,18 @@ export function useCadets() {
         });
     }, []);
 
+    const updateCadet = useCallback((updatedCadet: Cadet) => {
+        setCadets(prevCadets => {
+            const updatedCadets = prevCadets.map(c => c.id === updatedCadet.id ? updatedCadet : c);
+             try {
+                localStorage.setItem('cadetRoster', JSON.stringify(updatedCadets));
+            } catch (error) {
+                console.error("Failed to save cadets to localStorage", error);
+            }
+            return updatedCadets;
+        });
+    }, []);
+
     const removeCadet = useCallback((cadetId: string) => {
         setCadets(prevCadets => {
             const updatedCadets = prevCadets.filter(c => c.id !== cadetId);
@@ -75,5 +88,5 @@ export function useCadets() {
     }, []);
 
 
-    return { cadets, addCadet, removeCadet, isLoaded, getAttendanceForDate, saveAttendanceForDate };
+    return { cadets, addCadet, updateCadet, removeCadet, isLoaded, getAttendanceForDate, saveAttendanceForDate };
 }

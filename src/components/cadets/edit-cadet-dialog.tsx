@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,41 +13,38 @@ import { CADET_RANKS } from "@/lib/constants";
 import type { Cadet } from "@/lib/types";
 
 const cadetSchema = z.object({
+  id: z.string(),
   rank: z.string().min(1, "Rank is required"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phase: z.coerce.number().min(1).max(5),
 });
 
-interface AddCadetFormProps {
-  onAddCadet: (cadet: Omit<Cadet, 'id'>) => void;
+interface EditCadetDialogProps {
+  cadet: Cadet;
+  onUpdateCadet: (cadet: Cadet) => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
+export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCadetDialogProps) {
   const form = useForm<z.infer<typeof cadetSchema>>({
     resolver: zodResolver(cadetSchema),
-    defaultValues: {
-      rank: "",
-      firstName: "",
-      lastName: "",
-      phase: 1,
-    },
+    defaultValues: cadet,
   });
 
   const onSubmit = (data: z.infer<typeof cadetSchema>) => {
-    onAddCadet(data);
-    form.reset();
+    onUpdateCadet(data);
   };
 
   return (
-    <Card>
-        <CardHeader>
-            <CardTitle>Add New Cadet</CardTitle>
-            <CardDescription>Fill out the form to add a cadet to the roster.</CardDescription>
-        </CardHeader>
-        <CardContent>
+     <Dialog open={true} onOpenChange={onOpenChange}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Edit Cadet</DialogTitle>
+                <DialogDescription>Update the details for {cadet.firstName} {cadet.lastName}.</DialogDescription>
+            </DialogHeader>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
                 <FormField
                     control={form.control}
                     name="rank"
@@ -79,7 +76,7 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                     <FormItem>
                         <FormLabel>First Name</FormLabel>
                         <FormControl>
-                        <Input placeholder="e.g., Jean-Luc" {...field} />
+                        <Input {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -92,7 +89,7 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                     <FormItem>
                         <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                        <Input placeholder="e.g., Picard" {...field} />
+                        <Input {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -122,10 +119,12 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                     </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full">Add Cadet</Button>
+                <DialogFooter>
+                    <Button type="submit">Save Changes</Button>
+                </DialogFooter>
                 </form>
             </Form>
-        </CardContent>
-    </Card>
+        </DialogContent>
+     </Dialog>
   );
 }

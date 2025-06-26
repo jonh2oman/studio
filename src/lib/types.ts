@@ -1,4 +1,5 @@
 
+
 export interface EO {
   id: string;
   title: string;
@@ -42,6 +43,7 @@ export interface Cadet {
     rank: string;
     firstName: string;
     lastName: string;
+    phase: number;
 }
 
 export type AttendanceStatus = 'present' | 'absent' | 'excused';
@@ -123,4 +125,19 @@ export interface DayMetadata {
 
 export interface DayMetadataState {
     [date: string]: DayMetadata;
+}
+
+export interface Award {
+  id: string;
+  name: string;
+  category: 'National' | 'Corps';
+  description: string;
+  criteria: string[];
+  eligibility: string;
+  deadline?: string;
+  approval?: string;
+}
+
+export interface AwardWinner {
+    [awardId: string]: string; // awardId: cadetId
 }
