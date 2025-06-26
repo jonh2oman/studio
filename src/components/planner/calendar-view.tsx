@@ -31,20 +31,30 @@ const nightSchedule = [
 ];
 
 export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarViewProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), 8, 1)); // Start in September
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
+  const [trainingYear, setTrainingYear] = useState<{ start: Date; end: Date } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
   const { settings, isLoaded } = useSettings();
 
-  const trainingYear = useMemo(() => {
+  useEffect(() => {
     const now = new Date();
     const startYear = now.getMonth() >= 8 ? getYear(now) : getYear(now) - 1;
-    return {
+    const ty = {
       start: new Date(startYear, 8, 1), // September
       end: new Date(startYear + 1, 5, 30), // June
     };
+    setTrainingYear(ty);
+
+    const septemberOfTrainingYear = new Date(startYear, 8, 1);
+    if (now >= septemberOfTrainingYear && now <= ty.end) {
+      setCurrentMonth(startOfMonth(now));
+    } else {
+      setCurrentMonth(septemberOfTrainingYear);
+    }
   }, []);
 
   const weeks = useMemo(() => {
+    if (!currentMonth) return [];
     return eachWeekOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
   }, [currentMonth]);
 
@@ -65,14 +75,15 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarV
   };
 
   const changeMonth = (amount: number) => {
+    if (!currentMonth || !trainingYear) return;
     const newMonth = addMonths(currentMonth, amount);
     if (newMonth >= trainingYear.start && newMonth <= trainingYear.end) {
       setCurrentMonth(newMonth);
     }
   };
 
-  if (!isLoaded) {
-    return <div className="flex items-center justify-center h-full"><p>Loading settings...</p></div>;
+  if (!isLoaded || !currentMonth || !trainingYear) {
+    return <div className="flex items-center justify-center h-full"><p>Loading calendar...</p></div>;
   }
   
   const trainingDay = settings.trainingDay;
