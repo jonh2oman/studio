@@ -47,6 +47,10 @@ export interface Cadet {
     phase: number;
 }
 
+export interface CadetWithAttendance extends Cadet {
+    attendancePercentage: number;
+}
+
 export type AttendanceStatus = 'present' | 'absent' | 'excused';
 
 export interface AttendanceRecord {

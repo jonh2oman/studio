@@ -3,25 +3,32 @@
 
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
-import type { Award, Cadet } from '@/lib/types';
+import type { Award, Cadet, CadetWithAttendance } from '@/lib/types';
 import { useCadets } from '@/hooks/use-cadets';
 import { useSchedule } from '@/hooks/use-schedule';
 import { useAwards } from '@/hooks/use-awards';
+import { determineAwardEligibility } from '@/ai/flows/determine-award-eligibility-flow';
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, Trash2, Pencil, Loader2 } from 'lucide-react';
+import { Crown, Trash2, Pencil, Loader2, Sparkles } from 'lucide-react';
 import { AwardDialog } from '@/components/awards/award-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AwardsPage() {
     const { cadets, isLoaded: cadetsLoaded } = useCadets();
     const { schedule, isLoaded: scheduleLoaded } = useSchedule();
     const { awards, addAward, updateAward, removeAward, winners, setWinner, isLoaded: awardsLoaded } = useAwards();
+    const { toast } = useToast();
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingAward, setEditingAward] = useState<Award | null>(null);
     const [deletingAward, setDeletingAward] = useState<Award | null>(null);
+
+    const [aiEligibleCadets, setAiEligibleCadets] = useState<Record<string, string[] | null>>({});
+    const [isCheckingEligibility, setIsCheckingEligibility] = useState<Record<string, boolean>>({});
 
     const trainingDates = useMemo(() => {
         if (!scheduleLoaded) return [];
@@ -43,40 +50,36 @@ export default function AwardsPage() {
         });
         return percentages;
     }, [cadets, cadetsLoaded, trainingDates]);
+    
+    const handleDetermineEligibility = async (award: Award) => {
+        setIsCheckingEligibility(prev => ({...prev, [award.id]: true}));
+        try {
+            const cadetsWithAttendance: CadetWithAttendance[] = cadets.map(c => ({
+                ...c,
+                attendancePercentage: attendancePercentages[c.id] || 0
+            }));
 
-    const getEligibleCadets = (award: Award): Cadet[] => {
-        if (!cadetsLoaded) return [];
+            const result = await determineAwardEligibility({ award, cadets: cadetsWithAttendance });
+            
+            setAiEligibleCadets(prev => ({ ...prev, [award.id]: result.eligibleCadetIds }));
+            
+            toast({
+                title: "Eligibility Check Complete",
+                description: `Found ${result.eligibleCadetIds.length} eligible cadets for "${award.name}".`
+            })
 
-        let eligible = [...cadets];
-
-        const attendanceCriterion = award.criteria.find(c => c.toLowerCase().includes('attendance'));
-        if (attendanceCriterion) {
-            const requiredPercentMatch = attendanceCriterion.match(/(\d+)%/);
-            if (requiredPercentMatch) {
-                const requiredPercent = parseInt(requiredPercentMatch[1], 10);
-                eligible = eligible.filter(c => (attendancePercentages[c.id] || 0) >= requiredPercent);
-            }
+        } catch (error) {
+            console.error("Error determining eligibility:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not determine eligibility at this time."
+            })
+        } finally {
+            setIsCheckingEligibility(prev => ({...prev, [award.id]: false}));
         }
-        
-        const phaseCriterion = award.criteria.find(c => c.toLowerCase().includes('phase'));
-        if (phaseCriterion) {
-            const phaseMatch = phaseCriterion.match(/Phase (\d)/i);
-            if (phaseMatch) {
-                const requiredPhase = parseInt(phaseMatch[1], 10);
-                eligible = eligible.filter(c => c.phase === requiredPhase);
-            }
-        }
-
-        if (award.eligibility && award.eligibility.toLowerCase().includes("top senior cadet")) {
-             eligible = eligible.filter(c => c.phase >= 3);
-        }
-        
-        if (award.eligibility && award.eligibility.toLowerCase().includes("top junior cadet")) {
-             eligible = eligible.filter(c => c.phase <= 2);
-        }
-
-        return eligible;
     }
+
 
     const groupedAwards = useMemo(() => {
         return awards.reduce((acc, award) => {
@@ -122,9 +125,11 @@ export default function AwardsPage() {
                             <CardContent>
                                 <Accordion type="single" collapsible className="w-full">
                                     {awardItems.map(award => {
-                                        const eligibleCadets = getEligibleCadets(award);
+                                        const eligibleCadetIds = aiEligibleCadets[award.id];
+                                        const eligibleCadets = eligibleCadetIds ? cadets.filter(c => eligibleCadetIds.includes(c.id)) : [];
                                         const winnerId = winners[award.id];
                                         const winner = cadets.find(c => c.id === winnerId);
+                                        const isChecking = isCheckingEligibility[award.id];
                                         
                                         return (
                                         <AccordionItem value={award.id} key={award.id}>
@@ -153,7 +158,10 @@ export default function AwardsPage() {
                                                 {award.approval && <p className="text-sm"><span className="font-semibold">Approval:</span> {award.approval}</p>}
 
                                                 <div className="flex justify-between items-center border-t pt-4">
-                                                    <h4 className="font-semibold">Eligible Cadets ({eligibleCadets.length})</h4>
+                                                     <div>
+                                                        <h4 className="font-semibold">Eligible Cadets ({eligibleCadets.length > 0 ? eligibleCadets.length : '?'})</h4>
+                                                        <p className="text-xs text-muted-foreground">Click the button to use AI to check eligibility.</p>
+                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <Button variant="outline" size="sm" onClick={() => setEditingAward(award)}>
                                                             <Pencil className="mr-2 h-4 w-4" /> Edit
@@ -163,28 +171,35 @@ export default function AwardsPage() {
                                                         </Button>
                                                     </div>
                                                 </div>
+                                                
+                                                <Button onClick={() => handleDetermineEligibility(award)} disabled={isChecking}>
+                                                    {isChecking ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                                    {isChecking ? "Checking..." : "Check Eligibility with AI"}
+                                                </Button>
 
-                                                {eligibleCadets.length > 0 ? (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                        {eligibleCadets.map(cadet => (
-                                                            <div key={cadet.id} className="p-3 rounded-md border bg-background flex items-center justify-between">
-                                                                <div>
-                                                                    <p className="font-medium">{cadet.lastName}, {cadet.firstName}</p>
-                                                                    <p className="text-sm text-muted-foreground">{cadet.rank} / Phase {cadet.phase}</p>
+                                                {eligibleCadetIds && (
+                                                    eligibleCadets.length > 0 ? (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                            {eligibleCadets.map(cadet => (
+                                                                <div key={cadet.id} className="p-3 rounded-md border bg-background flex items-center justify-between">
+                                                                    <div>
+                                                                        <p className="font-medium">{cadet.lastName}, {cadet.firstName}</p>
+                                                                        <p className="text-sm text-muted-foreground">{cadet.rank} / Phase {cadet.phase}</p>
+                                                                    </div>
+                                                                    <Button 
+                                                                        size="sm" 
+                                                                        onClick={() => setWinner(award.id, cadet.id)}
+                                                                        variant={winnerId === cadet.id ? 'default' : 'outline'}
+                                                                    >
+                                                                        {winnerId === cadet.id ? <Crown className="mr-2 h-4 w-4" /> : null}
+                                                                        {winnerId === cadet.id ? 'Winner' : 'Select'}
+                                                                    </Button>
                                                                 </div>
-                                                                <Button 
-                                                                    size="sm" 
-                                                                    onClick={() => setWinner(award.id, cadet.id)}
-                                                                    variant={winnerId === cadet.id ? 'default' : 'outline'}
-                                                                >
-                                                                    {winnerId === cadet.id ? <Crown className="mr-2 h-4 w-4" /> : null}
-                                                                    {winnerId === cadet.id ? 'Winner' : 'Select'}
-                                                                </Button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <p className="text-muted-foreground text-sm">No cadets currently meet the eligibility criteria for this award.</p>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-muted-foreground text-sm">AI check complete. No cadets currently meet the eligibility criteria for this award.</p>
+                                                    )
                                                 )}
                                             </AccordionContent>
                                         </AccordionItem>
