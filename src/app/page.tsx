@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, FileText, Users, ClipboardCheck, Settings } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent } from 'lucide-react';
 
 const dashboardItems = [
   { href: "/planner", title: "Training Plan Management", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
+  { href: "/weekends", title: "Weekend Planner", icon: Tent, description: "Plan training weekends with a detailed 9-period schedule." },
   { href: "/reports", title: "WRO Reports", icon: FileText, description: "Generate PDF routine orders for a specific training night." },
   { href: "/cadets", title: "Cadet Management", icon: Users, description: "Add, view, and manage your corps' cadet roster." },
   { href: "/attendance", title: "Attendance Management", icon: ClipboardCheck, description: "Mark and track attendance for training nights." },

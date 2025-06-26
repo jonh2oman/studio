@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, Tent } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -18,6 +18,7 @@ import { useSettings } from "@/hooks/use-settings";
 const menuItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/planner", label: "Training Planner", icon: Calendar },
+  { href: "/weekends", label: "Weekend Planner", icon: Tent },
   { href: "/reports", label: "WRO Reports", icon: FileText },
   { href: "/cadets", label: "Cadets", icon: Users },
   { href: "/attendance", label: "Attendance", icon: ClipboardCheck },

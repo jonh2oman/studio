@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WroPreview } from "./wro-preview";
 import type { Schedule } from "@/lib/types";
 import { useSettings } from "@/hooks/use-settings";
+import { useSchedule } from "@/hooks/use-schedule";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
@@ -43,10 +44,10 @@ export function WroForm() {
   
   const [logo, setLogo] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [scheduleForDate, setScheduleForDate] = useState<Schedule>({});
   const previewRef = useRef<HTMLDivElement>(null);
-  const { settings, isLoaded } = useSettings();
-  const trainingDate = watch("trainingDate");
+  const { settings, isLoaded: settingsLoaded } = useSettings();
+  const { schedule, isLoaded: scheduleLoaded } = useSchedule();
+  const formData = watch();
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -58,13 +59,20 @@ export function WroForm() {
     }
   };
 
+  const scheduleForDate = useMemo(() => {
+    if (!formData.trainingDate || !scheduleLoaded) return {};
+    const dateStr = format(formData.trainingDate, 'yyyy-MM-dd');
+    const filteredSchedule: Schedule = {};
+    for (const slotId in schedule) {
+        if (slotId.startsWith(dateStr)) {
+            filteredSchedule[slotId] = schedule[slotId];
+        }
+    }
+    return filteredSchedule;
+  }, [formData.trainingDate, schedule, scheduleLoaded]);
+
   const onSubmit = async (data: WroFormData) => {
     setIsGenerating(true);
-    // This is where you would fetch the schedule for the selected date.
-    // For now, we'll use a placeholder.
-    const fakeSchedule: Schedule = {}; // In a real app, you'd get this from your state management/API
-    setScheduleForDate(fakeSchedule);
-
     // Allow time for the preview component to re-render with the new data
     setTimeout(async () => {
       if (previewRef.current) {
@@ -87,7 +95,7 @@ export function WroForm() {
     }, 500);
   };
   
-  if (!isLoaded) return null;
+  if (!settingsLoaded || !scheduleLoaded) return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
 
   const trainingDaysFilter = (date: Date) => {
     return date.getDay() === settings.trainingDay;
@@ -218,7 +226,7 @@ export function WroForm() {
       <div className="absolute -left-full top-0">
          <WroPreview 
             ref={previewRef}
-            data={watch()}
+            data={formData}
             logo={logo}
             schedule={scheduleForDate}
             corpsName={settings.corpsName}
