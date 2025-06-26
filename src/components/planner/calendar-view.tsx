@@ -38,7 +38,9 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove }: CalendarV
 
   useEffect(() => {
     const now = new Date();
-    const startYear = now.getMonth() >= 8 ? getYear(now) : getYear(now) - 1;
+    // A training year runs from September to June.
+    // If we are in June, July or August (months 5, 6, 7), we are likely planning for the upcoming training year.
+    const startYear = now.getMonth() >= 5 ? getYear(now) : getYear(now) - 1; // June is month 5 (0-indexed)
     const ty = {
       start: new Date(startYear, 8, 1), // September
       end: new Date(startYear + 1, 5, 30), // June
