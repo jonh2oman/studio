@@ -49,9 +49,8 @@ export function ObjectivesList() {
               <AccordionContent>
                 <Accordion type="multiple" className="w-full">
                   {phase.performanceObjectives.map((po) => {
-                    const isPoComplete = po.enablingObjectives
-                      .filter(eo => eo.type === 'mandatory')
-                      .every(eo => (scheduledEoCounts[eo.id] || 0) >= eo.periods);
+                    const mandatoryEOs = po.enablingObjectives.filter(eo => eo.type === 'mandatory');
+                    const isPoComplete = mandatoryEOs.length > 0 && mandatoryEOs.every(eo => (scheduledEoCounts[eo.id] || 0) >= eo.periods);
                     
                     return (
                     <AccordionItem value={`po-${po.id}-${phase.id}`} key={`po-${po.id}-${phase.id}`} className="pl-4 border-l">
@@ -70,8 +69,8 @@ export function ObjectivesList() {
 
                             return (
                               <div key={eo.id} className="bg-muted/30 rounded-md">
-                                <div className={cn("flex items-center p-3 rounded-t-md", isEoComplete ? "bg-green-100/80 dark:bg-green-900/30" : "bg-muted/50")}>
-                                    {isEoComplete && <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />}
+                                <div className={cn("flex items-center p-3 rounded-t-md", isEoComplete && eo.type === 'mandatory' ? "bg-green-100/80 dark:bg-green-900/30" : "bg-muted/50")}>
+                                    {isEoComplete && eo.type === 'mandatory' && <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />}
                                     <div className="flex-1">
                                         <p className="font-semibold text-sm">{eo.id}</p>
                                         <p className="text-xs text-muted-foreground">{eo.title}</p>
