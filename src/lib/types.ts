@@ -30,13 +30,23 @@ export interface Schedule {
   [slotId: string]: ScheduledItem | undefined;
 }
 
+// Global settings, not year-specific
 export interface Settings {
   trainingDay: number; // 0 for Sunday, 1 for Monday, etc.
   corpsName: string;
   instructors: string[];
   classrooms: string[];
   ranks: string[];
-  firstTrainingNight: string; // YYYY-MM-DD
+}
+
+// Settings that are specific to a training year
+export interface YearSpecificSettings {
+    firstTrainingNight: string; // YYYY-MM-DD
+}
+
+// The object that stores settings for all years
+export interface TrainingYearSettings {
+    [year: string]: YearSpecificSettings;
 }
 
 export interface Cadet {

@@ -18,6 +18,7 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { useSettings } from "@/hooks/use-settings";
+import { useTrainingYear } from "@/hooks/use-training-year";
 
 const navGroups = [
   {
@@ -60,6 +61,7 @@ const navGroups = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { settings } = useSettings();
+  const { currentYear } = useTrainingYear();
 
   return (
     <Sidebar>
@@ -70,7 +72,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col">
             <h1 className="text-lg font-semibold text-primary">{settings.corpsName}</h1>
-            <p className="text-xs text-muted-foreground">Training Officer Planning Tool</p>
+            <p className="text-xs text-muted-foreground">{currentYear ? `TY: ${currentYear}`: 'No Year Selected'}</p>
           </div>
         </div>
       </SidebarHeader>

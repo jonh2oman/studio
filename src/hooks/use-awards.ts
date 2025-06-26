@@ -4,14 +4,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Award, AwardWinner } from '@/lib/types';
 import { awardsData as defaultAwards } from '@/lib/awards-data';
+import { useTrainingYear } from './use-training-year';
 
 export function useAwards() {
+    const { currentYear } = useTrainingYear();
     const [awards, setAwards] = useState<Award[]>([]);
     const [winners, setWinners] = useState<AwardWinner>({});
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
+        if (!currentYear) {
+            setWinners({});
+            setIsLoaded(false);
+            return;
+        };
+
+        setIsLoaded(false);
         try {
+            // Awards definitions are global
             const storedAwards = localStorage.getItem('awardsList');
             if (storedAwards) {
                 setAwards(JSON.parse(storedAwards));
@@ -20,119 +30,99 @@ export function useAwards() {
                 localStorage.setItem('awardsList', JSON.stringify(defaultAwards));
             }
 
-            const storedWinners = localStorage.getItem('awardWinners');
+            // Award winners are year-specific
+            const winnersKey = `${currentYear}_awardWinners`;
+            const storedWinners = localStorage.getItem(winnersKey);
             if (storedWinners) {
                 setWinners(JSON.parse(storedWinners));
+            } else {
+                setWinners({});
             }
         } catch (error) {
             console.error("Failed to parse data from localStorage", error);
-            // Fallback to defaults if parsing fails
             setAwards(defaultAwards);
             setWinners({});
         } finally {
             setIsLoaded(true);
         }
+    }, [currentYear]);
+
+    const saveAwards = useCallback((updatedAwards: Award[]) => {
+        try {
+            localStorage.setItem('awardsList', JSON.stringify(updatedAwards));
+            setAwards(updatedAwards);
+        } catch (error) {
+            console.error("Failed to save awards to localStorage", error);
+        }
     }, []);
+
+    const saveWinners = useCallback((updatedWinners: AwardWinner) => {
+        if (!currentYear) return;
+        try {
+            const winnersKey = `${currentYear}_awardWinners`;
+            localStorage.setItem(winnersKey, JSON.stringify(updatedWinners));
+            setWinners(updatedWinners);
+        } catch (error) {
+            console.error("Failed to save award winners to localStorage", error);
+        }
+    }, [currentYear]);
 
     const addAward = useCallback((award: Omit<Award, 'id'>) => {
         const newAward = { ...award, id: crypto.randomUUID() };
-        setAwards(prevAwards => {
-            const updatedAwards = [...prevAwards, newAward];
-            try {
-                localStorage.setItem('awardsList', JSON.stringify(updatedAwards));
-            } catch (error) {
-                console.error("Failed to save awards to localStorage", error);
-            }
-            return updatedAwards;
-        });
-    }, []);
+        const updatedAwards = [...awards, newAward];
+        saveAwards(updatedAwards);
+    }, [awards, saveAwards]);
 
     const updateAward = useCallback((updatedAward: Award) => {
-        setAwards(prevAwards => {
-            const updatedAwards = prevAwards.map(a => a.id === updatedAward.id ? updatedAward : a);
-            try {
-                localStorage.setItem('awardsList', JSON.stringify(updatedAwards));
-            } catch (error) {
-                console.error("Failed to save awards to localStorage", error);
-            }
-            return updatedAwards;
-        });
-    }, []);
+        const updatedAwards = awards.map(a => a.id === updatedAward.id ? updatedAward : a);
+        saveAwards(updatedAwards);
+    }, [awards, saveAwards]);
 
     const removeAllWinnersForAward = useCallback((awardId: string) => {
-        setWinners(prevWinners => {
-            const updatedWinners = { ...prevWinners };
-            delete updatedWinners[awardId];
-             try {
-                localStorage.setItem('awardWinners', JSON.stringify(updatedWinners));
-            } catch (error) {
-                console.error("Failed to save award winners to localStorage", error);
-            }
-            return updatedWinners;
-        });
-    }, []);
+        const updatedWinners = { ...winners };
+        delete updatedWinners[awardId];
+        saveWinners(updatedWinners);
+    }, [winners, saveWinners]);
 
     const removeAward = useCallback((awardId: string) => {
-        setAwards(prevAwards => {
-            const updatedAwards = prevAwards.filter(a => a.id !== awardId);
-            try {
-                localStorage.setItem('awardsList', JSON.stringify(updatedAwards));
-                removeAllWinnersForAward(awardId);
-            } catch (error) {
-                console.error("Failed to save awards to localStorage", error);
-            }
-            return updatedAwards;
-        });
-    }, [removeAllWinnersForAward]);
-
+        const updatedAwards = awards.filter(a => a.id !== awardId);
+        saveAwards(updatedAwards);
+        removeAllWinnersForAward(awardId);
+    }, [awards, saveAwards, removeAllWinnersForAward]);
+    
     const addWinner = useCallback((awardId: string, cadetId: string) => {
-        setWinners(prevWinners => {
-            const award = awards.find(a => a.id === awardId);
-            if (!award) return prevWinners;
+        const award = awards.find(a => a.id === awardId);
+        if (!award) return;
 
-            const currentWinners = prevWinners[awardId] || [];
-            let newWinnersList: string[];
+        const currentWinners = winners[awardId] || [];
+        let newWinnersList: string[];
 
-            if (award.category === 'National') {
-                newWinnersList = [cadetId];
+        if (award.category === 'National') {
+            newWinnersList = [cadetId];
+        } else {
+            if (!currentWinners.includes(cadetId)) {
+                newWinnersList = [...currentWinners, cadetId];
             } else {
-                if (!currentWinners.includes(cadetId)) {
-                    newWinnersList = [...currentWinners, cadetId];
-                } else {
-                    newWinnersList = currentWinners;
-                }
+                newWinnersList = currentWinners;
             }
-            
-            const updatedWinners = { ...prevWinners, [awardId]: newWinnersList };
-            try {
-                localStorage.setItem('awardWinners', JSON.stringify(updatedWinners));
-            } catch (error) {
-                console.error("Failed to save award winners to localStorage", error);
-            }
-            return updatedWinners;
-        });
-    }, [awards]);
+        }
+        
+        const updatedWinners = { ...winners, [awardId]: newWinnersList };
+        saveWinners(updatedWinners);
+    }, [awards, winners, saveWinners]);
     
     const removeWinner = useCallback((awardId: string, cadetId: string) => {
-        setWinners(prevWinners => {
-            const currentWinners = prevWinners[awardId] || [];
-            const newWinnersList = currentWinners.filter(id => id !== cadetId);
-            
-            const updatedWinners = { ...prevWinners };
-            if (newWinnersList.length > 0) {
-                updatedWinners[awardId] = newWinnersList;
-            } else {
-                delete updatedWinners[awardId];
-            }
+        const currentWinners = winners[awardId] || [];
+        const newWinnersList = currentWinners.filter(id => id !== cadetId);
+        
+        const updatedWinners = { ...winners };
+        if (newWinnersList.length > 0) {
+            updatedWinners[awardId] = newWinnersList;
+        } else {
+            delete updatedWinners[awardId];
+        }
+        saveWinners(updatedWinners);
+    }, [winners, saveWinners]);
 
-            try {
-                localStorage.setItem('awardWinners', JSON.stringify(updatedWinners));
-            } catch (error) {
-                console.error("Failed to save award winners to localStorage", error);
-            }
-            return updatedWinners;
-        });
-    }, []);
-
-    return { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded };
+    return { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded: isLoaded && !!currentYear };
 }

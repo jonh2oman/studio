@@ -8,47 +8,45 @@ import { useSettings } from "@/hooks/use-settings";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { Calendar as CalendarIcon, X } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { useState, useEffect } from "react";
+import { X, PlusCircle } from "lucide-react";
+import { useTrainingYear } from "@/hooks/use-training-year";
+import { NewYearDialog } from "@/components/settings/new-year-dialog";
 
 
 const settingsSchema = z.object({
-  trainingDay: z.coerce.number().min(0).max(6),
   corpsName: z.string().min(1, "Corps name is required"),
-  firstTrainingNight: z.date({ required_error: "First training night is required" }),
+  trainingDay: z.coerce.number().min(0).max(6),
 });
 
 export default function SettingsPage() {
-  const { settings, saveSettings, isLoaded } = useSettings();
+  const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
   const [newInstructor, setNewInstructor] = useState("");
   const [newClassroom, setNewClassroom] = useState("");
   const [newRank, setNewRank] = useState("");
+  const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
+  const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    values: {
-      trainingDay: settings.trainingDay,
-      corpsName: settings.corpsName,
-      // Correctly handle YYYY-MM-DD format to avoid timezone issues by replacing hyphens.
-      firstTrainingNight: new Date(settings.firstTrainingNight.replace(/-/g, '/')),
-    },
   });
 
+  useEffect(() => {
+    if (settingsLoaded) {
+      form.reset({
+        corpsName: settings.corpsName,
+        trainingDay: settings.trainingDay,
+      });
+    }
+  }, [settingsLoaded, settings, form]);
+
   const onSubmit = (data: z.infer<typeof settingsSchema>) => {
-    const settingsToSave = {
-      ...data,
-      firstTrainingNight: format(data.firstTrainingNight, 'yyyy-MM-dd'),
-    };
-    saveSettings(settingsToSave);
+    saveSettings(data);
     toast({
       title: "Settings saved",
       description: "Your changes have been saved successfully.",
@@ -88,8 +86,9 @@ export default function SettingsPage() {
     saveSettings({ ranks: settings.ranks.filter(r => r !== rank) });
   };
 
-
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  
+  const isLoading = !settingsLoaded || !yearsLoaded;
 
   return (
     <>
@@ -98,15 +97,44 @@ export default function SettingsPage() {
         description="Configure the application to your corps' needs."
       />
       <div className="mt-6 space-y-8 max-w-4xl">
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Training Year Management</CardTitle>
+                <CardDescription>Select the active training year or create a new one to begin planning.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex-1">
+                    <Label htmlFor="training-year-select">Active Training Year</Label>
+                    <Select value={currentYear || ''} onValueChange={setCurrentYear}>
+                        <SelectTrigger id="training-year-select">
+                            <SelectValue placeholder="Select a year..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {trainingYears.map(year => (
+                                <SelectItem key={year} value={year}>{year}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <Button onClick={() => setIsNewYearDialogOpen(true)} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
+                    <PlusCircle className="mr-2" />
+                    Create New Year
+                </Button>
+            </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
-            <CardTitle>Training Schedule</CardTitle>
+            <CardTitle>Corps Information</CardTitle>
             <CardDescription>
-              Set the primary training night and corps information.
+              Set the primary training night and corps information. These settings are global across all training years.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoaded ? (
+            {isLoading ? (
+              <p>Loading settings...</p>
+            ) : (
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   <FormField
@@ -122,74 +150,33 @@ export default function SettingsPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <FormField
-                      control={form.control}
-                      name="trainingDay"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Weekly Training Night</FormLabel>
-                          <Select onValueChange={field.onChange} value={String(field.value)}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a day" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {weekDays.map((day, index) => (
-                                <SelectItem key={index} value={String(index)}>
-                                  {day}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                     <FormField
-                      control={form.control}
-                      name="firstTrainingNight"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>First Training Night</FormLabel>
-                           <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormDescription>
-                            This will be the first date shown in the planner.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="trainingDay"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Weekly Training Night</FormLabel>
+                        <Select onValueChange={field.onChange} value={String(field.value)}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a day" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {weekDays.map((day, index) => (
+                              <SelectItem key={index} value={String(index)}>
+                                {day}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <Button type="submit">Save Changes</Button>
                 </form>
               </Form>
-            ) : (
-                <p>Loading settings...</p>
             )}
           </CardContent>
         </Card>
@@ -276,6 +263,10 @@ export default function SettingsPage() {
         </Card>
 
       </div>
+      
+      {isNewYearDialogOpen && (
+        <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />
+      )}
     </>
   );
 }

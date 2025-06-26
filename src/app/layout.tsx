@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { HelpButton } from '@/components/help-button';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { TrainingYearProvider } from '@/hooks/use-training-year'; // This is a conceptual import, as the hook doesn't export a provider.
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',

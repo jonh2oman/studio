@@ -2,16 +2,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Settings } from '@/lib/types';
-
-const getFirstTuesdayOfSeptember = (year: number) => {
-    const d = new Date(year, 8, 1); // September 1st
-    const day = d.getDay(); // 0=Sun, 1=Mon...
-    // Find the first Tuesday (day 2)
-    const diff = (2 - day + 7) % 7;
-    d.setDate(1 + diff);
-    return d.toISOString().split('T')[0]; // Return as YYYY-MM-DD
-}
+import type { Settings, YearSpecificSettings, TrainingYearSettings } from '@/lib/types';
+import { useTrainingYear } from './use-training-year';
 
 const defaultSettings: Settings = {
     trainingDay: 2, // Tuesday
@@ -26,11 +18,14 @@ const defaultSettings: Settings = {
         "Chief Petty Officer 2nd Class (CPO2)",
         "Chief Petty Officer 1st Class (CPO1)",
     ],
-    firstTrainingNight: getFirstTuesdayOfSeptember(new Date().getFullYear()),
 };
 
+const defaultYearSettings: TrainingYearSettings = {};
+
 export function useSettings() {
+    const { currentYear } = useTrainingYear();
     const [settings, setSettings] = useState<Settings>(defaultSettings);
+    const [yearSettings, setYearSettings] = useState<TrainingYearSettings>(defaultYearSettings);
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
@@ -38,36 +33,43 @@ export function useSettings() {
             const storedSettings = localStorage.getItem('trainingSettings');
             if (storedSettings) {
                 const parsedSettings = JSON.parse(storedSettings);
-                // Merge stored settings with defaults to ensure all keys are present
                 const mergedSettings = { ...defaultSettings, ...parsedSettings };
-                // Ensure arrays are not empty if they exist in localStorage but are empty
-                mergedSettings.instructors = mergedSettings.instructors.length > 0 ? mergedSettings.instructors : defaultSettings.instructors;
-                mergedSettings.classrooms = mergedSettings.classrooms.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
-                mergedSettings.ranks = mergedSettings.ranks && mergedSettings.ranks.length > 0 ? mergedSettings.ranks : defaultSettings.ranks;
-
+                mergedSettings.instructors = mergedSettings.instructors?.length > 0 ? mergedSettings.instructors : defaultSettings.instructors;
+                mergedSettings.classrooms = mergedSettings.classrooms?.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
+                mergedSettings.ranks = mergedSettings.ranks?.length > 0 ? mergedSettings.ranks : defaultSettings.ranks;
                 setSettings(mergedSettings);
             } else {
                 setSettings(defaultSettings);
             }
+
+            const storedYearSettings = localStorage.getItem('trainingYearSettings');
+            if (storedYearSettings) {
+                setYearSettings(JSON.parse(storedYearSettings));
+            } else {
+                setYearSettings(defaultYearSettings);
+            }
         } catch (error) {
             console.error("Failed to parse settings from localStorage", error);
             setSettings(defaultSettings);
+            setYearSettings(defaultYearSettings);
         } finally {
             setIsLoaded(true);
         }
     }, []);
 
     const saveSettings = useCallback((newSettings: Partial<Settings>) => {
-        setSettings(prevSettings => {
-            const updatedSettings = { ...prevSettings, ...newSettings };
-            try {
-                localStorage.setItem('trainingSettings', JSON.stringify(updatedSettings));
-            } catch (error) {
-                console.error("Failed to save settings to localStorage", error);
-            }
-            return updatedSettings;
-        });
-    }, []);
+        const updatedSettings = { ...settings, ...newSettings };
+        try {
+            localStorage.setItem('trainingSettings', JSON.stringify(updatedSettings));
+            setSettings(updatedSettings);
+        } catch (error) {
+            console.error("Failed to save global settings to localStorage", error);
+        }
+    }, [settings]);
 
-    return { settings, saveSettings, isLoaded };
+    const firstTrainingNight = currentYear ? yearSettings[currentYear]?.firstTrainingNight : null;
+
+    const settingsForHook = { ...settings, firstTrainingNight: firstTrainingNight || ''};
+
+    return { settings: settingsForHook, saveSettings, isLoaded };
 }
