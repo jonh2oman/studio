@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, Tent, ClipboardPlus, Trophy } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, Tent, ClipboardPlus, Trophy, BookOpen } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -25,6 +25,7 @@ const menuItems = [
   { href: "/cadets", label: "Cadets", icon: Users },
   { href: "/attendance", label: "Attendance", icon: ClipboardCheck },
   { href: "/awards", label: "Awards", icon: Trophy },
+  { href: "/instructions", label: "Instructions", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -69,3 +70,5 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
+    

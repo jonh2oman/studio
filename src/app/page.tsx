@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 
@@ -18,6 +18,7 @@ const dashboardItems = [
   { href: "/cadets", title: "Cadet Management", icon: Users, description: "Add, view, and manage your corps' cadet roster." },
   { href: "/attendance", title: "Attendance Management", icon: ClipboardCheck, description: "Mark and track attendance for training nights." },
   { href: "/awards", title: "Awards Management", icon: Trophy, description: "Manage corps awards and track eligible cadets." },
+  { href: "/instructions", title: "Instructions", icon: BookOpen, description: "Read the user guide for this application." },
   { href: "/settings", title: "Settings", icon: Settings, description: "Configure corps information, instructors, and classrooms." },
 ];
 
@@ -96,7 +97,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {dashboardItems.map((item) => (
             <Link href={item.href} key={item.href} className="group block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
               <Card className="h-full transition-colors border-2 border-transparent group-hover:border-primary/50 group-hover:bg-muted/30">
@@ -119,3 +120,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    

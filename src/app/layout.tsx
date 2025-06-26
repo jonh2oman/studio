@@ -1,8 +1,11 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { HelpButton } from '@/components/help-button';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',
@@ -15,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -29,17 +32,20 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <SidebarProvider>
-          <div className="flex min-h-screen">
-            <AppSidebar />
-            <SidebarInset>
-              <div className="p-4 sm:p-6 lg:p-8 w-full">
-                {children}
-              </div>
-            </SidebarInset>
-          </div>
-        </SidebarProvider>
-        <Toaster />
+        <TooltipProvider delayDuration={0}>
+          <SidebarProvider>
+            <div className="flex min-h-screen">
+              <AppSidebar />
+              <SidebarInset>
+                <div className="p-4 sm:p-6 lg:p-8 w-full">
+                  {children}
+                </div>
+              </SidebarInset>
+            </div>
+          </SidebarProvider>
+          <Toaster />
+          <HelpButton />
+        </TooltipProvider>
       </body>
     </html>
   );
