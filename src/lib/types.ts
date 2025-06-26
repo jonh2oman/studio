@@ -55,3 +55,13 @@ export interface AttendanceRecord {
 export interface AttendanceState {
     [date: string]: AttendanceRecord[];
 }
+
+export interface DayMetadata {
+    csarRequired: boolean;
+    csarSubmitted: boolean;
+    csarApproved: boolean;
+}
+
+export interface DayMetadataState {
+    [date: string]: DayMetadata;
+}

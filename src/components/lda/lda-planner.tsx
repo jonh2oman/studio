@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
-import type { EO } from '@/lib/types';
+import type { EO, DayMetadata } from '@/lib/types';
 import { ObjectivesList } from '@/components/planner/objectives-list';
 import { ScheduleDialog } from '@/components/planner/schedule-dialog';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export function LdaPlanner() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
 
     const plannedDates = useMemo(() => {
@@ -59,10 +61,33 @@ export function LdaPlanner() {
     
     const renderDayCard = (day: Date) => {
         const dateStr = format(day, "yyyy-MM-dd");
+        const metadata = dayMetadata[dateStr] || { csarRequired: false, csarSubmitted: false, csarApproved: false };
+
+        const handleCsarChange = (key: keyof DayMetadata, value: boolean) => {
+            updateDayMetadata(dateStr, { [key]: value });
+        };
+
         return (
             <Card key={dateStr} className="flex-shrink-0 w-full">
                 <CardHeader>
-                    <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+                    <div className="flex justify-between items-start gap-4">
+                        <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+                        <div className="flex flex-col gap-2 border p-2 rounded-md bg-muted/50 w-64">
+                            <h4 className="text-sm font-semibold text-muted-foreground">CSAR Status</h4>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor={`csar-required-${dateStr}`} className="text-sm">Required?</Label>
+                                <Switch id={`csar-required-${dateStr}`} checked={metadata.csarRequired} onCheckedChange={(val) => handleCsarChange('csarRequired', val)} />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor={`csar-submitted-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Submitted?</Label>
+                                <Switch id={`csar-submitted-${dateStr}`} checked={metadata.csarSubmitted} onCheckedChange={(val) => handleCsarChange('csarSubmitted', val)} disabled={!metadata.csarRequired} />
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <Label htmlFor={`csar-approved-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Approved?</Label>
+                                <Switch id={`csar-approved-${dateStr}`} checked={metadata.csarApproved} onCheckedChange={(val) => handleCsarChange('csarApproved', val)} disabled={!metadata.csarRequired} />
+                            </div>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map(phase => (

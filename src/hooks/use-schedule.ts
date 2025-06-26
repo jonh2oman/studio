@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Schedule, EO, ScheduledItem } from '@/lib/types';
+import type { Schedule, EO, ScheduledItem, DayMetadata, DayMetadataState } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 
 const defaultSchedule: Schedule = {};
+const defaultDayMetadata: DayMetadataState = {};
 
 export function useSchedule() {
     const [schedule, setSchedule] = useState<Schedule>(defaultSchedule);
+    const [dayMetadata, setDayMetadata] = useState<DayMetadataState>(defaultDayMetadata);
     const [isLoaded, setIsLoaded] = useState(false);
     const { toast } = useToast();
 
@@ -17,19 +19,14 @@ export function useSchedule() {
             if (storedSchedule) {
                 setSchedule(JSON.parse(storedSchedule));
             }
+            const storedDayMetadata = localStorage.getItem('dayMetadata');
+             if (storedDayMetadata) {
+                setDayMetadata(JSON.parse(storedDayMetadata));
+            }
         } catch (error) {
-            console.error("Failed to parse schedule from localStorage", error);
+            console.error("Failed to parse data from localStorage", error);
         } finally {
             setIsLoaded(true);
-        }
-    }, []);
-    
-    const updateAndSaveSchedule = useCallback((newSchedule: Schedule) => {
-        setSchedule(newSchedule);
-        try {
-            localStorage.setItem('trainingSchedule', JSON.stringify(newSchedule));
-        } catch (error) {
-            console.error("Failed to save schedule to localStorage", error);
         }
     }, []);
 
@@ -106,5 +103,24 @@ export function useSchedule() {
         });
     }, []);
 
-    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem };
+    const updateDayMetadata = useCallback((date: string, metadataUpdate: Partial<DayMetadata>) => {
+        setDayMetadata(prev => {
+            const currentMetadata = prev[date] || { csarRequired: false, csarSubmitted: false, csarApproved: false };
+            const updatedMetadata = { ...currentMetadata, ...metadataUpdate };
+            
+            const newDayMetadataState = {
+                ...prev,
+                [date]: updatedMetadata,
+            };
+
+            try {
+                localStorage.setItem('dayMetadata', JSON.stringify(newDayMetadataState));
+            } catch (error) {
+                console.error("Failed to save day metadata to localStorage", error);
+            }
+            return newDayMetadataState;
+        });
+    }, []);
+
+    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata };
 }
