@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const dashboardCategories = [
     {
@@ -88,7 +89,7 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Welcome to your Training Officer Planning Tool."
       />
-      <div className="mt-8 space-y-12">
+      <div className="mt-8 space-y-8">
         <Card>
           <CardHeader>
             <CardTitle>Mandatory Training Progress</CardTitle>
@@ -117,30 +118,42 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        {dashboardCategories.map((category) => (
-            <div key={category.title}>
-                <h2 className="text-2xl font-bold tracking-tight mb-4 px-1">{category.title}</h2>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {category.items.map((item) => (
-                         <Link key={item.href} href={item.href} className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full">
-                            <Card className="h-full transition-colors border-2 border-transparent hover:border-primary/50 hover:bg-muted/30">
-                                <CardHeader>
-                                    <div className="flex items-start justify-between gap-4">
-                                        <CardTitle className="text-xl font-bold">
-                                            {item.title}
-                                        </CardTitle>
-                                        <item.icon className="h-8 w-8 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
-                </div>
-            </div>
-        ))}
+        <Accordion 
+            type="multiple" 
+            defaultValue={dashboardCategories.map(c => c.title)}
+            className="space-y-4"
+        >
+            {dashboardCategories.map((category) => (
+                <Card key={category.title}>
+                    <AccordionItem value={category.title} className="border-b-0">
+                        <AccordionTrigger className="p-6 hover:no-underline text-xl font-bold tracking-tight">
+                            {category.title}
+                        </AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 pt-0">
+                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {category.items.map((item) => (
+                                    <Link key={item.href} href={item.href} className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full">
+                                        <Card className="h-full transition-colors border-2 border-transparent hover:border-primary/50 hover:bg-muted/30">
+                                            <CardHeader>
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <CardTitle className="text-xl font-bold">
+                                                        {item.title}
+                                                    </CardTitle>
+                                                    <item.icon className="h-8 w-8 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-sm text-muted-foreground">{item.description}</p>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
+                                ))}
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Card>
+            ))}
+        </Accordion>
 
       </div>
     </>
