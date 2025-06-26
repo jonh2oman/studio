@@ -35,3 +35,23 @@ export interface Settings {
   classrooms: string[];
   firstTrainingNight: string; // YYYY-MM-DD
 }
+
+export interface Cadet {
+    id: string;
+    rank: string;
+    firstName: string;
+    lastName: string;
+}
+
+export type AttendanceStatus = 'present' | 'absent' | 'excused';
+
+export interface AttendanceRecord {
+    cadetId: string;
+    status: AttendanceStatus;
+    arrivedLate: boolean;
+    leftEarly: boolean;
+}
+
+export interface AttendanceState {
+    [date: string]: AttendanceRecord[];
+}

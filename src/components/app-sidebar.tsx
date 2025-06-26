@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, FileText, Settings, Ship } from "lucide-react";
+import { Calendar, FileText, Settings, Ship, Users, ClipboardCheck } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -18,6 +18,8 @@ import { useSettings } from "@/hooks/use-settings";
 const menuItems = [
   { href: "/", label: "Training Planner", icon: Calendar },
   { href: "/reports", label: "WRO Reports", icon: FileText },
+  { href: "/cadets", label: "Cadets", icon: Users },
+  { href: "/attendance", label: "Attendance", icon: ClipboardCheck },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
