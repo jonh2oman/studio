@@ -88,25 +88,22 @@ export function ObjectivesList() {
                                 </div>
 
                                 {remainingPeriods > 0 && (
-                                  <div className="p-2 border-x border-b border-muted-foreground/10 rounded-b-md grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                      {Array.from({ length: remainingPeriods }).map((_, index) => (
-                                          <div
-                                              key={`${eo.id}-period-${index}`}
-                                              draggable
-                                              onDragStart={(e) => handleDragStart(e, eo)}
-                                              className="p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing flex justify-between items-start hover:border-primary/50 transition-colors"
-                                          >
-                                              <div className="flex-1">
-                                                  <p className="font-semibold text-sm">{eo.id}</p>
-                                                  <p className="text-xs text-muted-foreground truncate">{eo.title}</p>
-                                              </div>
-                                              <div className="ml-2 text-right">
-                                                  <Badge variant="outline" className="whitespace-nowrap">
-                                                      1 Period
-                                                  </Badge>
-                                              </div>
+                                  <div className="p-2 border-x border-b border-muted-foreground/10 rounded-b-md">
+                                      <div
+                                          draggable
+                                          onDragStart={(e) => handleDragStart(e, eo)}
+                                          className="p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing flex justify-between items-start hover:border-primary/50 transition-colors"
+                                      >
+                                          <div className="flex-1">
+                                              <p className="font-semibold text-sm">{eo.id}</p>
+                                              <p className="text-xs text-muted-foreground truncate">{eo.title}</p>
                                           </div>
-                                      ))}
+                                          <div className="ml-2 text-right">
+                                              <Badge variant="outline" className="whitespace-nowrap">
+                                                  1 Period
+                                              </Badge>
+                                          </div>
+                                      </div>
                                   </div>
                                 )}
                               </div>
