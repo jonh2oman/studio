@@ -233,29 +233,32 @@ const rawData = {
   }
 };
 
-export const trainingData: Phase[] = Object.entries(rawData).map(([phaseName, pos], phaseIndex) => ({
-  id: phaseIndex + 1,
-  name: phaseName,
-  performanceObjectives: Object.entries(pos).map(([poTitle, eos]) => {
-    const poId = poTitle.split(' - ')[0];
-    const mandatoryEOs = (eos.M || []).map(([id, title, periods]) => ({
-      id: id as string,
-      title: title as string,
-      periods: periods as number,
-      type: 'mandatory' as const,
-      poId: poId,
-    }));
-    const complimentaryEOs = (eos.C || []).map(([id, title, periods]) => ({
-      id: id as string,
-      title: title as string,
-      periods: periods as number,
-      type: 'complimentary' as const,
-      poId: poId,
-    }));
-    return {
-      id: poId,
-      title: poTitle.substring(poTitle.indexOf(' - ') + 3),
-      enablingObjectives: [...mandatoryEOs, ...complimentaryEOs],
-    };
-  }),
-}));
+export const trainingData: Phase[] = Object.entries(rawData).map(([phaseName, pos], phaseIndex) => {
+  const phaseId = phaseIndex + 1;
+  return {
+    id: phaseId,
+    name: phaseName,
+    performanceObjectives: Object.entries(pos).map(([poTitle, eos]) => {
+      const poId = poTitle.split(' - ')[0];
+      const mandatoryEOs = (eos.M || []).map(([id, title, periods]) => ({
+        id: `${phaseId}-${id as string}`,
+        title: title as string,
+        periods: periods as number,
+        type: 'mandatory' as const,
+        poId: poId,
+      }));
+      const complimentaryEOs = (eos.C || []).map(([id, title, periods]) => ({
+        id: `${phaseId}-${id as string}`,
+        title: title as string,
+        periods: periods as number,
+        type: 'complimentary' as const,
+        poId: poId,
+      }));
+      return {
+        id: poId,
+        title: poTitle.substring(poTitle.indexOf(' - ') + 3),
+        enablingObjectives: [...mandatoryEOs, ...complimentaryEOs],
+      };
+    }),
+  };
+});

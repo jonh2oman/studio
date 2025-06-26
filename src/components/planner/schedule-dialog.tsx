@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -46,7 +47,7 @@ export function ScheduleDialog({ children, scheduledItem, onUpdate }: ScheduleDi
         </DialogHeader>
         <div className="py-4 space-y-4">
             <div className='p-4 rounded-md border bg-muted'>
-                <p className="font-bold text-lg">{scheduledItem.eo.id}</p>
+                <p className="font-bold text-lg">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                 <p className="text-sm text-muted-foreground">{scheduledItem.eo.title}</p>
                 <Badge variant={scheduledItem.eo.type === 'mandatory' ? 'default' : 'secondary'} className="mt-2">
                     {scheduledItem.eo.type}

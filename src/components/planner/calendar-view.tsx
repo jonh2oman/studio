@@ -74,7 +74,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
       default: newDate = addMonths(currentDate, amount); break;
     }
     setCurrentDate(newDate);
-  }, [currentDate, viewMode, getTrainingDaysForYear]);
+  }, [currentDate, viewMode]);
 
   const { headerText, trainingDaysToShow } = useMemo(() => {
     if (!currentDate || !trainingYear) return { headerText: 'Loading...', trainingDaysToShow: [] };
@@ -146,7 +146,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
                                 <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => onUpdate(slotId, details)} >
                                     <button className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
                                         <Badge className="mb-1">Phase {phase}</Badge>
-                                        <p className="font-bold text-sm">{scheduledItem.eo.id}</p>
+                                        <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                                         <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
                                         <div className="text-xs space-y-0.5">
                                             <p><span className="font-semibold">Instructor:</span> {scheduledItem.instructor || 'N/A'}</p>

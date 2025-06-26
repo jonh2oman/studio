@@ -66,13 +66,14 @@ export function ObjectivesList() {
                             const scheduledCount = scheduledEoCounts[eo.id] || 0;
                             const isEoComplete = scheduledCount >= eo.periods;
                             const remainingPeriods = eo.periods - scheduledCount;
+                            const displayId = eo.id.split('-').slice(1).join('-');
 
                             return (
                               <div key={eo.id} className="bg-muted/30 rounded-md">
                                 <div className={cn("flex items-center p-3 rounded-t-md", isEoComplete && eo.type === 'mandatory' ? "bg-green-100/80 dark:bg-green-900/30" : "bg-muted/50")}>
                                     {isEoComplete && eo.type === 'mandatory' && <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />}
                                     <div className="flex-1">
-                                        <p className="font-semibold text-sm">{eo.id}</p>
+                                        <p className="font-semibold text-sm">{displayId}</p>
                                         <p className="text-xs text-muted-foreground">{eo.title}</p>
                                     </div>
                                     <div className="ml-2 text-right text-xs space-y-1">
@@ -94,7 +95,7 @@ export function ObjectivesList() {
                                           className="p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing flex justify-between items-start hover:border-primary/50 transition-colors"
                                       >
                                           <div className="flex-1">
-                                              <p className="font-semibold text-sm">{eo.id}</p>
+                                              <p className="font-semibold text-sm">{displayId}</p>
                                               <p className="text-xs text-muted-foreground truncate">{eo.title}</p>
                                           </div>
                                           <div className="ml-2 text-right">
