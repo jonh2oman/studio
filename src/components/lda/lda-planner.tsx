@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -21,6 +20,22 @@ export function LdaPlanner() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
+
+    const plannedDates = useMemo(() => {
+        const dates = new Set<string>();
+        Object.keys(schedule).forEach(slotId => {
+            const dateStr = slotId.substring(0, 10);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                dates.add(dateStr);
+            }
+        });
+        return Array.from(dates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    }, [schedule]);
+
+    const handleDateLinkClick = (dateStr: string) => {
+        // Handle timezone issues by replacing hyphens. This is consistent with settings page.
+        setSelectedDate(new Date(dateStr.replace(/-/g, '/')));
+    };
 
     const dayToPlan = useMemo(() => {
         if (!selectedDate) return [];
@@ -131,6 +146,31 @@ export function LdaPlanner() {
                         </PopoverContent>
                     </Popover>
                 </div>
+                
+                {plannedDates.length > 0 && (
+                    <div className="p-4 border-b">
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">Jump to a Planned Day</h3>
+                        <ScrollArea className="h-24">
+                             <div className="flex flex-wrap gap-2">
+                                {plannedDates.map(dateStr => {
+                                    const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
+                                    return (
+                                        <Button 
+                                            key={dateStr}
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDateLinkClick(dateStr)}
+                                            className={cn(isSelected && "border-primary text-primary")}
+                                        >
+                                            {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                )}
+                
                 <ScrollArea className="flex-1">
                     <div className="p-4">
                         {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
