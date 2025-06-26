@@ -213,7 +213,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
       </header>
       
       {viewMode === 'year' ? (
-        <ScrollArea className="flex-1" orientation="horizontal">
+        <ScrollArea className="flex-1">
             <div className="p-4 flex gap-8">
               {Object.entries(groupedByMonth).map(([month, days]) => (
                 <div key={month} className="space-y-4">
