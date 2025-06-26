@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -199,7 +200,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
   }, {} as Record<string, Date[]>);
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex flex-col h-full bg-card min-w-0">
       <header className="flex items-center justify-between p-4 border-b">
         <h2 className="text-xl font-bold">{headerText}</h2>
         <div className="flex items-center gap-2">
