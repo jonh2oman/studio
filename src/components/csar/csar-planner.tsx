@@ -87,8 +87,8 @@ export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }
   
   const watchFields = form.watch();
 
-  const totalCadets = useMemo(() => (watchFields.numCadetsMale || 0) + (watchFields.numCadetsFemale || 0), [watchFields.numCadetsMale, watchFields.numCadetsFemale]);
-  const totalStaff = useMemo(() => (watchFields.numStaffMale || 0) + (watchFields.numStaffFemale || 0), [watchFields.numStaffMale, watchFields.numStaffFemale]);
+  const totalCadets = useMemo(() => Number(watchFields.numCadetsMale || 0) + Number(watchFields.numCadetsFemale || 0), [watchFields.numCadetsMale, watchFields.numCadetsFemale]);
+  const totalStaff = useMemo(() => Number(watchFields.numStaffMale || 0) + Number(watchFields.numStaffFemale || 0), [watchFields.numStaffMale, watchFields.numStaffFemale]);
 
   const onSubmit = (data: CsarDetails) => {
     onSave(data);
