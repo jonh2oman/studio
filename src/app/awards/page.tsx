@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function AwardsPage() {
     const { cadets, isLoaded: cadetsLoaded } = useCadets();
     const { schedule, isLoaded: scheduleLoaded } = useSchedule();
-    const { awards, addAward, updateAward, removeAward, winners, setWinner, isLoaded: awardsLoaded } = useAwards();
+    const { awards, addAward, updateAward, removeAward, winners, setWinner, removeWinner, isLoaded: awardsLoaded } = useAwards();
     const { toast } = useToast();
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -188,7 +188,13 @@ export default function AwardsPage() {
                                                                     </div>
                                                                     <Button 
                                                                         size="sm" 
-                                                                        onClick={() => setWinner(award.id, cadet.id)}
+                                                                        onClick={() => {
+                                                                            if (winnerId === cadet.id) {
+                                                                                removeWinner(award.id);
+                                                                            } else {
+                                                                                setWinner(award.id, cadet.id);
+                                                                            }
+                                                                        }}
                                                                         variant={winnerId === cadet.id ? 'default' : 'outline'}
                                                                     >
                                                                         {winnerId === cadet.id ? <Crown className="mr-2 h-4 w-4" /> : null}
