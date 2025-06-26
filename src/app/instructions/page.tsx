@@ -21,7 +21,7 @@ export default function InstructionsPage() {
           <CardContent>
             <ul className="space-y-2 text-primary underline">
               <li><a href="#dashboard"><p className="flex items-center gap-2"><List className="h-4 w-4" />Dashboard</p></a></li>
-              <li><a href="#planner"><p className="flex items-center gap-2"><Calendar className="h-4 w-4" />Training Planner</p></a></li>
+              <li><a href="#planner"><p className="flex items-center gap-2"><Calendar className="h-4 w-4" />Corps/Squadron Training Plan - Annual</p></a></li>
               <li><a href="#weekend-planner"><p className="flex items-center gap-2"><Tent className="h-4 w-4" />Weekend Planner</p></a></li>
               <li><a href="#lda-planner"><p className="flex items-center gap-2"><ClipboardPlus className="h-4 w-4" />LDA Day Planner</p></a></li>
               <li><a href="#reports"><p className="flex items-center gap-2"><FileText className="h-4 w-4" />WRO Reports</p></a></li>
@@ -53,10 +53,10 @@ export default function InstructionsPage() {
            <Card id="planner">
             <AccordionItem value="planner" className="border-b-0">
               <AccordionTrigger className="p-6 text-xl">
-                 <div className="flex items-center gap-3"><Calendar className="h-6 w-6" />Training Planner</div>
+                 <div className="flex items-center gap-3"><Calendar className="h-6 w-6" />Corps/Squadron Training Plan - Annual</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">The Training Planner is designed for scheduling your weekly training nights throughout the corps year.</p>
+                <p className="text-muted-foreground">The Corps/Squadron Training Plan - Annual is designed for scheduling your weekly training nights throughout the corps year.</p>
                 <h4 className="font-semibold">Scheduling a Lesson</h4>
                 <ol className="list-decimal list-inside space-y-1">
                     <li>Find the lesson (EO) you want to schedule in the "Training Objectives" list on the left.</li>
@@ -88,7 +88,7 @@ export default function InstructionsPage() {
                  <ol className="list-decimal list-inside space-y-1">
                     <li>Use the calendar in the header to select the start date of the weekend.</li>
                     <li>The planner will display three consecutive days, each with 9 periods available for all four Phases.</li>
-                    <li>Drag and drop lessons from the Objectives list on the left, just like in the main Training Planner.</li>
+                    <li>Drag and drop lessons from the Objectives list on the left, just like in the main Corps/Squadron Training Plan - Annual.</li>
                     <li>Any lesson scheduled here will count towards the overall training completion on the Dashboard.</li>
                 </ol>
                 <h4 className="font-semibold">CSAR Planning</h4>
@@ -218,7 +218,5 @@ export default function InstructionsPage() {
     </>
   );
 }
-
-    
 
     

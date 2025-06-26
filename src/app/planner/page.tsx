@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -11,7 +12,7 @@ export default function PlannerPage() {
   return (
     <>
       <PageHeader
-        title="Training Planner"
+        title="Corps/Squadron Training Plan - Annual"
         description="Drag and drop lessons to build your training year schedule."
       >
         <Tabs value={viewMode} onValueChange={setViewMode} className="hidden md:block">
@@ -29,3 +30,5 @@ export default function PlannerPage() {
     </>
   );
 }
+
+    

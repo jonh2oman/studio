@@ -18,14 +18,14 @@ import { useSettings } from "@/hooks/use-settings";
 
 const menuItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/planner", label: "Training Planner", icon: Calendar },
+  { href: "/instructions", label: "Instructions", icon: BookOpen },
+  { href: "/planner", label: "Corps/Squadron Training Plan - Annual", icon: Calendar },
   { href: "/weekends", label: "Weekend Planner", icon: Tent },
   { href: "/lda", label: "LDA Day Planner", icon: ClipboardPlus },
   { href: "/reports", label: "WRO Reports", icon: FileText },
   { href: "/cadets", label: "Cadets", icon: Users },
   { href: "/attendance", label: "Attendance", icon: ClipboardCheck },
   { href: "/awards", label: "Awards", icon: Trophy },
-  { href: "/instructions", label: "Instructions", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

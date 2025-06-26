@@ -29,7 +29,7 @@ import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 
 const initialDashboardItems = [
-  { id: "/planner", href: "/planner", title: "Training Plan Management", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
+  { id: "/planner", href: "/planner", title: "Corps/Squadron Training Plan - Annual", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
   { id: "/weekends", href: "/weekends", title: "Weekend Planner", icon: Tent, description: "Plan training weekends with a detailed 9-period schedule." },
   { id: "/lda", href: "/lda", title: "LDA Day Planner", icon: ClipboardPlus, description: "Plan single ad-hoc training days with a 9-period schedule." },
   { id: "/reports", href: "/reports", title: "WRO Reports", icon: FileText, description: "Generate PDF routine orders for a specific training night." },
@@ -228,3 +228,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
