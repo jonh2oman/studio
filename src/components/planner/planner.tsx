@@ -30,14 +30,16 @@ export default function Planner({ viewMode }: PlannerProps) {
                 </div>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={75} className="min-w-0">
-                <CalendarView 
-                    schedule={schedule} 
-                    onDrop={handleDrop} 
-                    onUpdate={updateScheduleItem}
-                    onRemove={removeScheduleItem}
-                    viewMode={viewMode}
-                />
+            <ResizablePanel defaultSize={75} className="relative">
+                <div className="absolute inset-0">
+                    <CalendarView 
+                        schedule={schedule} 
+                        onDrop={handleDrop} 
+                        onUpdate={updateScheduleItem}
+                        onRemove={removeScheduleItem}
+                        viewMode={viewMode}
+                    />
+                </div>
             </ResizablePanel>
         </ResizablePanelGroup>
     );
