@@ -19,6 +19,25 @@ export default function Planner({ viewMode }: PlannerProps) {
         addScheduleItem(slotId, eo);
     };
 
+    if (viewMode === 'year') {
+        return (
+             <div className="grid grid-cols-1 md:grid-cols-4 h-[calc(100vh-12rem)] gap-4">
+                <div className="md:col-span-1 h-full rounded-lg border bg-card text-card-foreground">
+                    <ObjectivesList />
+                </div>
+                <div className="md:col-span-3 h-full rounded-lg border bg-card text-card-foreground overflow-hidden">
+                    <CalendarView 
+                        schedule={schedule} 
+                        onDrop={handleDrop} 
+                        onUpdate={updateScheduleItem}
+                        onRemove={removeScheduleItem}
+                        viewMode={viewMode}
+                    />
+                </div>
+            </div>
+        )
+    }
+
     return (
         <ResizablePanelGroup 
             direction="horizontal" 
@@ -30,7 +49,7 @@ export default function Planner({ viewMode }: PlannerProps) {
                 </div>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={75} className="min-w-0">
+            <ResizablePanel defaultSize={75}>
                 <CalendarView 
                     schedule={schedule} 
                     onDrop={handleDrop} 
