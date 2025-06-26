@@ -15,12 +15,15 @@ export function AwardWinnersReport() {
 
     const winnersData = awards
         .map(award => {
-            const winnerId = winners[award.id];
-            const winner = winnerId ? cadets.find(c => c.id === winnerId) : null;
+            const winnerIds = winners[award.id] || [];
+            const currentWinners = winnerIds.map(id => cadets.find(c => c.id === id)).filter((c): c is NonNullable<typeof c> => c !== null && c !== undefined);
+
             return {
                 awardName: award.name,
                 awardCategory: award.category,
-                winnerName: winner ? `${winner.rank} ${winner.lastName}, ${winner.firstName}` : "Not Assigned"
+                winnerName: currentWinners.length > 0
+                    ? currentWinners.map(w => `${w.rank} ${w.lastName}, ${w.firstName}`).join('; ')
+                    : "Not Assigned"
             }
         })
         .sort((a,b) => a.awardCategory.localeCompare(b.awardCategory) || a.awardName.localeCompare(b.awardName));
@@ -52,7 +55,7 @@ export function AwardWinnersReport() {
                             <TableRow>
                                 <TableHead>Award Name</TableHead>
                                 <TableHead>Category</TableHead>
-                                <TableHead>Winner</TableHead>
+                                <TableHead>Winner(s)</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

@@ -144,5 +144,5 @@ export interface Award {
 }
 
 export interface AwardWinner {
-    [awardId: string]: string; // awardId: cadetId
+    [awardId: string]: string[]; // awardId: array of cadetIds
 }

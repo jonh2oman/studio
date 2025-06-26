@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function AwardsPage() {
     const { cadets, isLoaded: cadetsLoaded } = useCadets();
     const { schedule, isLoaded: scheduleLoaded } = useSchedule();
-    const { awards, addAward, updateAward, removeAward, winners, setWinner, removeWinner, isLoaded: awardsLoaded } = useAwards();
+    const { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded: awardsLoaded } = useAwards();
     const { toast } = useToast();
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -127,8 +127,8 @@ export default function AwardsPage() {
                                     {awardItems.map(award => {
                                         const eligibleCadetIds = aiEligibleCadets[award.id];
                                         const eligibleCadets = eligibleCadetIds ? cadets.filter(c => eligibleCadetIds.includes(c.id)) : [];
-                                        const winnerId = winners[award.id];
-                                        const winner = cadets.find(c => c.id === winnerId);
+                                        const winnerIds = winners[award.id] || [];
+                                        const currentWinners = cadets.filter(c => winnerIds.includes(c.id));
                                         const isChecking = isCheckingEligibility[award.id];
                                         
                                         return (
@@ -136,9 +136,10 @@ export default function AwardsPage() {
                                             <AccordionTrigger className="text-lg hover:no-underline">
                                                 <div className="flex flex-col text-left">
                                                     <span>{award.name}</span>
-                                                    {winner && (
-                                                        <span className="text-sm font-normal text-primary flex items-center gap-1">
-                                                            <Crown className="h-4 w-4" /> Winner: {winner.rank} {winner.lastName}, {winner.firstName}
+                                                     {currentWinners.length > 0 && (
+                                                        <span className="text-sm font-normal text-primary flex items-center gap-2 flex-wrap">
+                                                            <Crown className="h-4 w-4" /> 
+                                                            Winner{currentWinners.length > 1 ? 's' : ''}: {currentWinners.map(w => `${w.rank} ${w.lastName}`).join(', ')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -180,28 +181,31 @@ export default function AwardsPage() {
                                                 {eligibleCadetIds && (
                                                     eligibleCadets.length > 0 ? (
                                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                            {eligibleCadets.map(cadet => (
-                                                                <div key={cadet.id} className="p-3 rounded-md border bg-background flex items-center justify-between">
-                                                                    <div>
-                                                                        <p className="font-medium">{cadet.lastName}, {cadet.firstName}</p>
-                                                                        <p className="text-sm text-muted-foreground">{cadet.rank} / Phase {cadet.phase}</p>
+                                                            {eligibleCadets.map(cadet => {
+                                                                const isWinner = winnerIds.includes(cadet.id);
+                                                                return (
+                                                                    <div key={cadet.id} className="p-3 rounded-md border bg-background flex items-center justify-between">
+                                                                        <div>
+                                                                            <p className="font-medium">{cadet.lastName}, {cadet.firstName}</p>
+                                                                            <p className="text-sm text-muted-foreground">{cadet.rank} / Phase {cadet.phase}</p>
+                                                                        </div>
+                                                                        <Button 
+                                                                            size="sm" 
+                                                                            onClick={() => {
+                                                                                if (isWinner) {
+                                                                                    removeWinner(award.id, cadet.id);
+                                                                                } else {
+                                                                                    addWinner(award.id, cadet.id);
+                                                                                }
+                                                                            }}
+                                                                            variant={isWinner ? 'default' : 'outline'}
+                                                                        >
+                                                                            {isWinner ? <Crown className="mr-2 h-4 w-4" /> : null}
+                                                                            {isWinner ? 'Winner' : 'Select'}
+                                                                        </Button>
                                                                     </div>
-                                                                    <Button 
-                                                                        size="sm" 
-                                                                        onClick={() => {
-                                                                            if (winnerId === cadet.id) {
-                                                                                removeWinner(award.id);
-                                                                            } else {
-                                                                                setWinner(award.id, cadet.id);
-                                                                            }
-                                                                        }}
-                                                                        variant={winnerId === cadet.id ? 'default' : 'outline'}
-                                                                    >
-                                                                        {winnerId === cadet.id ? <Crown className="mr-2 h-4 w-4" /> : null}
-                                                                        {winnerId === cadet.id ? 'Winner' : 'Select'}
-                                                                    </Button>
-                                                                </div>
-                                                            ))}
+                                                                )
+                                                            })}
                                                         </div>
                                                     ) : (
                                                         <p className="text-muted-foreground text-sm">AI check complete. No cadets currently meet the eligibility criteria for this award.</p>
