@@ -11,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 
 const settingsSchema = z.object({
   trainingDay: z.coerce.number().min(0).max(6),
@@ -21,6 +22,8 @@ const settingsSchema = z.object({
 export default function SettingsPage() {
   const { settings, saveSettings, isLoaded } = useSettings();
   const { toast } = useToast();
+  const [newInstructor, setNewInstructor] = useState("");
+  const [newClassroom, setNewClassroom] = useState("");
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -32,7 +35,10 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (isLoaded) {
-      form.reset(settings);
+      form.reset({
+        trainingDay: settings.trainingDay,
+        corpsName: settings.corpsName,
+      });
     }
   }, [isLoaded, settings, form]);
 
@@ -44,6 +50,29 @@ export default function SettingsPage() {
     });
   };
 
+  const handleAddInstructor = () => {
+    if (newInstructor.trim() && !settings.instructors.includes(newInstructor.trim())) {
+      saveSettings({ instructors: [...settings.instructors, newInstructor.trim()] });
+      setNewInstructor("");
+    }
+  };
+
+  const handleRemoveInstructor = (instructor: string) => {
+    saveSettings({ instructors: settings.instructors.filter(i => i !== instructor) });
+  };
+
+  const handleAddClassroom = () => {
+    if (newClassroom.trim() && !settings.classrooms.includes(newClassroom.trim())) {
+      saveSettings({ classrooms: [...settings.classrooms, newClassroom.trim()] });
+      setNewClassroom("");
+    }
+  };
+
+  const handleRemoveClassroom = (classroom: string) => {
+    saveSettings({ classrooms: settings.classrooms.filter(c => c !== classroom) });
+  };
+
+
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
@@ -52,8 +81,8 @@ export default function SettingsPage() {
         title="Settings"
         description="Configure the application to your corps' needs."
       />
-      <div className="mt-6">
-        <Card className="max-w-2xl">
+      <div className="mt-6 space-y-8 max-w-4xl">
+        <Card>
           <CardHeader>
             <CardTitle>Training Schedule</CardTitle>
             <CardDescription>
@@ -109,6 +138,61 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Manage Instructors</CardTitle>
+            <CardDescription>Add or remove instructors from the list available in the planner.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input 
+                value={newInstructor}
+                onChange={(e) => setNewInstructor(e.target.value)}
+                placeholder="New instructor name"
+              />
+              <Button onClick={handleAddInstructor}>Add</Button>
+            </div>
+            <div className="space-y-2">
+              {settings.instructors.map(instructor => (
+                <div key={instructor} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                  <span>{instructor}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveInstructor(instructor)}>
+                    <X className="h-4 w-4"/>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Manage Classrooms</CardTitle>
+            <CardDescription>Add or remove classrooms and locations.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input 
+                value={newClassroom}
+                onChange={(e) => setNewClassroom(e.target.value)}
+                placeholder="New classroom name"
+              />
+              <Button onClick={handleAddClassroom}>Add</Button>
+            </div>
+            <div className="space-y-2">
+              {settings.classrooms.map(classroom => (
+                <div key={classroom} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                  <span>{classroom}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveClassroom(classroom)}>
+                    <X className="h-4 w-4"/>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
     </>
   );

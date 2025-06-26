@@ -31,4 +31,6 @@ export interface Schedule {
 export interface Settings {
   trainingDay: number; // 0 for Sunday, 1 for Monday, etc.
   corpsName: string;
+  instructors: string[];
+  classrooms: string[];
 }
