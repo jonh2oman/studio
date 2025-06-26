@@ -1,9 +1,11 @@
+
 "use client";
 
 import { ObjectivesList } from "@/components/planner/objectives-list";
 import { CalendarView } from "@/components/planner/calendar-view";
 import type { EO } from "@/lib/types";
 import { useSchedule } from "@/hooks/use-schedule";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 interface PlannerProps {
   viewMode: string;
@@ -18,19 +20,27 @@ export default function Planner({ viewMode }: PlannerProps) {
     };
 
     return (
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
-            <div className="xl:col-span-1 h-full rounded-lg border bg-card text-card-foreground overflow-hidden">
-                <ObjectivesList />
-            </div>
-            <div className="xl:col-span-3 h-full rounded-lg border bg-card text-card-foreground overflow-hidden">
-                <CalendarView 
-                    schedule={schedule} 
-                    onDrop={handleDrop} 
-                    onUpdate={updateScheduleItem}
-                    onRemove={removeScheduleItem}
-                    viewMode={viewMode}
-                />
-            </div>
-        </div>
+        <ResizablePanelGroup 
+            direction="horizontal" 
+            className="h-[calc(100vh-12rem)] rounded-lg border bg-card"
+        >
+            <ResizablePanel defaultSize={25} minSize={20}>
+                <div className="h-full overflow-hidden">
+                    <ObjectivesList />
+                </div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={75}>
+                <div className="h-full overflow-hidden">
+                    <CalendarView 
+                        schedule={schedule} 
+                        onDrop={handleDrop} 
+                        onUpdate={updateScheduleItem}
+                        onRemove={removeScheduleItem}
+                        viewMode={viewMode}
+                    />
+                </div>
+            </ResizablePanel>
+        </ResizablePanelGroup>
     );
 }

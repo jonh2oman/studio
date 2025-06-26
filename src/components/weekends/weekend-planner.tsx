@@ -20,6 +20,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CsarPlanner } from '@/components/csar/csar-planner';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 export function WeekendPlanner() {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
@@ -162,42 +163,47 @@ export function WeekendPlanner() {
     };
 
     return (
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-[calc(100vh-12rem)]">
-            <div className="xl:col-span-1 h-full rounded-lg border bg-card text-card-foreground overflow-hidden">
-                <ObjectivesList />
-            </div>
-            <div className="xl:col-span-3 h-full rounded-lg border bg-card text-card-foreground overflow-hidden flex flex-col">
-                 <div className="flex items-center justify-between p-4 border-b">
-                     <h2 className="text-xl font-bold">Select Weekend Start Date</h2>
-                     <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-[280px] justify-start text-left font-normal",
-                                !startDate && "text-muted-foreground"
-                            )}
-                            >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={setStartDate}
-                            initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+        <ResizablePanelGroup direction="horizontal" className="h-[calc(100vh-12rem)]">
+            <ResizablePanel defaultSize={25} minSize={20}>
+                <div className="h-full rounded-lg border bg-card text-card-foreground overflow-hidden">
+                    <ObjectivesList />
                 </div>
-                <ScrollArea className="flex-1">
-                    <div className="p-4 flex gap-4">
-                        {weekendDays.map(renderDayCard)}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={75}>
+                <div className="h-full rounded-lg border bg-card text-card-foreground overflow-hidden flex flex-col">
+                    <div className="flex items-center justify-between p-4 border-b">
+                        <h2 className="text-xl font-bold">Select Weekend Start Date</h2>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[280px] justify-start text-left font-normal",
+                                    !startDate && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                mode="single"
+                                selected={startDate}
+                                onSelect={setStartDate}
+                                initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
-                </ScrollArea>
-            </div>
-        </div>
+                    <ScrollArea className="flex-1">
+                        <div className="p-4 flex gap-4">
+                            {weekendDays.map(renderDayCard)}
+                        </div>
+                    </ScrollArea>
+                </div>
+            </ResizablePanel>
+        </ResizablePanelGroup>
     );
 }
