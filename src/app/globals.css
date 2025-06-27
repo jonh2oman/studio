@@ -76,6 +76,15 @@ body {
     --sidebar-border: 200 15% 22%;
     --sidebar-ring: 175 80% 65%;
   }
+
+  .theme-green { --primary: 142 76% 36%; --primary-foreground: 142 76% 96%; --ring: 142 76% 36%; --sidebar-primary: 142 76% 36%; --sidebar-ring: 142 76% 36%; }
+  .dark .theme-green { --primary: 142 66% 46%; --primary-foreground: 142 76% 96%; --ring: 142 66% 46%; --sidebar-primary: 142 66% 46%; --sidebar-ring: 142 66% 46%; }
+  
+  .theme-blue { --primary: 217 91% 60%; --primary-foreground: 210 40% 98%; --ring: 217 91% 60%; --sidebar-primary: 217 91% 60%; --sidebar-ring: 217 91% 60%; }
+  .dark .theme-blue { --primary: 217 91% 60%; --primary-foreground: 210 40% 98%; --ring: 217 91% 60%; --sidebar-primary: 217 91% 60%; --sidebar-ring: 217 91% 60%; }
+
+  .theme-red { --primary: 0 84.2% 60.2%; --primary-foreground: 210 40% 98%; --ring: 0 84.2% 60.2%; --sidebar-primary: 0 84.2% 60.2%; --sidebar-ring: 0 84.2% 60.2%; }
+  .dark .theme-red { --primary: 0 72.2% 50.6%; --primary-foreground: 210 40% 98%; --ring: 0 72.2% 50.6%; --sidebar-primary: 0 72.2% 50.6%; --sidebar-ring: 0 72.2% 50.6%; }
 }
 
 @layer base {

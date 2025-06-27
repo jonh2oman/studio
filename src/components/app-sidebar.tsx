@@ -21,6 +21,7 @@ import { useSettings } from "@/hooks/use-settings";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "./ui/button";
+import { ThemeSwitcher } from "./theme-switcher";
 
 const navGroups = [
   {
@@ -190,6 +191,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="items-center p-2 space-y-2">
          <AuthStatus />
+         <ThemeSwitcher />
          <SidebarSeparator />
          <div className="flex justify-center">
             <SidebarTrigger />

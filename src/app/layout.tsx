@@ -9,6 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { SaveProvider } from '@/hooks/use-save-context';
 import { FloatingSaveButton } from '@/components/floating-save-button';
 import { AuthProvider } from '@/hooks/use-auth';
+import { ThemeProvider } from '@/hooks/use-theme';
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',
@@ -21,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -35,27 +36,29 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <AuthProvider>
-          <SaveProvider>
-            <TooltipProvider delayDuration={0}>
-              <SidebarProvider>
-                <div className="flex min-h-screen">
-                  <div className="print:hidden">
-                    <AppSidebar />
+        <ThemeProvider>
+          <AuthProvider>
+            <SaveProvider>
+              <TooltipProvider delayDuration={0}>
+                <SidebarProvider>
+                  <div className="flex min-h-screen">
+                    <div className="print:hidden">
+                      <AppSidebar />
+                    </div>
+                    <SidebarInset>
+                      {children}
+                    </SidebarInset>
                   </div>
-                  <SidebarInset>
-                    {children}
-                  </SidebarInset>
+                </SidebarProvider>
+                <Toaster />
+                <div className="print:hidden">
+                  <HelpButton />
+                  <FloatingSaveButton />
                 </div>
-              </SidebarProvider>
-              <Toaster />
-              <div className="print:hidden">
-                <HelpButton />
-                <FloatingSaveButton />
-              </div>
-            </TooltipProvider>
-          </SaveProvider>
-        </AuthProvider>
+              </TooltipProvider>
+            </SaveProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
