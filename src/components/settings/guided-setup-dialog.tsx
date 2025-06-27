@@ -147,7 +147,7 @@ export function GuidedSetupDialog({ isOpen, onOpenChange, onFinish }: GuidedSetu
                                                     </Button>
                                                 </FormControl>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date.getDay() !== trainingDayForPicker} initialFocus /></PopoverContent>
+                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date.getDay() !== Number(trainingDayForPicker)} initialFocus /></PopoverContent>
                                         </Popover>
                                         <FormDescription>Select your designated training night.</FormDescription>
                                         <FormMessage />
