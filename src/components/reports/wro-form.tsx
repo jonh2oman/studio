@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState, useRef, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import html2canvas from "html2canvas";
@@ -12,34 +13,58 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { WroPreview } from "./wro-preview";
-import type { Schedule } from "@/lib/types";
+import type { Schedule, UpcomingActivity } from "@/lib/types";
 import { useSettings } from "@/hooks/use-settings";
 import { useSchedule } from "@/hooks/use-schedule";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, PlusCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 
 const wroSchema = z.object({
   roNumber: z.string().min(1, "RO # is required"),
   dutyOfficerName: z.string().min(1, "Duty Officer name is required"),
   dutyOfficerPhone: z.string().min(1, "Duty Officer phone is required"),
+  dutyOfficerEmail: z.string().email({ message: "Invalid email address" }).optional().or(z.literal('')),
   dutyPOName: z.string().min(1, "Duty PO name is required"),
   dutyPOPhone: z.string().min(1, "Duty PO phone is required"),
+  alternateDutyPO: z.string().optional(),
+  dutyWatch: z.string().optional(),
   coName: z.string().min(1, "CO name is required"),
   announcements: z.string().optional(),
+  notes: z.string().optional(),
   dressCaf: z.string().optional(),
   dressCadets: z.string().optional(),
   trainingDate: z.date({ required_error: "A training date is required." }),
+  upcomingActivities: z.array(
+    z.object({
+      id: z.string(),
+      activity: z.string().min(1, "Required"),
+      activityStart: z.string().min(1, "Required"),
+      activityEnd: z.string().min(1, "Required"),
+      location: z.string().min(1, "Required"),
+      dress: z.string().min(1, "Required"),
+      opi: z.string().min(1, "Required"),
+    })
+  ).optional(),
 });
 
 type WroFormData = z.infer<typeof wroSchema>;
 
 export function WroForm() {
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<WroFormData>({
+  const { control, register, handleSubmit, watch, formState: { errors } } = useForm<WroFormData>({
     resolver: zodResolver(wroSchema),
+    defaultValues: {
+      upcomingActivities: [],
+    }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "upcomingActivities",
   });
   
   const [logo, setLogo] = useState<string | null>(null);
@@ -181,9 +206,12 @@ export function WroForm() {
                             <Input id="dutyOfficerPhone" {...register("dutyOfficerPhone")} />
                              {errors.dutyOfficerPhone && <p className="text-destructive text-sm mt-1">{errors.dutyOfficerPhone.message}</p>}
                         </div>
-                    </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
+                        <div className="sm:col-span-2">
+                             <Label htmlFor="dutyOfficerEmail">Duty Officer Email</Label>
+                            <Input id="dutyOfficerEmail" {...register("dutyOfficerEmail")} />
+                             {errors.dutyOfficerEmail && <p className="text-destructive text-sm mt-1">{errors.dutyOfficerEmail.message}</p>}
+                        </div>
+                         <div>
                             <Label htmlFor="dutyPOName">Duty PO Name</Label>
                             <Input id="dutyPOName" {...register("dutyPOName")} />
                             {errors.dutyPOName && <p className="text-destructive text-sm mt-1">{errors.dutyPOName.message}</p>}
@@ -193,6 +221,14 @@ export function WroForm() {
                             <Input id="dutyPOPhone" {...register("dutyPOPhone")} />
                              {errors.dutyPOPhone && <p className="text-destructive text-sm mt-1">{errors.dutyPOPhone.message}</p>}
                         </div>
+                         <div>
+                            <Label htmlFor="alternateDutyPO">Alternate Duty PO</Label>
+                            <Input id="alternateDutyPO" {...register("alternateDutyPO")} />
+                        </div>
+                         <div>
+                            <Label htmlFor="dutyWatch">Duty Watch</Label>
+                            <Input id="dutyWatch" {...register("dutyWatch")} />
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -201,10 +237,6 @@ export function WroForm() {
         <Card>
             <CardHeader><CardTitle>Content</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-                 <div>
-                    <Label htmlFor="announcements">Announcements</Label>
-                    <Textarea id="announcements" {...register("announcements")} />
-                </div>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <Label htmlFor="dressCaf">Dress (CAF Members)</Label>
@@ -214,6 +246,63 @@ export function WroForm() {
                         <Label htmlFor="dressCadets">Dress (Cadets)</Label>
                         <Input id="dressCadets" {...register("dressCadets")} defaultValue="C-2" />
                     </div>
+                </div>
+                 <div>
+                    <Label htmlFor="announcements">Announcements</Label>
+                    <Textarea id="announcements" {...register("announcements")} />
+                </div>
+                 <div>
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea id="notes" {...register("notes")} />
+                </div>
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Upcoming Activities</CardTitle>
+                        <CardDescription>Add activities for the upcoming week.</CardDescription>
+                    </div>
+                    <Button type="button" size="sm" onClick={() => append({ id: crypto.randomUUID(), activity: '', activityStart: '', activityEnd: '', location: '', dress: '', opi: '' })}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Activity
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="border rounded-lg">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Activity</TableHead>
+                                <TableHead>Start</TableHead>
+                                <TableHead>End</TableHead>
+                                <TableHead>Location</TableHead>
+                                <TableHead>Dress</TableHead>
+                                <TableHead>OPI</TableHead>
+                                <TableHead className="w-[50px]"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {fields.length === 0 && <TableRow><TableCell colSpan={7} className="text-center h-24">No upcoming activities added.</TableCell></TableRow>}
+                            {fields.map((field, index) => (
+                                <TableRow key={field.id}>
+                                    <TableCell><Input {...register(`upcomingActivities.${index}.activity`)} /></TableCell>
+                                    <TableCell><Input {...register(`upcomingActivities.${index}.activityStart`)} /></TableCell>
+                                    <TableCell><Input {...register(`upcomingActivities.${index}.activityEnd`)} /></TableCell>
+                                    <TableCell><Input {...register(`upcomingActivities.${index}.location`)} /></TableCell>
+                                    <TableCell><Input {...register(`upcomingActivities.${index}.dress`)} /></TableCell>
+                                    <TableCell><Input {...register(`upcomingActivities.${index}.opi`)} /></TableCell>
+                                    <TableCell>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </div>
             </CardContent>
         </Card>

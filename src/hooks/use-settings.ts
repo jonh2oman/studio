@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Settings, YearSpecificSettings, TrainingYearSettings } from '@/lib/types';
+import type { Settings, YearSpecificSettings, TrainingYearSettings, WeeklyActivity } from '@/lib/types';
 import { useTrainingYear } from './use-training-year';
 
 const defaultSettings: Settings = {
@@ -18,6 +18,7 @@ const defaultSettings: Settings = {
         "Chief Petty Officer 2nd Class (CPO2)",
         "Chief Petty Officer 1st Class (CPO1)",
     ],
+    weeklyActivities: [],
 };
 
 const defaultYearSettings: TrainingYearSettings = {};
@@ -37,6 +38,7 @@ export function useSettings() {
                 mergedSettings.instructors = mergedSettings.instructors?.length > 0 ? mergedSettings.instructors : defaultSettings.instructors;
                 mergedSettings.classrooms = mergedSettings.classrooms?.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
                 mergedSettings.ranks = mergedSettings.ranks?.length > 0 ? mergedSettings.ranks : defaultSettings.ranks;
+                mergedSettings.weeklyActivities = parsedSettings.weeklyActivities || [];
                 setSettings(mergedSettings);
             } else {
                 setSettings(defaultSettings);

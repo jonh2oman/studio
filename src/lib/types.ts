@@ -30,6 +30,28 @@ export interface Schedule {
   [slotId: string]: ScheduledItem | undefined;
 }
 
+export interface UpcomingActivity {
+  id: string;
+  activity: string;
+  activityStart: string;
+  activityEnd: string;
+  location: string;
+  dress: string;
+  opi: string;
+}
+
+export interface WeeklyActivity {
+  id: string;
+  date: string; // Stored as YYYY-MM-DD
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  activity: string;
+  location: string;
+  dress: string;
+  opi: string;
+}
+
 // Global settings, not year-specific
 export interface Settings {
   trainingDay: number; // 0 for Sunday, 1 for Monday, etc.
@@ -37,6 +59,7 @@ export interface Settings {
   instructors: string[];
   classrooms: string[];
   ranks: string[];
+  weeklyActivities: WeeklyActivity[];
 }
 
 // Settings that are specific to a training year

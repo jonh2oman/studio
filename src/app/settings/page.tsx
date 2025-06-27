@@ -13,10 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { X, PlusCircle } from "lucide-react";
+import { X, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
+import type { WeeklyActivity } from "@/lib/types";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format as formatDate, getDay } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 
 const settingsSchema = z.object({
@@ -30,6 +36,16 @@ export default function SettingsPage() {
   const [newInstructor, setNewInstructor] = useState("");
   const [newClassroom, setNewClassroom] = useState("");
   const [newRank, setNewRank] = useState("");
+  const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
+  const [newActivity, setNewActivity] = useState<{ date?: Date; startTime: string; endTime: string; activity: string; location: string; dress: string; opi: string; }>({
+    startTime: '',
+    endTime: '',
+    activity: '',
+    location: '',
+    dress: '',
+    opi: '',
+  });
+
   const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
   const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
 
@@ -47,8 +63,10 @@ export default function SettingsPage() {
         corpsName: settings.corpsName,
         trainingDay: settings.trainingDay,
       });
+      setWeeklyActivities(settings.weeklyActivities);
     }
-  }, [settingsLoaded, settings.corpsName, settings.trainingDay, form.reset]);
+  }, [settingsLoaded, settings.corpsName, settings.trainingDay, settings.weeklyActivities, form]);
+
 
   const onSubmit = (data: z.infer<typeof settingsSchema>) => {
     saveSettings(data);
@@ -93,6 +111,36 @@ export default function SettingsPage() {
 
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   
+  const handleAddActivity = () => {
+    if (!newActivity.date || !newActivity.activity) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please provide at least a date and activity name.",
+        });
+        return;
+    }
+    const newActivityToAdd: WeeklyActivity = {
+        id: crypto.randomUUID(),
+        date: formatDate(newActivity.date, 'yyyy-MM-dd'),
+        dayOfWeek: weekDays[getDay(newActivity.date)],
+        startTime: newActivity.startTime,
+        endTime: newActivity.endTime,
+        activity: newActivity.activity,
+        location: newActivity.location,
+        dress: newActivity.dress,
+        opi: newActivity.opi,
+    };
+    const updatedActivities = [...weeklyActivities, newActivityToAdd];
+    saveSettings({ weeklyActivities: updatedActivities });
+    setNewActivity({ date: undefined, startTime: '', endTime: '', activity: '', location: '', dress: '', opi: '' }); // Reset form
+  };
+
+  const handleRemoveActivity = (id: string) => {
+    const updatedActivities = weeklyActivities.filter(a => a.id !== id);
+    saveSettings({ weeklyActivities: updatedActivities });
+  };
+
   const isLoading = !settingsLoaded || !yearsLoaded;
 
   return (
@@ -265,6 +313,73 @@ export default function SettingsPage() {
               ))}
             </div>
           </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Manage Weekly Activities</CardTitle>
+                <CardDescription>Define recurring weekly activities like team practices.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4 p-4 border rounded-md">
+                    <h4 className="font-semibold">Add New Activity</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col space-y-1.5">
+                            <Label>Date</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.date && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {newActivity.date ? formatDate(newActivity.date, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.date} onSelect={(d) => setNewActivity(prev => ({...prev, date: d}))} initialFocus /></PopoverContent>
+                            </Popover>
+                        </div>
+                        <div />
+                        <div><Label>Start Time</Label><Input type="time" value={newActivity.startTime} onChange={e => setNewActivity(prev => ({...prev, startTime: e.target.value}))} /></div>
+                        <div><Label>End Time</Label><Input type="time" value={newActivity.endTime} onChange={e => setNewActivity(prev => ({...prev, endTime: e.target.value}))} /></div>
+                        <div className="md:col-span-2"><Label>Activity</Label><Input value={newActivity.activity} onChange={e => setNewActivity(prev => ({...prev, activity: e.target.value}))} /></div>
+                        <div><Label>Location</Label><Input value={newActivity.location} onChange={e => setNewActivity(prev => ({...prev, location: e.target.value}))} /></div>
+                        <div><Label>Dress</Label><Input value={newActivity.dress} onChange={e => setNewActivity(prev => ({...prev, dress: e.target.value}))} /></div>
+                        <div className="md:col-span-2"><Label>OPI</Label><Input value={newActivity.opi} onChange={e => setNewActivity(prev => ({...prev, opi: e.target.value}))} /></div>
+                    </div>
+                    <Button onClick={handleAddActivity}>Add Activity</Button>
+                </div>
+                <div className="mt-6">
+                    <h4 className="font-semibold mb-2">Scheduled Activities</h4>
+                     <div className="border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Activity</TableHead>
+                                    <TableHead>OPI</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {weeklyActivities.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}
+                                {weeklyActivities.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(act => (
+                                    <TableRow key={act.id}>
+                                        <TableCell>{formatDate(new Date(act.date.replace(/-/g, '/')), "PPP")} ({act.dayOfWeek})</TableCell>
+                                        <TableCell>
+                                            <p className="font-medium">{act.activity}</p>
+                                            <p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p>
+                                        </TableCell>
+                                        <TableCell>{act.opi}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveActivity(act.id)}>
+                                                <X className="h-4 w-4"/>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                     </div>
+                </div>
+            </CardContent>
         </Card>
 
       </div>

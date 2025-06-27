@@ -39,11 +39,14 @@ export const WroPreview = forwardRef<HTMLDivElement, WroPreviewProps>(({ data, l
                 {logo && <img src={logo} alt="Corps Logo" style={{ maxWidth: '100px', maxHeight: '100px' }} />}
             </header>
 
-            <div className="grid grid-cols-2 gap-4 my-4 text-sm">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2 my-4 text-sm">
                 <div><strong>Date:</strong> {data.trainingDate ? format(data.trainingDate, 'EEEE, dd MMMM yyyy') : ''}</div>
                 <div><strong>RO #:</strong> {data.roNumber}</div>
                 <div><strong>Duty Officer:</strong> {data.dutyOfficerName} ({data.dutyOfficerPhone})</div>
                 <div><strong>Duty PO:</strong> {data.dutyPOName} ({data.dutyPOPhone})</div>
+                <div className="col-span-2"><strong>Duty Officer Email:</strong> {data.dutyOfficerEmail}</div>
+                <div><strong>Alternate Duty PO:</strong> {data.alternateDutyPO}</div>
+                <div><strong>Duty Watch:</strong> {data.dutyWatch}</div>
                 <div><strong>Dress (CAF):</strong> {data.dressCaf}</div>
                 <div><strong>Dress (Cadets):</strong> {data.dressCadets}</div>
             </div>
@@ -64,27 +67,27 @@ export const WroPreview = forwardRef<HTMLDivElement, WroPreviewProps>(({ data, l
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Time</TableHead>
-                            <TableHead>Phase 1</TableHead>
-                            <TableHead>Phase 2</TableHead>
-                            <TableHead>Phase 3</TableHead>
-                            <TableHead>Phase 4</TableHead>
+                            <TableHead className="text-black">Time</TableHead>
+                            <TableHead className="text-black">Phase 1</TableHead>
+                            <TableHead className="text-black">Phase 2</TableHead>
+                            <TableHead className="text-black">Phase 3</TableHead>
+                            <TableHead className="text-black">Phase 4</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                        {nightSchedule.map(({ time, period }) => (
                            <TableRow key={period}>
-                               <TableCell className="font-medium">{time}</TableCell>
+                               <TableCell className="font-medium text-black">{time}</TableCell>
                                {[1,2,3,4].map(phase => {
                                    const item = getScheduledItem(period, phase);
                                    return (
-                                       <TableCell key={phase}>
+                                       <TableCell key={phase} className="text-black">
                                            {item ? (
                                                <div>
                                                    <p className="font-bold">{item.eo.id.split('-').slice(1).join('-')}</p>
                                                    <p className="text-xs">{item.eo.title}</p>
-                                                   <p className="text-xs italic">Inst: {item.instructor}</p>
-                                                   <p className="text-xs italic">Loc: {item.classroom}</p>
+                                                   <p className="text-xs italic">Inst: {item.instructor || 'TBA'}</p>
+                                                   <p className="text-xs italic">Loc: {item.classroom || 'TBA'}</p>
                                                </div>
                                            ) : '-'}
                                        </TableCell>
@@ -95,12 +98,47 @@ export const WroPreview = forwardRef<HTMLDivElement, WroPreviewProps>(({ data, l
                     </TableBody>
                 </Table>
             </section>
+            
+            {(data.upcomingActivities && data.upcomingActivities.length > 0) &&
+                <section className="my-6 break-inside-avoid">
+                    <h3 className="text-lg font-bold border-b border-black mb-2">UPCOMING ACTIVITIES</h3>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="text-black">Activity</TableHead>
+                                <TableHead className="text-black">Start</TableHead>
+                                <TableHead className="text-black">End</TableHead>
+                                <TableHead className="text-black">Location</TableHead>
+                                <TableHead className="text-black">Dress</TableHead>
+                                <TableHead className="text-black">OPI</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {data.upcomingActivities.map((act: any) => (
+                                <TableRow key={act.id}>
+                                    <TableCell className="text-black">{act.activity}</TableCell>
+                                    <TableCell className="text-black">{act.activityStart}</TableCell>
+                                    <TableCell className="text-black">{act.activityEnd}</TableCell>
+                                    <TableCell className="text-black">{act.location}</TableCell>
+                                    <TableCell className="text-black">{act.dress}</TableCell>
+                                    <TableCell className="text-black">{act.opi}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </section>
+            }
 
-             <section className="my-6">
+             <section className="my-6 break-inside-avoid">
                 <h3 className="text-lg font-bold border-b border-black mb-2">ANNOUNCEMENTS</h3>
                 <p className="text-sm whitespace-pre-wrap">{data.announcements || 'Nil.'}</p>
             </section>
             
+             <section className="my-6 break-inside-avoid">
+                <h3 className="text-lg font-bold border-b border-black mb-2">NOTES</h3>
+                <p className="text-sm whitespace-pre-wrap">{data.notes || 'Nil.'}</p>
+            </section>
+
             <footer className="pt-16">
                  <div className="mt-16 border-t-2 border-black pt-2 w-1/2">
                     <p>{data.coName}</p>
