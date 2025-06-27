@@ -95,7 +95,7 @@ export function StaffManager() {
     };
 
     return (
-        <Card>
+        <Card className="border">
             <CardHeader>
                 <CardTitle>Manage Corps Staff</CardTitle>
                 <CardDescription>Add, edit, or remove staff members who can be assigned as instructors or duty personnel.</CardDescription>

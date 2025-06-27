@@ -201,7 +201,7 @@ export default function SettingsPage() {
       </PageHeader>
       <div className="mt-8 space-y-6">
         <Accordion type="multiple" defaultValue={["general", "personnel", "resources"]} className="w-full space-y-6">
-            <Card>
+            <Card className="border">
                 <AccordionItem value="general" className="border-b-0">
                     <AccordionTrigger className="p-6 hover:no-underline">
                         <h2 className="text-2xl font-bold tracking-tight">General Settings</h2>
@@ -209,7 +209,7 @@ export default function SettingsPage() {
                     <AccordionContent className="p-6 pt-0">
                         <p className="text-muted-foreground mb-6">High-level settings for the application and training year.</p>
                         <div className="grid gap-8">
-                            <Card>
+                            <Card className="border">
                                 <CardHeader>
                                     <CardTitle>Training Year Management</CardTitle>
                                     <CardDescription>Select the active training year or create a new one to begin planning.</CardDescription>
@@ -235,7 +235,7 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card>
+                            <Card className="border">
                                 <CardHeader>
                                     <CardTitle>Corps Information</CardTitle>
                                     <CardDescription>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                 </AccordionItem>
             </Card>
             
-            <Card>
+            <Card className="border">
                 <AccordionItem value="personnel" className="border-b-0">
                     <AccordionTrigger className="p-6 hover:no-underline">
                         <h2 className="text-2xl font-bold tracking-tight">Personnel Management</h2>
@@ -311,7 +311,7 @@ export default function SettingsPage() {
                 </AccordionItem>
             </Card>
 
-            <Card>
+            <Card className="border">
                 <AccordionItem value="resources" className="border-b-0">
                     <AccordionTrigger className="p-6 hover:no-underline">
                         <h2 className="text-2xl font-bold tracking-tight">Planning Resources</h2>
@@ -319,7 +319,7 @@ export default function SettingsPage() {
                     <AccordionContent className="p-6 pt-0">
                         <p className="text-muted-foreground mb-6">Customize lists and recurring events used throughout the planners and reports.</p>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <Card>
+                            <Card className="border">
                                 <CardHeader>
                                     <CardTitle>Manage Classrooms</CardTitle>
                                     <CardDescription>Add or remove classrooms and locations.</CardDescription>
@@ -346,7 +346,7 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
                             
-                             <Card>
+                             <Card className="border">
                                 <CardHeader>
                                     <CardTitle>Manage Officer Ranks</CardTitle>
                                     <CardDescription>Add or remove staff ranks from the list available in the app.</CardDescription>
@@ -373,7 +373,7 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card>
+                            <Card className="border">
                                 <CardHeader>
                                     <CardTitle>Manage Cadet Ranks</CardTitle>
                                     <CardDescription>Add or remove cadet ranks from the list available in the app.</CardDescription>
@@ -400,7 +400,7 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
                             
-                            <Card className="lg:col-span-2">
+                            <Card className="lg:col-span-2 border">
                                 <CardHeader>
                                     <CardTitle>Manage Orders of Dress</CardTitle>
                                     <CardDescription>Add or remove orders of dress for CAF Staff and Cadets.</CardDescription>
@@ -443,7 +443,7 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="lg:col-span-2">
+                            <Card className="lg:col-span-2 border">
                                 <CardHeader>
                                     <CardTitle>Manage Weekly Activities</CardTitle>
                                     <CardDescription>Define recurring weekly activities with start and end dates.</CardDescription>

@@ -46,7 +46,7 @@ export function DutyRoster() {
     const isLoading = !settingsLoaded || !yearLoaded;
 
     return (
-        <Card>
+        <Card className="border">
             <CardHeader>
                 <CardTitle>Duty Roster</CardTitle>
                 <CardDescription>Assign duty personnel for each parade night of the training year. This will auto-populate the WRO.</CardDescription>
