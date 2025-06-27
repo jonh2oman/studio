@@ -42,8 +42,8 @@ export const WroPreview = forwardRef<HTMLDivElement, WroPreviewProps>(({ data, l
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 my-4 text-sm">
                 <div><strong>Date:</strong> {data.trainingDate ? format(data.trainingDate, 'EEEE, dd MMMM yyyy') : ''}</div>
                 <div><strong>RO #:</strong> {data.roNumber}</div>
-                <div><strong>Duty Officer:</strong> {data.dutyOfficerName} ({data.dutyOfficerPhone})</div>
-                <div><strong>Duty PO:</strong> {data.dutyPOName} ({data.dutyPOPhone})</div>
+                <div><strong>Duty Officer:</strong> {data.dutyOfficerName} {data.dutyOfficerPhone && `(${data.dutyOfficerPhone})`}</div>
+                <div><strong>Duty PO:</strong> {data.dutyPOName} {data.dutyPOPhone && `(${data.dutyPOPhone})`}</div>
                 <div className="col-span-2"><strong>Duty Officer Email:</strong> {data.dutyOfficerEmail}</div>
                 <div><strong>Alternate Duty PO:</strong> {data.alternateDutyPO}</div>
                 <div><strong>Duty Watch:</strong> {data.dutyWatch}</div>

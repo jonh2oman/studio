@@ -29,10 +29,10 @@ import { useToast } from "@/hooks/use-toast";
 const wroSchema = z.object({
   roNumber: z.string().optional(),
   dutyOfficerName: z.string().min(1, "Duty Officer name is required"),
-  dutyOfficerPhone: z.string().min(1, "Duty Officer phone is required"),
+  dutyOfficerPhone: z.string().optional(),
   dutyOfficerEmail: z.string().email({ message: "Invalid email address" }).optional().or(z.literal('')),
   dutyPOName: z.string().min(1, "Duty PO name is required"),
-  dutyPOPhone: z.string().min(1, "Duty PO phone is required"),
+  dutyPOPhone: z.string().optional(),
   alternateDutyPO: z.string().optional(),
   dutyWatch: z.string().optional(),
   coName: z.string().min(1, "CO name is required"),
@@ -102,12 +102,14 @@ export function WroForm() {
             setValue('dutyOfficerPhone', officer?.phone || '');
             setValue('dutyOfficerEmail', officer?.email || '');
             setValue('dutyPOName', po ? `${po.rank} ${po.lastName}` : '');
+            setValue('dutyPOPhone', po?.phone || '');
             setValue('alternateDutyPO', altPo ? `${altPo.rank} ${altPo.lastName}` : '');
         } else {
             setValue('dutyOfficerName', '');
             setValue('dutyOfficerPhone', '');
             setValue('dutyOfficerEmail', '');
             setValue('dutyPOName', '');
+            setValue('dutyPOPhone', '');
             setValue('alternateDutyPO', '');
         }
     }
@@ -331,11 +333,11 @@ export function WroForm() {
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <Label htmlFor="dressCaf">Dress (CAF Members)</Label>
-                        <Input id="dressCaf" {...register("dressCaf")} />
+                        <Input id="dressCaf" {...register("dressCaf")} readOnly />
                     </div>
                     <div>
                         <Label htmlFor="dressCadets">Dress (Cadets)</Label>
-                        <Input id="dressCadets" {...register("dressCadets")} />
+                        <Input id="dressCadets" {...register("dressCadets")} readOnly />
                     </div>
                 </div>
                  <div>
