@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, Tent, ClipboardPlus, Trophy, BookOpen } from "lucide-react";
 import {
@@ -62,6 +62,11 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { currentYear, isLoaded: yearsLoaded } = useTrainingYear();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <Sidebar>
@@ -72,10 +77,10 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col min-h-[2.5rem] justify-center">
             <h1 className="text-lg font-semibold text-primary">
-              {settingsLoaded ? (settings.corpsName || <>&nbsp;</>) : <>&nbsp;</>}
+              {isMounted && settingsLoaded ? (settings.corpsName || <>&nbsp;</>) : <>&nbsp;</>}
             </h1>
             <p className="text-xs text-muted-foreground">
-              {yearsLoaded ? (currentYear ? `TY: ${currentYear}` : 'No Year Selected') : <>&nbsp;</>}
+              {isMounted && yearsLoaded ? (currentYear ? `TY: ${currentYear}` : 'No Year Selected') : <>&nbsp;</>}
             </p>
           </div>
         </div>
