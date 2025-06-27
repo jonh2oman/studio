@@ -372,14 +372,14 @@ export default function SettingsPage() {
   };
   
   // --- Google Drive Logic ---
-  const googleLogin = useGoogleLogin({
+  const googleLogin = CLIENT_ID ? useGoogleLogin({
     onSuccess: (tokenResponse) => {
       setGoogleToken(tokenResponse.access_token);
       toast({ title: 'Google Sign-In Successful' });
     },
     onError: () => toast({ variant: 'destructive', title: 'Google Sign-In Failed' }),
     scope: DRIVE_API_SCOPE,
-  });
+  }) : () => {};
 
   const getDriveHeaders = useCallback(() => {
     if (!googleToken) throw new Error('Not authenticated with Google');
