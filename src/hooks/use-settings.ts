@@ -1,9 +1,11 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Settings, YearSpecificSettings, TrainingYearSettings, WeeklyActivity, CustomEO } from '@/lib/types';
-import { useTrainingYear } from './use-training-year';
+import { useState, useEffect, useCallback } from 'react';
+import type { Settings, CustomEO, UserDocument } from '@/lib/types';
+import { useAuth } from './use-auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const permanentRoles = [
     'Commanding Officer',
@@ -59,83 +61,64 @@ const defaultSettings: Settings = {
         cadets: []
     },
     customEOs: defaultCustomEOs,
+    firstTrainingNight: '', // This is now a dummy value, real value is per-year
+    awards: [],
 };
 
-const defaultYearSettings: TrainingYearSettings = {};
+export const defaultUserDocument: UserDocument = {
+    settings: defaultSettings,
+    trainingYears: {}
+}
 
 export function useSettings() {
-    const { currentYear } = useTrainingYear();
+    const { user } = useAuth();
     const [settings, setSettings] = useState<Settings>(defaultSettings);
-    const [yearSettings, setYearSettings] = useState<TrainingYearSettings>(defaultYearSettings);
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        try {
-            const storedSettings = localStorage.getItem('trainingSettings');
-            if (storedSettings) {
-                const parsedSettings = JSON.parse(storedSettings);
-                // Gracefully handle migration from old `ranks` to new `cadetRanks` and `officerRanks`
-                if (parsedSettings.ranks && !parsedSettings.cadetRanks) {
-                    parsedSettings.cadetRanks = parsedSettings.ranks;
-                    delete parsedSettings.ranks;
-                }
-                
-                // Create a robust merged settings object, falling back to new empty defaults if stored values are null/undefined
-                const mergedSettings = {
-                    ...defaultSettings, // Start with new defaults
-                    ...parsedSettings,  // Override with any stored values
-                    // Explicitly ensure array/object properties are not null
-                    staff: (parsedSettings.staff || []).map((s: any) => ({
-                        ...s,
-                        primaryRole: s.primaryRole || '',
-                        additionalRoles: s.additionalRoles || [],
-                    })), 
-                    staffRoles: Array.from(new Set([...permanentRoles, ...(parsedSettings.staffRoles || [])])),
-                    cadetRoles: parsedSettings.cadetRoles || [],
-                    classrooms: parsedSettings.classrooms || [],
-                    cadetRanks: parsedSettings.cadetRanks || [],
-                    officerRanks: parsedSettings.officerRanks || [],
-                    weeklyActivities: parsedSettings.weeklyActivities || [],
-                    ordersOfDress: parsedSettings.ordersOfDress || { caf: [], cadets: [] },
-                    customEOs: parsedSettings.customEOs || defaultCustomEOs,
+        const loadSettings = async () => {
+            if (!user || !db) {
+                setSettings(defaultSettings);
+                setIsLoaded(true);
+                return;
+            };
+
+            setIsLoaded(false);
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+                const data = userDocSnap.data() as UserDocument;
+                 const mergedSettings = {
+                    ...defaultSettings,
+                    ...data.settings,
+                    staffRoles: Array.from(new Set([...permanentRoles, ...(data.settings.staffRoles || [])])),
                 };
-                
                 setSettings(mergedSettings);
             } else {
+                // New user, create default doc
+                await setDoc(userDocRef, defaultUserDocument);
                 setSettings(defaultSettings);
             }
-
-            const storedYearSettings = localStorage.getItem('trainingYearSettings');
-            if (storedYearSettings) {
-                setYearSettings(JSON.parse(storedYearSettings));
-            } else {
-                setYearSettings(defaultYearSettings);
-            }
-        } catch (error) {
-            console.error("Failed to parse settings from localStorage", error);
-            setSettings(defaultSettings);
-            setYearSettings(defaultYearSettings);
-        } finally {
             setIsLoaded(true);
         }
-    }, []);
+        loadSettings();
+    }, [user]);
 
-    const saveSettings = useCallback((newSettings: Partial<Settings>) => {
+    const saveSettings = useCallback(async (newSettings: Partial<Settings>) => {
+        if (!user || !db) return;
+        
         const updatedSettings = { ...settings, ...newSettings };
+        setSettings(updatedSettings); // Optimistic update
+
+        const userDocRef = doc(db, 'users', user.uid);
         try {
-            localStorage.setItem('trainingSettings', JSON.stringify(updatedSettings));
-            setSettings(updatedSettings);
+            await updateDoc(userDocRef, { settings: updatedSettings });
         } catch (error) {
-            console.error("Failed to save global settings to localStorage", error);
+            console.error("Failed to save global settings to Firestore", error);
+            // Optionally revert optimistic update
         }
-    }, [settings]);
-
-    const firstTrainingNight = currentYear ? yearSettings[currentYear]?.firstTrainingNight : null;
-
-    const settingsForHook = useMemo(() => ({
-        ...settings,
-        firstTrainingNight: firstTrainingNight || ''
-    }), [settings, firstTrainingNight]);
-
-    return { settings: settingsForHook, saveSettings, isLoaded };
+    }, [user, settings]);
+    
+    return { settings, saveSettings, isLoaded };
 }

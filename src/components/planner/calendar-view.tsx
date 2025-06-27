@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useTrainingYear } from "@/hooks/use-training-year";
 
 interface CalendarViewProps {
   schedule: Schedule;
@@ -40,11 +41,12 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
   const [trainingYear, setTrainingYear] = useState<{ start: Date; end: Date } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
   const { settings, isLoaded } = useSettings();
+  const { currentYearData, isLoaded: yearLoaded } = useTrainingYear();
 
   const firstNightDate = useMemo(() => {
-    if (!isLoaded) return null;
-    return new Date(settings.firstTrainingNight.replace(/-/g, '/'));
-  }, [isLoaded, settings.firstTrainingNight]);
+    if (!yearLoaded || !currentYearData?.firstTrainingNight) return null;
+    return new Date(currentYearData.firstTrainingNight.replace(/-/g, '/'));
+  }, [yearLoaded, currentYearData?.firstTrainingNight]);
 
   useEffect(() => {
     if (!isLoaded || !firstNightDate) return;

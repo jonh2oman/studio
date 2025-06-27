@@ -1,5 +1,4 @@
 
-
 export interface EO {
   id: string;
   title: string;
@@ -81,9 +80,8 @@ export interface CustomEO {
   periods: number;
 }
 
-// Global settings, not year-specific
 export interface Settings {
-  trainingDay: number; // 0 for Sunday, 1 for Monday, etc.
+  trainingDay: number;
   corpsName: string;
   staff: StaffMember[];
   staffRoles: string[];
@@ -97,17 +95,8 @@ export interface Settings {
       cadets: string[];
   };
   customEOs: CustomEO[];
-}
-
-// Settings that are specific to a training year
-export interface YearSpecificSettings {
-    firstTrainingNight: string; // YYYY-MM-DD
-    dutySchedule: DutySchedule;
-}
-
-// The object that stores settings for all years
-export interface TrainingYearSettings {
-    [year: string]: YearSpecificSettings;
+  firstTrainingNight: string; // Dummy property for compatibility
+  awards: Award[];
 }
 
 export interface Cadet {
@@ -237,8 +226,20 @@ export interface AwardWinner {
     [awardId: string]: string[]; // awardId: array of cadetIds
 }
 
-export interface GoogleDriveFile {
-  id: string;
-  name: string;
-  modifiedTime: string;
+export interface TrainingYearData {
+    firstTrainingNight: string;
+    dutySchedule: DutySchedule;
+    cadets: Cadet[];
+    schedule: Schedule;
+    dayMetadata: DayMetadataState;
+    attendance: AttendanceState;
+    awardWinners: AwardWinner;
+    csarDetails: CsarDetails;
+}
+
+export interface UserDocument {
+    settings: Settings;
+    trainingYears: {
+        [year: string]: TrainingYearData;
+    }
 }

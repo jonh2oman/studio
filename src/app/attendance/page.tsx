@@ -18,7 +18,6 @@ import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import type { AttendanceRecord, AttendanceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useSave } from "@/hooks/use-save-context";
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -26,7 +25,6 @@ export default function AttendancePage() {
   const { cadets, isLoaded: cadetsLoaded, getAttendanceForDate, saveAttendanceForDate } = useCadets();
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
-  const { registerSave } = useSave();
 
   useEffect(() => {
     if (cadetsLoaded && selectedDate) {
@@ -55,17 +53,19 @@ export default function AttendancePage() {
         saveAttendanceForDate(dateString, attendanceRecords);
         toast({
             title: "Attendance Saved",
-            description: `Attendance for ${format(selectedDate, 'PPP')} has been saved.`,
+            description: `Attendance for ${format(selectedDate, 'PPP')} has been automatically saved.`,
         });
     }
   }, [selectedDate, attendanceRecords, saveAttendanceForDate, toast]);
 
   useEffect(() => {
-    registerSave(handleSaveAttendance);
-    return () => {
-        registerSave(null);
-    }
-  }, [registerSave, handleSaveAttendance]);
+    if (!selectedDate) return;
+    const handler = setTimeout(() => {
+        handleSaveAttendance();
+    }, 1000); // Debounce save
+    return () => clearTimeout(handler);
+  }, [attendanceRecords, handleSaveAttendance, selectedDate]);
+
 
   const trainingDaysFilter = (date: Date) => {
     return date.getDay() === settings.trainingDay;
@@ -77,10 +77,8 @@ export default function AttendancePage() {
     <>
       <PageHeader
         title="Attendance Taker"
-        description="Mark attendance for a specific training night."
-      >
-        {selectedDate && <Button onClick={handleSaveAttendance} disabled={isLoading || cadets.length === 0}>Save Attendance</Button>}
-      </PageHeader>
+        description="Mark attendance for a specific training night. Changes are saved automatically."
+      />
       
       <div className="mt-6">
         <Card>

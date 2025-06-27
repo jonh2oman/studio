@@ -6,8 +6,6 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { HelpButton } from '@/components/help-button';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { SaveProvider } from '@/hooks/use-save-context';
-import { FloatingSaveButton } from '@/components/floating-save-button';
 import { AuthProvider } from '@/hooks/use-auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { BugReportButton } from '@/components/bug-report/bug-report-button';
@@ -26,28 +24,25 @@ export default function RootLayout({
 }>) {
   const providers = (
       <AuthProvider>
-        <SaveProvider>
-          <TooltipProvider delayDuration={0}>
-            <SidebarProvider>
-              <div className="flex min-h-screen">
-                <div className="print:hidden">
-                  <AppSidebar />
-                </div>
-                <SidebarInset>
-                  {children}
-                </SidebarInset>
+        <TooltipProvider delayDuration={0}>
+          <SidebarProvider>
+            <div className="flex min-h-screen">
+              <div className="print:hidden">
+                <AppSidebar />
               </div>
-            </SidebarProvider>
-            <Toaster />
-            <div className="print:hidden">
-              <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
-                <HelpButton />
-                <BugReportButton />
-              </div>
-              <FloatingSaveButton />
+              <SidebarInset>
+                {children}
+              </SidebarInset>
             </div>
-          </TooltipProvider>
-        </SaveProvider>
+          </SidebarProvider>
+          <Toaster />
+          <div className="print:hidden">
+            <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
+              <HelpButton />
+              <BugReportButton />
+            </div>
+          </div>
+        </TooltipProvider>
       </AuthProvider>
   );
 

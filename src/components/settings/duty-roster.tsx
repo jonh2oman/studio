@@ -14,10 +14,10 @@ import { Loader2 } from 'lucide-react';
 
 export function DutyRoster() {
     const { settings, isLoaded: settingsLoaded } = useSettings();
-    const { dutySchedule, updateDutySchedule, currentYear, isLoaded: yearLoaded } = useTrainingYear();
+    const { dutySchedule, updateDutySchedule, currentYear, currentYearData, isLoaded: yearLoaded } = useTrainingYear();
 
     const trainingDays = useMemo(() => {
-        if (!currentYear || !settings.firstTrainingNight) return [];
+        if (!currentYear || !currentYearData?.firstTrainingNight) return [];
 
         const [startYearStr] = currentYear.split('-');
         const startYear = parseInt(startYearStr, 10);
@@ -28,13 +28,12 @@ export function DutyRoster() {
             end: new Date(endYear, 5, 30), // June 30
         };
 
-        // Handle timezone issues by replacing hyphens, which assumes local timezone
-        const firstNight = new Date(settings.firstTrainingNight.replace(/-/g, '/'));
+        const firstNight = new Date(currentYearData.firstTrainingNight.replace(/-/g, '/'));
 
         return eachDayOfInterval({ start: ty.start, end: ty.end })
             .filter(d => d.getDay() === settings.trainingDay && d >= firstNight);
 
-    }, [currentYear, settings.firstTrainingNight, settings.trainingDay]);
+    }, [currentYear, currentYearData?.firstTrainingNight, settings.trainingDay]);
     
     const officers = useMemo(() => settings.staff.filter(s => s.type === 'Officer'), [settings.staff]);
     const pos = useMemo(() => settings.staff.filter(s => s.type === 'PO/NCM'), [settings.staff]);

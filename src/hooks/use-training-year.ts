@@ -3,59 +3,127 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
+import { useAuth } from './use-auth';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { Settings, TrainingYearSettings, Cadet, DutySchedule } from '@/lib/types';
+import type { UserDocument, TrainingYearData, DutySchedule } from '@/lib/types';
+import { defaultUserDocument } from './use-settings';
+
+const defaultYearData: TrainingYearData = {
+    firstTrainingNight: '',
+    dutySchedule: {},
+    cadets: [],
+    schedule: {},
+    dayMetadata: {},
+    attendance: {},
+    awardWinners: {},
+    csarDetails: {
+        activityName: '',
+        activityType: '',
+        activityLocation: '',
+        startTime: '09:00',
+        endTime: '17:00',
+        isMultiUnit: false,
+        multiUnitDetails: '',
+        numCadetsMale: 0,
+        numCadetsFemale: 0,
+        numStaffMale: 0,
+        numStaffFemale: 0,
+        transportRequired: false,
+        transportation: { schoolBus44: 0, cruiser55: 0 },
+        supportVehiclesRequired: false,
+        supportVehicles: { van8: 0, crewCab: 0, cubeVan: 0, miniVan7: 0, panelVan: 0, staffCar: 0 },
+        fuelCardRequired: false,
+        accommodationsRequired: false,
+        accommodation: { type: '', cost: 0 },
+        mealsRequired: false,
+        mealPlan: [],
+        j4Plan: { quartermasterLocation: '', items: [], submitted: false, approved: false },
+    }
+};
 
 export function useTrainingYear() {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [allYearsData, setAllYearsData] = useState<{ [year: string]: TrainingYearData }>({});
     const [trainingYears, setTrainingYears] = useState<string[]>([]);
     const [currentYear, setCurrentYearState] = useState<string | null>(null);
-    const [dutySchedule, setDutySchedule] = useState<DutySchedule>({});
     const [isLoaded, setIsLoaded] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-    const { toast } = useToast();
-
+    
+    // Effect to load data from Firestore when user changes
     useEffect(() => {
-        try {
-            const storedYears = localStorage.getItem('trainingYears');
-            const years = storedYears ? JSON.parse(storedYears) : [];
+        const loadData = async () => {
+            if (!user || !db) {
+                setTrainingYears([]);
+                setAllYearsData({});
+                setCurrentYearState(null);
+                setIsLoaded(true);
+                return;
+            }
+
+            setIsLoaded(false);
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            let data: UserDocument;
+            if (userDocSnap.exists()) {
+                data = userDocSnap.data() as UserDocument;
+            } else {
+                await setDoc(userDocRef, defaultUserDocument);
+                data = defaultUserDocument;
+            }
+
+            const years = Object.keys(data.trainingYears || {}).sort().reverse();
             setTrainingYears(years);
+            setAllYearsData(data.trainingYears || {});
 
             const storedCurrentYear = localStorage.getItem('currentTrainingYear');
-            
             if (storedCurrentYear && years.includes(storedCurrentYear)) {
                 setCurrentYearState(storedCurrentYear);
             } else if (years.length > 0) {
-                const latestYear = years.sort().reverse()[0];
-                setCurrentYearState(latestYear);
-                localStorage.setItem('currentTrainingYear', latestYear);
+                setCurrentYearState(years[0]);
+                localStorage.setItem('currentTrainingYear', years[0]);
             } else {
                 setCurrentYearState(null);
             }
-        } catch (error) {
-            console.error("Failed to initialize training year", error);
-        } finally {
             setIsLoaded(true);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (currentYear) {
-            const dutyScheduleKey = `${currentYear}_dutySchedule`;
-            const storedDutySchedule = localStorage.getItem(dutyScheduleKey);
-            setDutySchedule(storedDutySchedule ? JSON.parse(storedDutySchedule) : {});
-        }
-    }, [currentYear]);
+        };
+        loadData();
+    }, [user]);
 
     const setCurrentYear = useCallback((year: string) => {
         if (trainingYears.includes(year)) {
             localStorage.setItem('currentTrainingYear', year);
             setCurrentYearState(year);
-            // This will trigger the useEffect above to load the correct duty schedule
             toast({ title: "Switched Year", description: `Now viewing training year ${year}.` });
         }
     }, [trainingYears, toast]);
 
+    const updateCurrentYearData = useCallback(async (dataUpdate: Partial<TrainingYearData>) => {
+        if (!user || !db || !currentYear) return;
+
+        const currentData = allYearsData[currentYear] || {};
+        const updatedData = { ...currentData, ...dataUpdate };
+        
+        // Optimistic update for UI responsiveness
+        setAllYearsData(prev => ({ ...prev, [currentYear]: updatedData }));
+
+        const userDocRef = doc(db, 'users', user.uid);
+        try {
+            await updateDoc(userDocRef, {
+                [`trainingYears.${currentYear}`]: updatedData
+            });
+        } catch (error) {
+            console.error("Failed to update year data in Firestore", error);
+            // Optionally revert optimistic update
+            toast({ variant: "destructive", title: "Save Failed", description: "Could not save changes to the cloud." });
+        }
+    }, [user, currentYear, allYearsData, toast]);
+
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean }) => {
+        if (!user || !db) return;
         if (trainingYears.includes(year)) {
             toast({ variant: "destructive", title: "Error", description: `Training year ${year} already exists.` });
             return;
@@ -65,87 +133,73 @@ export function useTrainingYear() {
         toast({ title: "Creating New Year...", description: `Please wait while we set up ${year}.` });
 
         try {
-            // Update year list
-            const updatedYears = [...trainingYears, year].sort().reverse();
-            localStorage.setItem('trainingYears', JSON.stringify(updatedYears));
-            setTrainingYears(updatedYears);
+            let newYearData: TrainingYearData = { ...defaultYearData, firstTrainingNight: startDate };
 
-            // Set new year-specific settings
-            const yearSettingsStr = localStorage.getItem('trainingYearSettings') || '{}';
-            const yearSettings = JSON.parse(yearSettingsStr) as TrainingYearSettings;
-            yearSettings[year] = { firstTrainingNight: startDate, dutySchedule: {} };
-            localStorage.setItem('trainingYearSettings', JSON.stringify(yearSettings));
-            localStorage.setItem(`${year}_dutySchedule`, '{}');
-
-            if (copyFrom) {
-                // Copy Cadets
-                const sourceCadetsStr = localStorage.getItem(`${copyFrom}_cadetRoster`) || '[]';
-                const sourceCadets = JSON.parse(sourceCadetsStr) as Cadet[];
-                const newCadets = promoteCadets
-                    ? sourceCadets.map(c => ({ ...c, phase: Math.min(5, c.phase + 1) }))
-                    : sourceCadets;
-                localStorage.setItem(`${year}_cadetRoster`, JSON.stringify(newCadets));
-
-                // Copy schedule
-                const sourceScheduleStr = localStorage.getItem(`${copyFrom}_trainingSchedule`) || '{}';
-                if (useAiForCopy) {
-                     const sourceYearSettings = yearSettings[copyFrom];
-                     if (!sourceYearSettings) throw new Error(`Could not find settings for source year ${copyFrom}`);
-                    
-                    const globalSettingsStr = localStorage.getItem('trainingSettings') || '{}';
-                    const globalSettings = JSON.parse(globalSettingsStr) as Partial<Settings>;
-                    const trainingDay = globalSettings.trainingDay ?? 2;
-
-                    const result = await copyTrainingSchedule({
-                        sourceScheduleJson: sourceScheduleStr,
-                        sourceTrainingYearStart: sourceYearSettings.firstTrainingNight,
-                        targetTrainingYearStart: startDate,
-                        trainingDayOfWeek: trainingDay,
-                    });
-                    localStorage.setItem(`${year}_trainingSchedule`, result.newScheduleJson);
-
-                } else {
-                    localStorage.setItem(`${year}_trainingSchedule`, sourceScheduleStr);
-                }
+            if (copyFrom && allYearsData[copyFrom]) {
+                const sourceData = allYearsData[copyFrom];
+                newYearData.cadets = promoteCadets 
+                    ? sourceData.cadets.map(c => ({ ...c, phase: Math.min(5, c.phase + 1) }))
+                    : sourceData.cadets;
                 
-                // Copy other year-specific data as empty states
-                localStorage.setItem(`${year}_cadetAttendance`, '{}');
-                localStorage.setItem(`${year}_awardWinners`, '{}');
-                localStorage.setItem(`${year}_dayMetadata`, '{}');
+                if (useAiForCopy) {
+                    const settingsDoc = await getDoc(doc(db, 'users', user.uid));
+                    const globalSettings = settingsDoc.data()?.settings;
+                    const result = await copyTrainingSchedule({
+                        sourceScheduleJson: JSON.stringify(sourceData.schedule),
+                        sourceTrainingYearStart: sourceData.firstTrainingNight,
+                        targetTrainingYearStart: startDate,
+                        trainingDayOfWeek: globalSettings?.trainingDay ?? 2,
+                    });
+                    newYearData.schedule = JSON.parse(result.newScheduleJson);
+                } else {
+                    newYearData.schedule = sourceData.schedule;
+                }
             }
             
+            await updateDoc(doc(db, 'users', user.uid), {
+                [`trainingYears.${year}`]: newYearData
+            });
+            
+            // Manually update local state to avoid a full re-fetch
+            setAllYearsData(prev => ({ ...prev, [year]: newYearData }));
+            const updatedYears = [...trainingYears, year].sort().reverse();
+            setTrainingYears(updatedYears);
             setCurrentYear(year);
-            toast({ title: "Success", description: `Successfully created and switched to training year ${year}.` });
 
+            toast({ title: "Success", description: `Successfully created and switched to training year ${year}.` });
         } catch (error) {
             console.error("Failed to create new year:", error);
             toast({ variant: "destructive", title: "Creation Failed", description: "Could not create the new training year. See console for details." });
-            // Clean up failed year creation
-            const revertedYears = trainingYears.filter(y => y !== year);
-            localStorage.setItem('trainingYears', JSON.stringify(revertedYears));
-            setTrainingYears(revertedYears);
         } finally {
             setIsCreating(false);
         }
-    }, [trainingYears, toast]);
-
-    const updateDutySchedule = useCallback((date: string, scheduleUpdate: { dutyOfficerId?: string; dutyPoId?: string; altDutyPoId?: string; }) => {
-        if (!currentYear) return;
+    }, [user, trainingYears, allYearsData, toast, setCurrentYear]);
+    
+     const updateDutySchedule = useCallback((date: string, scheduleUpdate: Partial<DutySchedule[string]>) => {
+        if (!currentYearData) return;
         const newDutySchedule = {
-            ...dutySchedule,
+            ...currentYearData.dutySchedule,
             [date]: {
-                ...(dutySchedule[date] || {}),
+                ...(currentYearData.dutySchedule[date] || {}),
                 ...scheduleUpdate
             }
         };
-        try {
-            const dutyScheduleKey = `${currentYear}_dutySchedule`;
-            localStorage.setItem(dutyScheduleKey, JSON.stringify(newDutySchedule));
-            setDutySchedule(newDutySchedule);
-        } catch (error) {
-            console.error("Failed to save duty schedule to localStorage", error);
-        }
-    }, [currentYear, dutySchedule]);
+        updateCurrentYearData({ dutySchedule: newDutySchedule });
+    }, [currentYearData, updateCurrentYearData]);
 
-    return { trainingYears, currentYear, setCurrentYear, createNewYear, isLoaded, isCreating, dutySchedule, updateDutySchedule };
+
+    const currentYearData = currentYear ? allYearsData[currentYear] : null;
+
+    return { 
+        trainingYears, 
+        currentYear, 
+        setCurrentYear, 
+        createNewYear, 
+        isLoaded, 
+        isCreating, 
+        currentYearData,
+        updateCurrentYearData,
+        dutySchedule: currentYearData?.dutySchedule || {},
+        updateDutySchedule
+    };
 }

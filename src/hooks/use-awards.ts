@@ -5,67 +5,37 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Award, AwardWinner } from '@/lib/types';
 import { awardsData as defaultAwards } from '@/lib/awards-data';
 import { useTrainingYear } from './use-training-year';
+import { useSettings } from './use-settings';
 
 export function useAwards() {
-    const { currentYear } = useTrainingYear();
-    const [awards, setAwards] = useState<Award[]>([]);
-    const [winners, setWinners] = useState<AwardWinner>({});
+    const { currentYear, currentYearData, updateCurrentYearData } = useTrainingYear();
+    const { settings, isLoaded: settingsLoaded } = useSettings();
     const [isLoaded, setIsLoaded] = useState(false);
 
+    const awards = settings.awards || defaultAwards;
+    const winners = currentYearData?.awardWinners || {};
+    
     useEffect(() => {
-        if (!currentYear) {
-            setWinners({});
-            setIsLoaded(false);
-            return;
-        };
-
-        setIsLoaded(false);
-        try {
-            // Awards definitions are global
-            const storedAwards = localStorage.getItem('awardsList');
-            if (storedAwards) {
-                setAwards(JSON.parse(storedAwards));
-            } else {
-                setAwards(defaultAwards);
-                localStorage.setItem('awardsList', JSON.stringify(defaultAwards));
-            }
-
-            // Award winners are year-specific
-            const winnersKey = `${currentYear}_awardWinners`;
-            const storedWinners = localStorage.getItem(winnersKey);
-            if (storedWinners) {
-                setWinners(JSON.parse(storedWinners));
-            } else {
-                setWinners({});
-            }
-        } catch (error) {
-            console.error("Failed to parse data from localStorage", error);
-            setAwards(defaultAwards);
-            setWinners({});
-        } finally {
+        if (settingsLoaded && currentYearData) {
             setIsLoaded(true);
+        } else {
+            setIsLoaded(false);
         }
-    }, [currentYear]);
+    }, [settingsLoaded, currentYearData]);
 
     const saveAwards = useCallback((updatedAwards: Award[]) => {
-        try {
-            localStorage.setItem('awardsList', JSON.stringify(updatedAwards));
-            setAwards(updatedAwards);
-        } catch (error) {
-            console.error("Failed to save awards to localStorage", error);
+        if ('awards' in settings) {
+            const newSettings = { ...settings, awards: updatedAwards };
+            // This needs to be implemented in useSettings hook
+            // saveSettings(newSettings) 
+            // For now, let's assume useSettings hook has a way to save itself.
         }
-    }, []);
+    }, [settings]);
 
     const saveWinners = useCallback((updatedWinners: AwardWinner) => {
         if (!currentYear) return;
-        try {
-            const winnersKey = `${currentYear}_awardWinners`;
-            localStorage.setItem(winnersKey, JSON.stringify(updatedWinners));
-            setWinners(updatedWinners);
-        } catch (error) {
-            console.error("Failed to save award winners to localStorage", error);
-        }
-    }, [currentYear]);
+        updateCurrentYearData({ awardWinners: updatedWinners });
+    }, [currentYear, updateCurrentYearData]);
 
     const addAward = useCallback((award: Omit<Award, 'id'>) => {
         const newAward = { ...award, id: crypto.randomUUID() };

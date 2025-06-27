@@ -1,113 +1,28 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import type { Schedule, EO, ScheduledItem, DayMetadata, DayMetadataState, CsarDetails } from '@/lib/types';
+import { useCallback } from 'react';
+import type { Schedule, EO, ScheduledItem, DayMetadata, CsarDetails } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { useTrainingYear } from './use-training-year';
 
-const defaultSchedule: Schedule = {};
-const defaultDayMetadata: DayMetadataState = {};
-
-const defaultCsarDetails: CsarDetails = {
-    activityName: '',
-    activityType: '',
-    activityLocation: '',
-    startTime: '09:00',
-    endTime: '17:00',
-    isMultiUnit: false,
-    multiUnitDetails: '',
-    numCadetsMale: 0,
-    numCadetsFemale: 0,
-    numStaffMale: 0,
-    numStaffFemale: 0,
-    transportRequired: false,
-    transportation: {
-        schoolBus44: 0,
-        cruiser55: 0,
-    },
-    supportVehiclesRequired: false,
-    supportVehicles: {
-        van8: 0,
-        crewCab: 0,
-        cubeVan: 0,
-        miniVan7: 0,
-        panelVan: 0,
-        staffCar: 0,
-    },
-    fuelCardRequired: false,
-    accommodationsRequired: false,
-    accommodation: {
-        type: '',
-        cost: 0,
-    },
-    mealsRequired: false,
-    mealPlan: [],
-    j4Plan: {
-        quartermasterLocation: '',
-        items: [],
-        submitted: false,
-        approved: false,
-    },
-};
-
-
 export function useSchedule() {
-    const { currentYear } = useTrainingYear();
-    const [schedule, setSchedule] = useState<Schedule>(defaultSchedule);
-    const [dayMetadata, setDayMetadata] = useState<DayMetadataState>(defaultDayMetadata);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const { currentYear, currentYearData, updateCurrentYearData, isLoaded } = useTrainingYear();
     const { toast } = useToast();
-
-    useEffect(() => {
-        if (!currentYear) {
-            setSchedule(defaultSchedule);
-            setDayMetadata(defaultDayMetadata);
-            setIsLoaded(false);
-            return;
-        }
-
-        setIsLoaded(false);
-        try {
-            const scheduleKey = `${currentYear}_trainingSchedule`;
-            const metadataKey = `${currentYear}_dayMetadata`;
-
-            const storedSchedule = localStorage.getItem(scheduleKey);
-            setSchedule(storedSchedule ? JSON.parse(storedSchedule) : defaultSchedule);
-
-            const storedDayMetadata = localStorage.getItem(metadataKey);
-            setDayMetadata(storedDayMetadata ? JSON.parse(storedDayMetadata) : defaultDayMetadata);
-
-        } catch (error) {
-            console.error("Failed to parse data from localStorage", error);
-            setSchedule(defaultSchedule);
-            setDayMetadata(defaultDayMetadata);
-        } finally {
-            setIsLoaded(true);
-        }
-    }, [currentYear]);
+    
+    const schedule = currentYearData?.schedule || {};
+    const dayMetadata = currentYearData?.dayMetadata || {};
+    const defaultCsarDetails = currentYearData?.csarDetails || {};
 
     const saveSchedule = useCallback((newSchedule: Schedule) => {
         if (!currentYear) return;
-        const scheduleKey = `${currentYear}_trainingSchedule`;
-        try {
-            localStorage.setItem(scheduleKey, JSON.stringify(newSchedule));
-            setSchedule(newSchedule);
-        } catch (error) {
-            console.error("Failed to save schedule to localStorage", error);
-        }
-    }, [currentYear]);
+        updateCurrentYearData({ schedule: newSchedule });
+    }, [currentYear, updateCurrentYearData]);
 
-     const saveDayMetadata = useCallback((newDayMetadata: DayMetadataState) => {
+     const saveDayMetadata = useCallback((newDayMetadata: { [date: string]: DayMetadata }) => {
         if (!currentYear) return;
-        const metadataKey = `${currentYear}_dayMetadata`;
-        try {
-            localStorage.setItem(metadataKey, JSON.stringify(newDayMetadata));
-            setDayMetadata(newDayMetadata);
-        } catch (error) {
-            console.error("Failed to save day metadata to localStorage", error);
-        }
-    }, [currentYear]);
+        updateCurrentYearData({ dayMetadata: newDayMetadata });
+    }, [currentYear, updateCurrentYearData]);
 
     const addScheduleItem = useCallback((slotId: string, eo: EO) => {
         const newSchedule = { 
@@ -157,7 +72,6 @@ export function useSchedule() {
         const updatedItem = { ...existingItem, ...details };
         const newSchedule = { ...schedule, [slotId]: updatedItem };
         saveSchedule(newSchedule);
-
     }, [schedule, saveSchedule, toast]);
 
     const removeScheduleItem = useCallback((slotId: string) => {
@@ -179,8 +93,7 @@ export function useSchedule() {
             [date]: updatedMetadata,
         };
         saveDayMetadata(newDayMetadataState);
-
-    }, [dayMetadata, saveDayMetadata]);
+    }, [dayMetadata, saveDayMetadata, defaultCsarDetails]);
 
     const updateCsarDetails = useCallback((date: string, newDetails: CsarDetails) => {
         const currentMetadata = dayMetadata[date];
@@ -190,8 +103,7 @@ export function useSchedule() {
         
         const newDayMetadataState = { ...dayMetadata, [date]: updatedMetadata };
         saveDayMetadata(newDayMetadataState);
-
     }, [dayMetadata, saveDayMetadata]);
 
-    return { schedule, isLoaded: isLoaded && !!currentYear, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails };
+    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails };
 }

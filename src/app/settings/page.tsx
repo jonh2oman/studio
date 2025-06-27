@@ -9,11 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2 } from "lucide-react";
+import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2, Cloud } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
-import type { WeeklyActivity, Settings, StaffMember, CustomEO, GoogleDriveFile } from "@/lib/types";
+import type { WeeklyActivity, Settings, StaffMember, CustomEO } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,21 +23,14 @@ import { StaffManager } from "@/components/settings/staff-manager";
 import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useSave } from "@/hooks/use-save-context";
 import { useGoogleLogin } from '@react-oauth/google';
-import { GoogleIcon } from '@/components/icons/google-icon';
-
-const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-const DRIVE_API_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-const BACKUP_FILE_NAME_PREFIX = 'cadet-planner-backup-v1';
 
 
 export default function SettingsPage() {
-  const { settings: globalSettings, saveSettings: globalSaveSettings, isLoaded: settingsLoaded } = useSettings();
+  const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
-  const { registerSave } = useSave();
   
-  const [localSettings, setLocalSettings] = useState<Settings>(globalSettings);
+  const [localSettings, setLocalSettings] = useState<Settings>(settings);
   
   const [newClassroom, setNewClassroom] = useState("");
   const [newCadetRank, setNewCadetRank] = useState("");
@@ -48,8 +41,6 @@ export default function SettingsPage() {
   const [newCadetDress, setNewCadetDress] = useState("");
   const [newCustomEo, setNewCustomEo] = useState({ id: "", title: "", periods: 1 });
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [importedData, setImportedData] = useState<string | null>(null);
   const [resetConfirmation, setResetConfirmation] = useState("");
   const [newActivity, setNewActivity] = useState<{
     activity: string;
@@ -74,12 +65,6 @@ export default function SettingsPage() {
   const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   
-  // --- Google Drive State ---
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
-  const [isGoogleOpInProgress, setIsGoogleOpInProgress] = useState(false);
-  const [driveFiles, setDriveFiles] = useState<GoogleDriveFile[]>([]);
-  const [isLoadFromDriveOpen, setIsLoadFromDriveOpen] = useState(false);
-
   const permanentRoles = useMemo(() => [
     'Commanding Officer',
     'Training Officer',
@@ -97,37 +82,23 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settingsLoaded) {
-      setLocalSettings(globalSettings);
+      setLocalSettings(settings);
     }
-  }, [globalSettings, settingsLoaded]);
+  }, [settings, settingsLoaded]);
 
   const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
-    setLocalSettings(prev => ({ ...prev, [key]: value }));
-  }, []);
+    const newSettings = { ...localSettings, [key]: value };
+    setLocalSettings(newSettings);
+    saveSettings(newSettings);
+    toast({
+      title: "Settings Saved",
+      description: "Your changes have been automatically saved.",
+    });
+  }, [localSettings, saveSettings, toast]);
   
   const handleListChange = useCallback((key: keyof Settings, newList: any[]) => {
     handleSettingChange(key, newList);
   }, [handleSettingChange]);
-  
-  const handleSave = useCallback(() => {
-    globalSaveSettings(localSettings);
-    toast({
-      title: "Settings Saved",
-      description: "Your changes have been saved successfully.",
-    });
-  }, [localSettings, globalSaveSettings, toast]);
-
-  const hasUnsavedChanges = JSON.stringify(localSettings) !== JSON.stringify(globalSettings);
-
-  useEffect(() => {
-    if (hasUnsavedChanges) {
-      registerSave(handleSave);
-    } else {
-      registerSave(null);
-    }
-    return () => registerSave(null);
-  }, [hasUnsavedChanges, registerSave, handleSave]);
-
 
   const handleAddClassroom = () => {
     const classrooms = localSettings.classrooms || [];
@@ -279,188 +250,6 @@ export default function SettingsPage() {
       handleListChange('staff', newStaff);
   }
 
-  const getFullBackupData = () => {
-    const allData: { [key: string]: any } = {};
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && !key.startsWith('firebase:authUser')) {
-            try {
-                allData[key] = JSON.parse(localStorage.getItem(key)!);
-            } catch {
-                allData[key] = localStorage.getItem(key);
-            }
-        }
-    }
-    return {
-        exportFormatVersion: '1.0.0',
-        exportDate: new Date().toISOString(),
-        data: allData
-    };
-  };
-
-  const restoreFromBackup = (dataToRestore: any) => {
-    const keysToClear: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && !key.startsWith('firebase:authUser')) {
-             keysToClear.push(key);
-        }
-    }
-    keysToClear.forEach(key => localStorage.removeItem(key));
-
-    for (const key in dataToRestore) {
-        if (Object.prototype.hasOwnProperty.call(dataToRestore, key)) {
-            const value = dataToRestore[key];
-            localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
-        }
-    }
-    toast({
-        title: "Import Successful",
-        description: "Your data has been restored. The application will now reload.",
-    });
-    setTimeout(() => window.location.reload(), 1500);
-  };
-
-  const handleExport = () => {
-    try {
-        const dataToExport = getFullBackupData();
-        const jsonString = JSON.stringify(dataToExport, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        const dateStr = new Date().toISOString().split('T')[0];
-        link.download = `${BACKUP_FILE_NAME_PREFIX}-${dateStr}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        toast({ title: "Export Successful" });
-    } catch (error) {
-        toast({ variant: "destructive", title: "Export Failed" });
-    }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-              const content = e.target?.result as string;
-              setImportedData(content);
-              setIsImportDialogOpen(true);
-          };
-          reader.readAsText(file);
-      }
-      event.target.value = '';
-  };
-
-  const handleImportConfirm = () => {
-      if (!importedData) return;
-      try {
-          const parsedBackup = JSON.parse(importedData);
-          if (!parsedBackup.data || !parsedBackup.exportFormatVersion) {
-              throw new Error("Invalid backup file format.");
-          }
-          restoreFromBackup(parsedBackup.data);
-      } catch (error: any) {
-          toast({ variant: "destructive", title: "Import Failed", description: error.message });
-      } finally {
-          setImportedData(null);
-          setIsImportDialogOpen(false);
-      }
-  };
-  
-  // --- Google Drive Logic ---
-  const googleLogin = CLIENT_ID ? useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      setGoogleToken(tokenResponse.access_token);
-      toast({ title: 'Google Sign-In Successful' });
-    },
-    onError: () => toast({ variant: 'destructive', title: 'Google Sign-In Failed' }),
-    scope: DRIVE_API_SCOPE,
-  }) : () => {};
-
-  const getDriveHeaders = useCallback(() => {
-    if (!googleToken) throw new Error('Not authenticated with Google');
-    return { 'Authorization': `Bearer ${googleToken}` };
-  }, [googleToken]);
-
-  const handleSaveToDrive = async () => {
-    setIsGoogleOpInProgress(true);
-    toast({ title: "Saving to Google Drive..." });
-    try {
-      const headers = getDriveHeaders();
-      const backupData = getFullBackupData();
-      const backupJson = JSON.stringify(backupData, null, 2);
-      
-      const fileName = `${BACKUP_FILE_NAME_PREFIX}-${new Date().toISOString().split('T')[0]}.json`;
-
-      const metadata = {
-        name: fileName,
-        mimeType: 'application/json',
-        parents: ['appDataFolder']
-      };
-
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', new Blob([backupJson], { type: 'application/json' }));
-
-      // Check if file exists to update, otherwise create. For simplicity, we create a new file each time.
-      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: { 'Authorization': headers.Authorization },
-        body: form,
-      });
-
-      if (!res.ok) throw new Error(`Google Drive API responded with ${res.status}`);
-      toast({ title: "Save Successful", description: `Backup saved as ${fileName} in your Google Drive.` });
-
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: "Save Failed", description: e.message });
-    } finally {
-      setIsGoogleOpInProgress(false);
-    }
-  };
-
-  const handleListDriveFiles = async () => {
-    setIsGoogleOpInProgress(true);
-    toast({ title: "Loading backups from Google Drive..." });
-    try {
-      const headers = getDriveHeaders();
-      const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name,modifiedTime)`, { headers });
-      if (!res.ok) throw new Error(`Google Drive API responded with ${res.status}`);
-      const body = await res.json();
-      setDriveFiles(body.files || []);
-      setIsLoadFromDriveOpen(true);
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: "Failed to load files", description: e.message });
-    } finally {
-      setIsGoogleOpInProgress(false);
-    }
-  };
-
-  const handleLoadFromDrive = async (fileId: string) => {
-    setIsLoadFromDriveOpen(false);
-    setIsGoogleOpInProgress(true);
-    toast({ title: "Restoring backup..." });
-    try {
-      const headers = getDriveHeaders();
-      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers });
-      if (!res.ok) throw new Error(`Google Drive API responded with ${res.status}`);
-      const backupData = await res.json();
-      if (!backupData.data || !backupData.exportFormatVersion) {
-        throw new Error("Invalid backup file format from Google Drive.");
-      }
-      restoreFromBackup(backupData.data);
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: "Restore Failed", description: e.message });
-    } finally {
-      setIsGoogleOpInProgress(false);
-    }
-  };
-
-
   const isLoading = !settingsLoaded || !yearsLoaded;
 
   return (
@@ -523,8 +312,8 @@ export default function SettingsPage() {
                                             <Input 
                                                 id="corpsName"
                                                 placeholder="e.g., RCSCC 288 ARDENT"
-                                                value={localSettings.corpsName}
-                                                onChange={(e) => handleSettingChange('corpsName', e.target.value)}
+                                                defaultValue={localSettings.corpsName}
+                                                onBlur={(e) => handleSettingChange('corpsName', e.target.value)}
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -911,66 +700,18 @@ export default function SettingsPage() {
         
         <Card className="border">
             <CardHeader>
-                <CardTitle>Local Data Management</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Cloud className="h-5 w-5" /> Data Storage</CardTitle>
                 <CardDescription>
-                    Export a complete backup of all your application data to a single JSON file. This backup includes all training years, schedules, cadet rosters, attendance records, awards, and settings. You can use this file to restore your data on a different computer or after a major update.
+                    All of your application data is now automatically and securely saved to the cloud, tied to your user account. Your changes are available instantly across any device you log in from. Manual backups are no longer necessary.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row gap-4">
-                <Button onClick={handleExport} variant="outline">
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export All Data
-                </Button>
-                <Button asChild variant="outline">
-                    <Label htmlFor="import-file" className="cursor-pointer">
-                        <FileUp className="mr-2 h-4 w-4" />
-                        Import from File
-                    </Label>
-                </Button>
-                <Input 
-                    id="import-file" 
-                    type="file" 
-                    className="hidden" 
-                    accept=".json"
-                    onChange={handleFileSelect}
-                />
-            </CardContent>
-        </Card>
-
-        <Card className="border">
-            <CardHeader>
-                <CardTitle>Cloud Data Management (Google Drive)</CardTitle>
-                <CardDescription>Save or load your application data from your Google Drive.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {!CLIENT_ID ? (
-                    <p className="text-muted-foreground text-sm">This feature is not configured. An administrator must provide a Google Client ID.</p>
-                ) : googleToken ? (
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <Button onClick={handleSaveToDrive} disabled={isGoogleOpInProgress}>
-                            {isGoogleOpInProgress ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
-                            Save to Drive
-                        </Button>
-                         <Button onClick={handleListDriveFiles} variant="outline" disabled={isGoogleOpInProgress}>
-                            {isGoogleOpInProgress ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4" />}
-                            Load from Drive
-                        </Button>
-                        <Button onClick={() => setGoogleToken(null)} variant="ghost">Sign Out</Button>
-                    </div>
-                ) : (
-                    <Button onClick={() => googleLogin()} variant="outline">
-                        <GoogleIcon className="mr-2 h-4 w-4" />
-                        Sign in with Google
-                    </Button>
-                )}
-            </CardContent>
         </Card>
 
         <Card className="border-destructive">
             <CardHeader>
                 <CardTitle className="text-destructive">Danger Zone</CardTitle>
                 <CardDescription>
-                    These actions are irreversible. Please proceed with caution.
+                    This action is irreversible. It will permanently delete all of your corps data from the cloud.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -985,67 +726,12 @@ export default function SettingsPage() {
         <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />
       )}
       
-      <AlertDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure you want to import?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                      This will overwrite all existing data in the application with the contents of the backup file. This action cannot be undone. Are you sure you want to continue?
-                  </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setImportedData(null)}>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleImportConfirm}>
-                      Import Data
-                  </AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
-
-       <AlertDialog open={isLoadFromDriveOpen} onOpenChange={setIsLoadFromDriveOpen}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-                  <AlertDialogTitle>Load Backup from Google Drive</AlertDialogTitle>
-                  <AlertDialogDescription>
-                      Select a backup file to restore. This will overwrite all current data in the application.
-                  </AlertDialogDescription>
-              </AlertDialogHeader>
-              <div className="max-h-60 overflow-y-auto border rounded-md my-4">
-                  <Table>
-                      <TableHeader>
-                          <TableRow>
-                              <TableHead>File Name</TableHead>
-                              <TableHead>Last Modified</TableHead>
-                              <TableHead></TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {driveFiles.length === 0 ? (
-                           <TableRow><TableCell colSpan={3} className="text-center h-24 text-muted-foreground">No backup files found.</TableCell></TableRow>
-                        ) : driveFiles.map(file => (
-                          <TableRow key={file.id}>
-                            <TableCell>{file.name}</TableCell>
-                            <TableCell>{formatDate(new Date(file.modifiedTime), "PPP p")}</TableCell>
-                            <TableCell className="text-right">
-                                <Button size="sm" onClick={() => handleLoadFromDrive(file.id)}>Load</Button>
-                            </TableCell>
-                          </TableRow>  
-                        ))}
-                      </TableBody>
-                  </Table>
-              </div>
-              <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
-
       <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                    This action is permanent and cannot be undone. It will delete all your corps data, including schedules, cadets, staff, and settings, and reset the application to its default state.
+                    This action is permanent and cannot be undone. It will delete all your corps data from the cloud, including schedules, cadets, staff, and settings, and reset the application to its default state.
                     <br /><br />
                     To confirm, please type <strong>reset</strong> into the box below.
                 </AlertDialogDescription>
@@ -1064,8 +750,10 @@ export default function SettingsPage() {
                     variant="destructive"
                     disabled={resetConfirmation !== "reset"}
                     onClick={() => {
-                        localStorage.clear();
-                        window.location.reload();
+                        // This would need a backend function to delete the user's Firestore document
+                        toast({ variant: "destructive", title: "Action Not Implemented", description: "This requires a secure backend function to prevent misuse."});
+                        setResetConfirmation("");
+                        setIsResetDialogOpen(false);
                     }}
                 >
                     Reset Application
