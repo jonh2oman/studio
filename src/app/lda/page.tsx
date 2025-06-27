@@ -23,7 +23,7 @@ export default function LdaPage() {
                             className="bg-card hover:bg-muted shadow-md"
                         >
                             <Menu className="mr-2 h-4 w-4" />
-                            Objectives
+                            PO's / EO's
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>
