@@ -7,17 +7,27 @@ export interface ChangelogEntry {
 
 export const changelogData: ChangelogEntry[] = [
   {
-    version: "1.0.2 Beta",
+    version: "1.0.3 Beta",
     date: "Current Version",
+    changes: [
+        "Reworked Staff Management system, adding role creation, primary/additional roles, permanent roles, and dynamic fields based on staff type.",
+        "Enhanced Cadet Management with a new system for creating and assigning custom Cadet Roles.",
+        "Overhauled the planner UI with a draggable, resizable, and searchable floating objectives panel and sticky headers.",
+        "Added a system for creating and managing custom, corps-specific Enabling Objectives (EOs) in the Settings page.",
+        "Integrated full Firebase Authentication (Email/Password and Google) which activates when API keys are provided.",
+        "Removed the experimental theme switcher to simplify the UI and set a new default accent color.",
+        "Various minor bug fixes and usability improvements across the application.",
+    ],
+  },
+  {
+    version: "1.0.2 Beta",
+    date: "July 30, 2024",
     changes: [
         "Implemented a robust user authentication system with sign-up, login, and logout functionality.",
         "Added a mock authentication mode to allow for testing and development without requiring Firebase credentials.",
-        "Introduced a theme switcher in Settings, allowing users to choose between four color schemes (Ocean, Blue, Green, Red).",
-        "Moved the theme switcher into a new 'Make It Yours' card for better organization on the Settings page.",
         "Fixed a critical bug causing 'maximum update depth exceeded' errors on the Settings page.",
         "Resolved a crash related to missing Firebase API keys by implementing a graceful fallback.",
         "Fixed an import error for `usePathname` in the sidebar component.",
-        "Improved the theme switcher's UX by providing immediate feedback on selection.",
     ],
   },
   {
