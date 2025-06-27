@@ -8,38 +8,52 @@ import { CadetRosterReport } from "@/components/reports/cadet-roster-report";
 import { AttendanceReports } from "@/components/reports/attendance-reports";
 import { TrainingCompletionReport } from "@/components/reports/training-completion-report";
 import { AwardWinnersReport } from "@/components/reports/award-winners-report";
+import { Separator } from "@/components/ui/separator";
 
 export default function ReportsPage() {
     return (
         <>
             <PageHeader
                 title="Reports"
-                description="Generate and view various reports for your corps."
+                description="Generate WROs and view various other reports for your corps."
             />
-            <Tabs defaultValue="wro" className="mt-6">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-                    <TabsTrigger value="wro">WRO Generator</TabsTrigger>
-                    <TabsTrigger value="roster">Cadet Roster</TabsTrigger>
-                    <TabsTrigger value="attendance">Attendance</TabsTrigger>
-                    <TabsTrigger value="completion">Training Completion</TabsTrigger>
-                    <TabsTrigger value="awards">Award Winners</TabsTrigger>
-                </TabsList>
-                <TabsContent value="wro" className="mt-6">
-                    <WroForm />
-                </TabsContent>
-                <TabsContent value="roster" className="mt-6">
-                    <CadetRosterReport />
-                </TabsContent>
-                <TabsContent value="attendance" className="mt-6">
-                    <AttendanceReports />
-                </TabsContent>
-                <TabsContent value="completion" className="mt-6">
-                    <TrainingCompletionReport />
-                </TabsContent>
-                <TabsContent value="awards" className="mt-6">
-                    <AwardWinnersReport />
-                </TabsContent>
-            </Tabs>
+
+            <div className="mt-8 space-y-8">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Generate Routine Orders (WRO)</h2>
+                    <p className="text-muted-foreground mt-1">Use this form to generate a PDF of the Weekly Routine Orders for a specific training night.</p>
+                    <div className="mt-6">
+                        <WroForm />
+                    </div>
+                </div>
+
+                <Separator />
+            
+                <div>
+                     <h2 className="text-2xl font-bold tracking-tight">Corps Reports</h2>
+                     <p className="text-muted-foreground mt-1">Select a report to view.</p>
+                    <Tabs defaultValue="roster" className="mt-6">
+                        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+                            <TabsTrigger value="roster">Cadet Roster</TabsTrigger>
+                            <TabsTrigger value="attendance">Attendance</TabsTrigger>
+                            <TabsTrigger value="completion">Training Completion</TabsTrigger>
+                            <TabsTrigger value="awards">Award Winners</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="roster" className="mt-6">
+                            <CadetRosterReport />
+                        </TabsContent>
+                        <TabsContent value="attendance" className="mt-6">
+                            <AttendanceReports />
+                        </TabsContent>
+                        <TabsContent value="completion" className="mt-6">
+                            <TrainingCompletionReport />
+                        </TabsContent>
+                        <TabsContent value="awards" className="mt-6">
+                            <AwardWinnersReport />
+                        </TabsContent>
+                    </Tabs>
+                </div>
+            </div>
         </>
     );
 }

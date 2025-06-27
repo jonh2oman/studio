@@ -31,7 +31,7 @@ const dashboardCategories = [
     {
         title: "Reporting",
         items: [
-            { href: "/reports", title: "WRO Reports", icon: FileText, description: "Generate PDF routine orders for a specific training night." },
+            { href: "/reports", title: "Reports", icon: FileText, description: "Generate WROs and view various other reports for your corps." },
         ]
     },
     {

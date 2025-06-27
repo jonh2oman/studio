@@ -46,7 +46,7 @@ const navGroups = [
   {
     title: "Reporting",
     items: [
-       { href: "/reports", label: "WRO Reports", icon: FileText },
+       { href: "/reports", label: "Reports", icon: FileText },
     ]
   },
   {
