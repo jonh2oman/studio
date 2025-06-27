@@ -16,13 +16,37 @@ export const metadata: Metadata = {
   description: 'Interactive web app for planning Sea Cadet Corps training.',
 };
 
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const providers = (
+      <AuthProvider>
+        <SaveProvider>
+          <TooltipProvider delayDuration={0}>
+            <SidebarProvider>
+              <div className="flex min-h-screen">
+                <div className="print:hidden">
+                  <AppSidebar />
+                </div>
+                <SidebarInset>
+                  {children}
+                </SidebarInset>
+              </div>
+            </SidebarProvider>
+            <Toaster />
+            <div className="print:hidden">
+              <HelpButton />
+              <FloatingSaveButton />
+            </div>
+          </TooltipProvider>
+        </SaveProvider>
+      </AuthProvider>
+  );
+
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
@@ -38,29 +62,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-          <AuthProvider>
-            <SaveProvider>
-              <TooltipProvider delayDuration={0}>
-                <SidebarProvider>
-                  <div className="flex min-h-screen">
-                    <div className="print:hidden">
-                      <AppSidebar />
-                    </div>
-                    <SidebarInset>
-                      {children}
-                    </SidebarInset>
-                  </div>
-                </SidebarProvider>
-                <Toaster />
-                <div className="print:hidden">
-                  <HelpButton />
-                  <FloatingSaveButton />
-                </div>
-              </TooltipProvider>
-            </SaveProvider>
-          </AuthProvider>
-        </GoogleOAuthProvider>
+        {GOOGLE_CLIENT_ID ? (
+          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            {providers}
+          </GoogleOAuthProvider>
+        ) : (
+          providers
+        )}
       </body>
     </html>
   );
