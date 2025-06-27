@@ -42,14 +42,15 @@ export interface UpcomingActivity {
 
 export interface WeeklyActivity {
   id: string;
-  date: string; // Stored as YYYY-MM-DD
-  dayOfWeek: string;
+  activity: string;
+  dayOfWeek: number; // 0 for Sunday, 6 for Saturday
   startTime: string;
   endTime: string;
-  activity: string;
   location: string;
   dress: string;
   opi: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
 }
 
 // Global settings, not year-specific

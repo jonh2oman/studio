@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { format, addDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { format, addDays, isWithinInterval, startOfDay, endOfDay, eachDayOfInterval, getDay, parseISO } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,26 +81,44 @@ export function WroForm() {
         return;
     }
 
-    const weekStart = startOfDay(trainingDate);
-    const weekEnd = endOfDay(addDays(weekStart, 6)); // The week of and after the training date
+    const wroWeekStart = startOfDay(trainingDate);
+    const wroWeekEnd = endOfDay(addDays(wroWeekStart, 6));
 
-    const upcoming = settings.weeklyActivities
-        .filter(act => {
-            const actDate = new Date(act.date.replace(/-/g, '/'));
-            return isWithinInterval(actDate, { start: weekStart, end: weekEnd });
-        })
-        .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .map(act => ({
-            id: act.id,
-            activity: act.activity,
-            activityStart: `${format(new Date(act.date.replace(/-/g, '/')), 'E, MMM dd')} ${act.startTime}`,
-            activityEnd: act.endTime,
-            location: act.location,
-            dress: act.dress,
-            opi: act.opi,
-        }));
+    const activitiesForWro: (UpcomingActivity & { sortDate: Date })[] = [];
+
+    settings.weeklyActivities.forEach(activity => {
+        const activityStartDate = parseISO(activity.startDate);
+        const activityEndDate = parseISO(activity.endDate);
+
+        const daysInWroWeek = eachDayOfInterval({ start: wroWeekStart, end: wroWeekEnd });
+
+        daysInWroWeek.forEach(dayInWeek => {
+            if (getDay(dayInWeek) === activity.dayOfWeek && isWithinInterval(dayInWeek, { start: activityStartDate, end: activityEndDate })) {
+                const activityTime = activity.startTime.split(':');
+                const sortDate = new Date(dayInWeek);
+                if (activityTime.length === 2) {
+                   sortDate.setHours(parseInt(activityTime[0]), parseInt(activityTime[1]));
+                }
+                
+                activitiesForWro.push({
+                    sortDate: sortDate,
+                    id: `${activity.id}-${format(dayInWeek, 'yyyy-MM-dd')}`,
+                    activity: activity.activity,
+                    activityStart: `${format(dayInWeek, 'E, MMM dd')} ${activity.startTime}`,
+                    activityEnd: activity.endTime,
+                    location: activity.location,
+                    dress: activity.dress,
+                    opi: activity.opi,
+                });
+            }
+        });
+    });
     
-    replace(upcoming);
+    activitiesForWro.sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
+    const finalActivities = activitiesForWro.map(({ sortDate, ...rest }) => rest);
+    
+    replace(finalActivities);
+
   }, [trainingDate, settings.weeklyActivities, replace]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -292,7 +310,7 @@ export function WroForm() {
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle>Upcoming Activities</CardTitle>
-                        <CardDescription>Add or modify activities for the upcoming week. This list is auto-populated.</CardDescription>
+                        <CardDescription>Activities for the upcoming week. This list is auto-populated from Settings.</CardDescription>
                     </div>
                     <Button type="button" size="sm" onClick={() => append({ id: crypto.randomUUID(), activity: '', activityStart: '', activityEnd: '', location: '', dress: '', opi: '' })}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Activity
@@ -314,7 +332,7 @@ export function WroForm() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {fields.length === 0 && <TableRow><TableCell colSpan={7} className="text-center h-24">No upcoming activities added.</TableCell></TableRow>}
+                            {fields.length === 0 && <TableRow><TableCell colSpan={7} className="text-center h-24">No upcoming activities scheduled for this week.</TableCell></TableRow>}
                             {fields.map((field, index) => (
                                 <TableRow key={field.id}>
                                     <TableCell><Input {...register(`upcomingActivities.${index}.activity`)} /></TableCell>

@@ -37,10 +37,20 @@ export default function SettingsPage() {
   const [newClassroom, setNewClassroom] = useState("");
   const [newRank, setNewRank] = useState("");
   const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
-  const [newActivity, setNewActivity] = useState<{ date?: Date; startTime: string; endTime: string; activity: string; location: string; dress: string; opi: string; }>({
+  const [newActivity, setNewActivity] = useState<{
+    activity: string;
+    dayOfWeek?: number;
+    startDate?: Date;
+    endDate?: Date;
+    startTime: string;
+    endTime: string;
+    location: string;
+    dress: string;
+    opi: string;
+  }>({
+    activity: '',
     startTime: '',
     endTime: '',
-    activity: '',
     location: '',
     dress: '',
     opi: '',
@@ -48,6 +58,8 @@ export default function SettingsPage() {
 
   const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
   const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
+  const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -109,31 +121,39 @@ export default function SettingsPage() {
     saveSettings({ ranks: settings.ranks.filter(r => r !== rank) });
   };
 
-  const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  
   const handleAddActivity = () => {
-    if (!newActivity.date || !newActivity.activity) {
+    if (!newActivity.activity || newActivity.dayOfWeek === undefined || !newActivity.startDate || !newActivity.endDate) {
         toast({
             variant: "destructive",
             title: "Missing Information",
-            description: "Please provide at least a date and activity name.",
+            description: "Please provide an activity name, day of week, start date, and end date.",
         });
         return;
     }
+    if (newActivity.endDate < newActivity.startDate) {
+        toast({
+            variant: "destructive",
+            title: "Invalid Dates",
+            description: "The end date cannot be before the start date.",
+        });
+        return;
+    }
+
     const newActivityToAdd: WeeklyActivity = {
         id: crypto.randomUUID(),
-        date: formatDate(newActivity.date, 'yyyy-MM-dd'),
-        dayOfWeek: weekDays[getDay(newActivity.date)],
+        activity: newActivity.activity,
+        dayOfWeek: newActivity.dayOfWeek,
+        startDate: formatDate(newActivity.startDate, 'yyyy-MM-dd'),
+        endDate: formatDate(newActivity.endDate, 'yyyy-MM-dd'),
         startTime: newActivity.startTime,
         endTime: newActivity.endTime,
-        activity: newActivity.activity,
         location: newActivity.location,
         dress: newActivity.dress,
         opi: newActivity.opi,
     };
     const updatedActivities = [...weeklyActivities, newActivityToAdd];
     saveSettings({ weeklyActivities: updatedActivities });
-    setNewActivity({ date: undefined, startTime: '', endTime: '', activity: '', location: '', dress: '', opi: '' }); // Reset form
+    setNewActivity({ activity: '', startTime: '', endTime: '', location: '', dress: '', opi: '' }); // Reset form
   };
 
   const handleRemoveActivity = (id: string) => {
@@ -318,54 +338,84 @@ export default function SettingsPage() {
         <Card>
             <CardHeader>
                 <CardTitle>Manage Weekly Activities</CardTitle>
-                <CardDescription>Define recurring weekly activities like team practices.</CardDescription>
+                <CardDescription>Define recurring weekly activities with start and end dates.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4 p-4 border rounded-md">
-                    <h4 className="font-semibold">Add New Activity</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h4 className="font-semibold">Add New Recurring Activity</h4>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2"><Label>Activity</Label><Input value={newActivity.activity} onChange={e => setNewActivity(prev => ({...prev, activity: e.target.value}))} /></div>
+                        
                         <div className="flex flex-col space-y-1.5">
-                            <Label>Date</Label>
+                            <Label>Day of Week</Label>
+                            <Select value={newActivity.dayOfWeek?.toString()} onValueChange={val => setNewActivity(prev => ({ ...prev, dayOfWeek: parseInt(val)}))}>
+                                <SelectTrigger><SelectValue placeholder="Select a day..." /></SelectTrigger>
+                                <SelectContent>
+                                    {weekDays.map((day, index) => <SelectItem key={day} value={index.toString()}>{day}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div/>
+
+                        <div className="flex flex-col space-y-1.5">
+                            <Label>Start Date</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.date && "text-muted-foreground")}>
+                                    <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.startDate && "text-muted-foreground")}>
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {newActivity.date ? formatDate(newActivity.date, "PPP") : <span>Pick a date</span>}
+                                        {newActivity.startDate ? formatDate(newActivity.startDate, "PPP") : <span>Pick a date</span>}
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.date} onSelect={(d) => setNewActivity(prev => ({...prev, date: d}))} initialFocus /></PopoverContent>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.startDate} onSelect={(d) => setNewActivity(prev => ({...prev, startDate: d}))} initialFocus /></PopoverContent>
                             </Popover>
                         </div>
-                        <div />
+                         <div className="flex flex-col space-y-1.5">
+                            <Label>End Date</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.endDate && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {newActivity.endDate ? formatDate(newActivity.endDate, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.endDate} onSelect={(d) => setNewActivity(prev => ({...prev, endDate: d}))} initialFocus /></PopoverContent>
+                            </Popover>
+                        </div>
+
                         <div><Label>Start Time</Label><Input type="time" value={newActivity.startTime} onChange={e => setNewActivity(prev => ({...prev, startTime: e.target.value}))} /></div>
                         <div><Label>End Time</Label><Input type="time" value={newActivity.endTime} onChange={e => setNewActivity(prev => ({...prev, endTime: e.target.value}))} /></div>
-                        <div className="md:col-span-2"><Label>Activity</Label><Input value={newActivity.activity} onChange={e => setNewActivity(prev => ({...prev, activity: e.target.value}))} /></div>
+                        
                         <div><Label>Location</Label><Input value={newActivity.location} onChange={e => setNewActivity(prev => ({...prev, location: e.target.value}))} /></div>
                         <div><Label>Dress</Label><Input value={newActivity.dress} onChange={e => setNewActivity(prev => ({...prev, dress: e.target.value}))} /></div>
                         <div className="md:col-span-2"><Label>OPI</Label><Input value={newActivity.opi} onChange={e => setNewActivity(prev => ({...prev, opi: e.target.value}))} /></div>
                     </div>
-                    <Button onClick={handleAddActivity}>Add Activity</Button>
+                    <Button onClick={handleAddActivity} className="mt-4">Add Recurring Activity</Button>
                 </div>
                 <div className="mt-6">
-                    <h4 className="font-semibold mb-2">Scheduled Activities</h4>
+                    <h4 className="font-semibold mb-2">Scheduled Recurring Activities</h4>
                      <div className="border rounded-lg">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Date</TableHead>
                                     <TableHead>Activity</TableHead>
+                                    <TableHead>Recurs On</TableHead>
                                     <TableHead>OPI</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {weeklyActivities.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}
-                                {weeklyActivities.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(act => (
+                                {weeklyActivities.map(act => (
                                     <TableRow key={act.id}>
-                                        <TableCell>{formatDate(new Date(act.date.replace(/-/g, '/')), "PPP")} ({act.dayOfWeek})</TableCell>
                                         <TableCell>
                                             <p className="font-medium">{act.activity}</p>
                                             <p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p>
+                                        </TableCell>
+                                        <TableCell>
+                                            <p className="font-medium">{weekDays[act.dayOfWeek]}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {formatDate(new Date(act.startDate.replace(/-/g, '/')), "MMM d, yyyy")} - {formatDate(new Date(act.endDate.replace(/-/g, '/')), "MMM d, yyyy")}
+                                            </p>
                                         </TableCell>
                                         <TableCell>{act.opi}</TableCell>
                                         <TableCell className="text-right">
