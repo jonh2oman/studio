@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from 'next/link';
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -10,7 +9,6 @@ import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, Cli
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { useFirstVisit } from '@/hooks/use-first-visit';
 import { GuidedSetupDialog } from '@/components/settings/guided-setup-dialog';
 
 const dashboardCategories = [
@@ -47,15 +45,6 @@ const dashboardCategories = [
 
 export default function DashboardPage() {
   const { schedule, isLoaded } = useSchedule();
-  const { isFirstVisit, markAsVisited, isChecking } = useFirstVisit();
-  const [isSetupOpen, setIsSetupOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isChecking && isFirstVisit) {
-        setIsSetupOpen(true);
-    }
-  }, [isFirstVisit, isChecking]);
-
 
   const phaseProgress = useMemo(() => {
     if (!isLoaded) return [];
@@ -166,15 +155,6 @@ export default function DashboardPage() {
             ))}
         </Accordion>
       </div>
-
-       <GuidedSetupDialog 
-            isOpen={isSetupOpen}
-            onOpenChange={setIsSetupOpen}
-            onFinish={() => {
-                setIsSetupOpen(false);
-                markAsVisited();
-            }}
-        />
     </>
   );
 }
