@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { X, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
+import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
@@ -41,6 +41,8 @@ export default function SettingsPage() {
   const [newCadetDress, setNewCadetDress] = useState("");
   const [newCustomEo, setNewCustomEo] = useState({ id: "", title: "", periods: 1 });
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importedData, setImportedData] = useState<string | null>(null);
   const [resetConfirmation, setResetConfirmation] = useState("");
   const [newActivity, setNewActivity] = useState<{
     activity: string;
@@ -263,6 +265,123 @@ export default function SettingsPage() {
   const handleStaffChange = (newStaff: StaffMember[]) => {
       handleListChange('staff', newStaff);
   }
+
+  const handleExport = () => {
+    try {
+        const allData: { [key: string]: any } = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+                // Don't export the auth user, it's session specific
+                if (key.startsWith('firebase:authUser')) continue;
+                try {
+                    allData[key] = JSON.parse(localStorage.getItem(key)!);
+                } catch {
+                    allData[key] = localStorage.getItem(key);
+                }
+            }
+        }
+
+        const dataToExport = {
+            exportFormatVersion: '1.0.0',
+            exportDate: new Date().toISOString(),
+            data: allData
+        };
+
+        const jsonString = JSON.stringify(dataToExport, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        link.download = `cadet-planner-backup-${dateStr}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast({
+            title: "Export Successful",
+            description: "Your data has been saved to a JSON file."
+        });
+
+    } catch (error) {
+        console.error("Failed to export data:", error);
+        toast({
+            variant: "destructive",
+            title: "Export Failed",
+            description: "Could not export your data. Please check the console for errors."
+        });
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              const content = e.target?.result as string;
+              setImportedData(content);
+              setIsImportDialogOpen(true);
+          };
+          reader.readAsText(file);
+      }
+      event.target.value = '';
+  };
+
+  const handleImportConfirm = () => {
+      if (!importedData) return;
+      try {
+          const parsedBackup = JSON.parse(importedData);
+          if (!parsedBackup.data || !parsedBackup.exportFormatVersion) {
+              throw new Error("Invalid backup file format.");
+          }
+          
+          const dataToRestore = parsedBackup.data;
+          
+          // Clear all existing data except Firebase auth
+          const keysToClear: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && !key.startsWith('firebase:authUser')) {
+                   keysToClear.push(key);
+              }
+          }
+          keysToClear.forEach(key => localStorage.removeItem(key));
+
+          // Load new data
+          for (const key in dataToRestore) {
+              if (Object.prototype.hasOwnProperty.call(dataToRestore, key)) {
+                  const value = dataToRestore[key];
+                  if (typeof value === 'object' && value !== null) {
+                      localStorage.setItem(key, JSON.stringify(value));
+                  } else {
+                      localStorage.setItem(key, String(value));
+                  }
+              }
+          }
+
+          toast({
+              title: "Import Successful",
+              description: "Your data has been restored. The application will now reload.",
+          });
+
+          setTimeout(() => {
+              window.location.reload();
+          }, 1500);
+
+      } catch (error: any) {
+          console.error("Failed to import data:", error);
+          toast({
+              variant: "destructive",
+              title: "Import Failed",
+              description: `Could not import data. Error: ${error.message}`,
+          });
+      } finally {
+          setImportedData(null);
+          setIsImportDialogOpen(false);
+      }
+  };
 
   const isLoading = !settingsLoaded || !yearsLoaded;
 
@@ -711,6 +830,34 @@ export default function SettingsPage() {
                 </AccordionItem>
             </Card>
         </Accordion>
+        
+        <Card className="border">
+            <CardHeader>
+                <CardTitle>Data Management</CardTitle>
+                <CardDescription>
+                    Export all your application data to a local file, or import data from a backup.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row gap-4">
+                <Button onClick={handleExport} variant="outline">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export All Data
+                </Button>
+                <Button asChild variant="outline">
+                    <Label htmlFor="import-file" className="cursor-pointer">
+                        <FileUp className="mr-2 h-4 w-4" />
+                        Import from File
+                    </Label>
+                </Button>
+                <Input 
+                    id="import-file" 
+                    type="file" 
+                    className="hidden" 
+                    accept=".json"
+                    onChange={handleFileSelect}
+                />
+            </CardContent>
+        </Card>
 
         <Card className="border-destructive">
             <CardHeader>
@@ -730,6 +877,23 @@ export default function SettingsPage() {
       {isNewYearDialogOpen && (
         <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />
       )}
+      
+      <AlertDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to import?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      This will overwrite all existing data in the application with the contents of the backup file. This action cannot be undone. Are you sure you want to continue?
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setImportedData(null)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleImportConfirm}>
+                      Import Data
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
         <AlertDialogContent>
