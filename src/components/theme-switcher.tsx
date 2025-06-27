@@ -4,6 +4,9 @@
 import { useTheme } from "@/hooks/use-theme"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Label } from "./ui/label"
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme()
@@ -16,28 +19,35 @@ export function ThemeSwitcher() {
   ]
 
   return (
-    <div className="flex items-center gap-2">
-      {themes.map((t) => (
-        <Tooltip key={t.name}>
-            <TooltipTrigger asChild>
+    <div className="space-y-2">
+      <Label>Accent Color</Label>
+      <div className="flex items-center gap-2 p-2 rounded-md border w-fit">
+        {themes.map((t) => {
+          const isActive = theme === t.name
+          return (
+            <Tooltip key={t.name}>
+              <TooltipTrigger asChild>
                 <Button
-                    variant={theme === t.name ? "secondary" : "ghost"}
-                    size="icon"
-                    className="h-6 w-6 rounded-full"
-                    onClick={() => setTheme(t.name as any)}
+                  variant={"outline"}
+                  size="icon"
+                  className={cn(
+                    "h-8 w-8 rounded-md",
+                    isActive && "border-2 border-primary"
+                  )}
+                  onClick={() => setTheme(t.name as any)}
+                  style={{ backgroundColor: t.color }}
                 >
-                    <span
-                    className="h-4 w-4 rounded-full border"
-                    style={{ backgroundColor: t.color }}
-                    />
-                    <span className="sr-only">Switch to {t.name} theme</span>
+                  {isActive && <Check className="h-5 w-5 text-primary-foreground" />}
+                  <span className="sr-only">Switch to {t.name} theme</span>
                 </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top" align="center">
+              </TooltipTrigger>
+              <TooltipContent side="top" align="center">
                 <p className="capitalize">{t.name}</p>
-            </TooltipContent>
-        </Tooltip>
-      ))}
+              </TooltipContent>
+            </Tooltip>
+          )
+        })}
+      </div>
     </div>
   )
 }

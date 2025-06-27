@@ -24,6 +24,7 @@ import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSave } from "@/hooks/use-save-context";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export default function SettingsPage() {
   const { settings: globalSettings, saveSettings: globalSaveSettings, isLoaded: settingsLoaded } = useSettings();
@@ -31,7 +32,6 @@ export default function SettingsPage() {
   const { registerSave } = useSave();
   
   const [localSettings, setLocalSettings] = useState<Settings>(globalSettings);
-  const [isDirty, setIsDirty] = useState(false);
   
   const [newClassroom, setNewClassroom] = useState("");
   const [newCadetRank, setNewCadetRank] = useState("");
@@ -66,13 +66,11 @@ export default function SettingsPage() {
   useEffect(() => {
     if (settingsLoaded) {
       setLocalSettings(globalSettings);
-      setIsDirty(false);
     }
   }, [globalSettings, settingsLoaded]);
 
   const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
-    setIsDirty(true);
   }, []);
   
   const handleListChange = useCallback((key: keyof Settings, newList: any[]) => {
@@ -81,21 +79,22 @@ export default function SettingsPage() {
   
   const handleSave = useCallback(() => {
     globalSaveSettings(localSettings);
-    setIsDirty(false);
     toast({
       title: "Settings Saved",
       description: "Your changes have been saved successfully.",
     });
   }, [localSettings, globalSaveSettings, toast]);
 
+  const hasUnsavedChanges = JSON.stringify(localSettings) !== JSON.stringify(globalSettings);
+
   useEffect(() => {
-    if (isDirty) {
+    if (hasUnsavedChanges) {
       registerSave(handleSave);
     } else {
       registerSave(null);
     }
     return () => registerSave(null);
-  }, [isDirty, registerSave, handleSave]);
+  }, [hasUnsavedChanges, registerSave, handleSave]);
 
 
   const handleAddClassroom = () => {
@@ -283,6 +282,7 @@ export default function SettingsPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                        <ThemeSwitcher />
                                     </div>
                                     )}
                                 </CardContent>
