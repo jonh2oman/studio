@@ -8,13 +8,13 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, Save } from "lucide-react";
 import type { AttendanceRecord, AttendanceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [initialRecords, setInitialRecords] = useState<string>("[]");
+  const [isSaving, setIsSaving] = useState(false);
   const { cadets, isLoaded: cadetsLoaded, getAttendanceForDate, saveAttendanceForDate } = useCadets();
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
@@ -29,12 +31,15 @@ export default function AttendancePage() {
   useEffect(() => {
     if (cadetsLoaded && selectedDate) {
       const dateString = format(selectedDate, "yyyy-MM-dd");
-      setAttendanceRecords(getAttendanceForDate(dateString));
+      const records = getAttendanceForDate(dateString);
+      setAttendanceRecords(records);
+      setInitialRecords(JSON.stringify(records)); // Set initial state for comparison
     }
   }, [cadetsLoaded, selectedDate, getAttendanceForDate, cadets]);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
+        // TODO: Warn user about unsaved changes before switching dates
         setSelectedDate(date);
     }
   };
@@ -47,25 +52,21 @@ export default function AttendancePage() {
     );
   };
   
-  const handleSaveAttendance = useCallback(() => {
+  const handleSaveAttendance = useCallback(async () => {
     if (selectedDate) {
+        setIsSaving(true);
         const dateString = format(selectedDate, 'yyyy-MM-dd');
-        saveAttendanceForDate(dateString, attendanceRecords);
+        await saveAttendanceForDate(dateString, attendanceRecords);
+        setInitialRecords(JSON.stringify(attendanceRecords));
+        setIsSaving(false);
         toast({
             title: "Attendance Saved",
-            description: `Attendance for ${format(selectedDate, 'PPP')} has been automatically saved.`,
+            description: `Attendance for ${format(selectedDate, 'PPP')} has been saved.`,
         });
     }
   }, [selectedDate, attendanceRecords, saveAttendanceForDate, toast]);
-
-  useEffect(() => {
-    if (!selectedDate) return;
-    const handler = setTimeout(() => {
-        handleSaveAttendance();
-    }, 1000); // Debounce save
-    return () => clearTimeout(handler);
-  }, [attendanceRecords, handleSaveAttendance, selectedDate]);
-
+  
+  const hasUnsavedChanges = JSON.stringify(attendanceRecords) !== initialRecords;
 
   const trainingDaysFilter = (date: Date) => {
     return date.getDay() === settings.trainingDay;
@@ -77,7 +78,7 @@ export default function AttendancePage() {
     <>
       <PageHeader
         title="Attendance Taker"
-        description="Mark attendance for a specific training night. Changes are saved automatically."
+        description="Mark attendance for a specific training night and click 'Save Attendance' to record changes."
       />
       
       <div className="mt-6">
@@ -186,6 +187,12 @@ export default function AttendancePage() {
                 </div>
             )}
           </CardContent>
+          <CardFooter>
+            <Button onClick={handleSaveAttendance} disabled={!hasUnsavedChanges || isSaving}>
+                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {isSaving ? "Saving..." : "Save Attendance"}
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </>
