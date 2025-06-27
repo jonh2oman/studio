@@ -165,6 +165,7 @@ const rawData = {
     },
     "PO 322 - Attain a Pleasure Craft Operator Competency": { "M": [] },
     "PO 323 - Serve in a Naval Environment": {
+      "M": [["M323.01", "Discuss Shipboard Routines and Procedures", 2]],
       "C": [["C323.01", "Communicate Using Flags and Pennants", 4], ["C323.02", "Pipe Wakey Wakey", 2], ["C323.03", "Pipe Hands to Dinner", 3], ["C223.01", "Define Naval Terminology", 1], ["C223.02", "Pipe the Side", 1], ["C123.01", "Read the 24-hour Clock", 1], ["C123.02", "Recite the Phonetic Alphabet", 2], ["C123.03", "Participate in a Semaphore Exercise", 5]]
     },
     "PO X24 - Sail a Sailboat IAW Sail Canada CANSail Level 1": { "C": [["MX24.02", "Participate in a Sail Weekend", 18]] },
