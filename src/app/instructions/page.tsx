@@ -4,7 +4,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { List, ListChecks, Calendar, Tent, ClipboardPlus, FileText, Users, ClipboardCheck, Trophy, Settings2, BookOpen, HelpCircle } from "lucide-react";
+import { List, Calendar, Tent, ClipboardPlus, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle } from "lucide-react";
 
 export default function InstructionsPage() {
   return (
@@ -21,10 +21,8 @@ export default function InstructionsPage() {
           <CardContent>
             <ul className="space-y-2 text-primary underline">
               <li><a href="#dashboard"><p className="flex items-center gap-2"><List className="h-4 w-4" />Dashboard</p></a></li>
-              <li><a href="#planner"><p className="flex items-center gap-2"><Calendar className="h-4 w-4" />Corps/Squadron Training Plan - Annual</p></a></li>
-              <li><a href="#weekend-planner"><p className="flex items-center gap-2"><Tent className="h-4 w-4" />Weekend Planner</p></a></li>
-              <li><a href="#lda-planner"><p className="flex items-center gap-2"><ClipboardPlus className="h-4 w-4" />LDA Day Planner</p></a></li>
-              <li><a href="#reports"><p className="flex items-center gap-2"><FileText className="h-4 w-4" />WRO Reports</p></a></li>
+              <li><a href="#planners"><p className="flex items-center gap-2"><Calendar className="h-4 w-4" />The Planners (Annual, Weekend, LDA)</p></a></li>
+              <li><a href="#reports"><p className="flex items-center gap-2"><FileText className="h-4 w-4" />Reports</p></a></li>
               <li><a href="#cadets"><p className="flex items-center gap-2"><Users className="h-4 w-4" />Cadet Management</p></a></li>
               <li><a href="#attendance"><p className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Attendance</p></a></li>
               <li><a href="#awards"><p className="flex items-center gap-2"><Trophy className="h-4 w-4" />Awards Management</p></a></li>
@@ -41,88 +39,47 @@ export default function InstructionsPage() {
                   <div className="flex items-center gap-3"><List className="h-6 w-6" />Dashboard</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">The dashboard is your central hub. It provides an at-a-glance overview of your training year and quick access to all modules.</p>
+                <p className="text-muted-foreground">The dashboard provides an at-a-glance overview of your training year and quick access to all modules.</p>
                 <h4 className="font-semibold">Mandatory Training Progress</h4>
-                <p>This section displays progress bars for each Phase, showing the percentage of mandatory training periods that have been scheduled in the Training, Weekend, and LDA planners. The calculation is based on unique EOs, so scheduling the same lesson multiple times won't inflate the percentage.</p>
+                <p>This section displays progress bars for each Phase, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Weekend, and LDA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
                 <h4 className="font-semibold">Navigation Cards</h4>
                 <p>Each card on the dashboard links to a major module of the application. Simply click on a card to navigate to the respective page.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>
 
-           <Card id="planner">
-            <AccordionItem value="planner" className="border-b-0">
+           <Card id="planners">
+            <AccordionItem value="planners" className="border-b-0">
               <AccordionTrigger className="p-6 text-xl">
-                 <div className="flex items-center gap-3"><Calendar className="h-6 w-6" />Corps/Squadron Training Plan - Annual</div>
+                 <div className="flex items-center gap-3"><Calendar className="h-6 w-6" />The Planners (Annual, Weekend, LDA)</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">The Corps/Squadron Training Plan - Annual is designed for scheduling your weekly training nights throughout the corps year.</p>
-                <h4 className="font-semibold">Scheduling a Lesson</h4>
+                <p className="text-muted-foreground">The application includes three planners for different scheduling needs. All scheduled activities, regardless of the planner used, contribute to the overall training progress on the Dashboard.</p>
+                
+                <h4 className="font-semibold">Core Mechanic: Drag & Drop</h4>
                 <ol className="list-decimal list-inside space-y-1">
                     <li>Find the lesson (EO) you want to schedule in the "Training Objectives" list on the left.</li>
                     <li>Click and drag the lesson from the list.</li>
-                    <li>Drop the lesson onto the desired Phase slot for a specific Period on a specific training day.</li>
+                    <li>Drop it onto the desired Phase slot for a specific Period on a specific day.</li>
+                    <li>Once an EO is scheduled, click on it to open a dialog where you can assign an Instructor and a Classroom. The app will warn you if you create a scheduling conflict.</li>
                 </ol>
-                <h4 className="font-semibold">Assigning Details</h4>
-                 <p>Once a lesson is scheduled, click on it to open a dialog window. Here you can assign an Instructor and a Classroom from the lists you manage in the Settings.</p>
-                <h4 className="font-semibold">View Modes</h4>
-                <p>You can change the calendar's view using the toggles in the page header. Options include:</p>
-                <ul className="list-disc list-inside">
-                    <li><b>Day:</b> View one training day at a time.</li>
-                    <li><b>Week:</b> View all training days within a single week.</li>
-                    <li><b>Month:</b> View all training days within a selected month (default view).</li>
-                    <li><b>Year:</b> View the entire training year. This view scrolls horizontally to show all months.</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Card>
 
-          <Card id="weekend-planner">
-            <AccordionItem value="weekend-planner" className="border-b-0">
-              <AccordionTrigger className="p-6 text-xl">
-                 <div className="flex items-center gap-3"><Tent className="h-6 w-6" />Weekend Planner</div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">This planner is for scheduling multi-day events like training weekends. It's designed to handle a more intensive schedule.</p>
-                <h4 className="font-semibold">How it Works</h4>
-                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Use the calendar in the header to select the start date of the weekend.</li>
-                    <li>The planner will display three consecutive days, each with 9 periods available for all four Phases.</li>
-                    <li>Drag and drop lessons from the Objectives list on the left, just like in the main Corps/Squadron Training Plan - Annual.</li>
-                    <li>Any lesson scheduled here will count towards the overall training completion on the Dashboard.</li>
-                </ol>
-                <h4 className="font-semibold">CSAR Planning</h4>
-                <p>Each day card in the LDA and Weekend planners includes a CSAR (Cadet Support and Activity Request) section.</p>
-                 <ul className="list-disc list-inside space-y-1">
-                    <li>Toggle "CSAR Required?" to 'Yes'. This will enable the other toggles and show the "Plan CSAR" button.</li>
-                    <li>Click "Plan CSAR" to open a detailed planning sheet.</li>
-                    <li>Fill out the form across the "Details", "Meal Plan", and "J4" tabs. The data is saved automatically as you fill it out.</li>
-                    <li>You can track the submission and approval status using the toggles on the main planner page.</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Card>
+                <h4 className="font-semibold flex items-center gap-2"><Calendar className="h-5 w-5" />Corps/Squadron Training Plan - Annual</h4>
+                <p>This planner is for your regular weekly training nights. You can toggle the view between Week, Month, and Year. You can also set the Dress of the Day for both CAF Staff and Cadets for each training night, which will automatically populate the WRO.</p>
 
-           <Card id="lda-planner">
-            <AccordionItem value="lda-planner" className="border-b-0">
-              <AccordionTrigger className="p-6 text-xl">
-                <div className="flex items-center gap-3"><ClipboardPlus className="h-6 w-6" />LDA Day Planner</div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">Use this planner for single, ad-hoc training days (LDAs). It shares all data with the other planners.</p>
-                 <h4 className="font-semibold">Planning an LDA</h4>
-                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Use the calendar in the header to select a date to plan.</li>
-                    <li>If you have previously planned days, you can use the "Jump to a Planned Day" section for quick navigation.</li>
-                    <li>The main view shows a single day with 9 periods for each of the four Phases. Drag and drop lessons as needed.</li>
-                </ol>
-                 <h4 className="font-semibold">CSAR Planning</h4>
-                <p>Each day card in the LDA and Weekend planners includes a CSAR (Cadet Support and Activity Request) section.</p>
+                <h4 className="font-semibold flex items-center gap-2"><Tent className="h-5 w-5" />Weekend Planner</h4>
+                <p>Designed for multi-day events, this planner displays three consecutive days, each with an intensive 9-period schedule. Use the calendar in the header to select the start date of the weekend.</p>
+
+                <h4 className="font-semibold flex items-center gap-2"><ClipboardPlus className="h-5 w-5" />LDA Day Planner</h4>
+                <p>Use this planner for single, ad-hoc training days (LDAs). It provides a 9-period schedule for one selected day. You can quickly jump between previously planned days.</p>
+
+                <h4 className="font-semibold">CSAR Planning (Weekends & LDAs)</h4>
+                <p>The Weekend and LDA planners include a Cadet Support and Activity Request (CSAR) section for each day.</p>
                  <ul className="list-disc list-inside space-y-1">
-                    <li>Toggle "CSAR Required?" to 'Yes'. This will enable the other toggles and show the "Plan CSAR" button.</li>
-                    <li>Click "Plan CSAR" to open a detailed planning sheet.</li>
-                    <li>Fill out the form across the "Details", "Meal Plan", and "J4" tabs. The data is saved automatically as you fill it out.</li>
-                    <li>You can track the submission and approval status using the toggles on the main planner page.</li>
+                    <li>Toggle "CSAR Required?" to 'Yes'. This enables the other toggles and the "Plan CSAR" button.</li>
+                    <li>Click "Plan CSAR" to open a detailed planning sheet with tabs for Details, Meal Plan, and J4 (equipment).</li>
+                    <li>Fill out the form. The data is saved automatically as you fill it out.</li>
+                    <li>Track the submission and approval status using the toggles on the main planner page.</li>
                 </ul>
               </AccordionContent>
             </AccordionItem>
@@ -131,17 +88,34 @@ export default function InstructionsPage() {
            <Card id="reports">
             <AccordionItem value="reports" className="border-b-0">
               <AccordionTrigger className="p-6 text-xl">
-                 <div className="flex items-center gap-3"><FileText className="h-6 w-6" />WRO Reports</div>
+                 <div className="flex items-center gap-3"><FileText className="h-6 w-6" />Reports</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">This module allows you to generate a PDF of the Weekly Routine Orders (WRO) for a specific training night.</p>
+                <p className="text-muted-foreground">This module allows you to generate a PDF of the Weekly Routine Orders (WRO) and view other key reports.</p>
                 <h4 className="font-semibold">Generating a WRO</h4>
+                 <p>The WRO form intelligently pulls data from other parts of the application to streamline report creation.</p>
                  <ol className="list-decimal list-inside space-y-1">
-                    <li>Select the Training Date for the WRO. The schedule for this date will be automatically pulled from the planners.</li>
-                    <li>Fill in the required fields like RO #, Duty Personnel, and CO Name.</li>
-                    <li>Optionally, upload a corps logo and add announcements.</li>
-                    <li>Click "Generate WRO PDF". A PDF file will be created and downloaded to your computer.</li>
+                    <li>Select a Training Date. The schedule for this date will be automatically pulled from the planners.</li>
+                    <li><strong>Automatic Logic:</strong> The following fields are auto-populated based on your settings and schedules:
+                        <ul className="list-disc list-inside ml-6 my-2 bg-muted/50 p-3 rounded-md">
+                            <li><strong>RO Number:</strong> Generated from the year and week number of the selected date.</li>
+                            <li><strong>Duty Personnel:</strong> Pulled from the Duty Roster you configure in Settings.</li>
+                            <li><strong>Dress of the Day:</strong> Pulled from the setting on the Annual Planner for that date.</li>
+                            <li><strong>Upcoming Activities:</strong> Populated from the "Weekly Activities" you define in Settings.</li>
+                        </ul>
+                    </li>
+                    <li>Fill in the remaining fields (e.g., CO Name, Announcements, Notes).</li>
+                    <li>Optionally, upload a corps logo.</li>
+                    <li>Click "Generate WRO PDF". A PDF file will be created and downloaded.</li>
                 </ol>
+                <h4 className="font-semibold">Other Reports</h4>
+                <p>The reports page also includes several other useful reports that can be printed:</p>
+                <ul className="list-disc list-inside">
+                    <li><strong>Cadet Roster:</strong> A complete list of all cadets.</li>
+                    <li><strong>Attendance:</strong> Includes a Summary, Daily Report, Perfect Attendance list, and At-Risk Cadets list.</li>
+                    <li><strong>Training Completion:</strong> Shows the progress of mandatory training for each phase.</li>
+                    <li><strong>Award Winners:</strong> A list of all awards and their assigned winners.</li>
+                </ul>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -152,11 +126,11 @@ export default function InstructionsPage() {
                  <div className="flex items-center gap-3"><Users className="h-6 w-6" />Cadet Management</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">This is where you manage your corps' roster.</p>
+                <p className="text-muted-foreground">This is where you manage your corps' roster for the current training year.</p>
                  <h4 className="font-semibold">Adding a Cadet</h4>
-                 <p>Use the "Add New Cadet" form. Fill in their details, including their current Phase. Ranks are managed in the Settings page.</p>
+                 <p>Use the "Add New Cadet" form. Fill in their details, including their current Phase. The list of available ranks is managed on the Settings page.</p>
                 <h4 className="font-semibold">Editing or Removing a Cadet</h4>
-                <p>The "Cadet Roster" table lists all your cadets. Use the pencil icon to edit a cadet's details (including their phase) or the 'X' icon to remove them.</p>
+                <p>The "Cadet Roster" table lists all your cadets. Use the pencil icon to edit a cadet's details or the 'X' icon to remove them.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -170,10 +144,10 @@ export default function InstructionsPage() {
                 <p className="text-muted-foreground">Track cadet attendance for specific training nights.</p>
                 <h4 className="font-semibold">Taking Attendance</h4>
                  <ol className="list-decimal list-inside space-y-1">
-                    <li>Select a training night using the calendar. The calendar will highlight your regular training days as defined in Settings.</li>
+                    <li>Select a training night using the calendar. Your regular training days (set in Settings) are highlighted.</li>
                     <li>For each cadet, select their status: Present, Absent, or Excused.</li>
                     <li>Use the checkboxes to mark if a cadet Arrived Late or Left Early.</li>
-                    <li>Click "Save Attendance" to store the records. This data is used for the Awards module.</li>
+                    <li>Click "Save Attendance". This data is crucial for generating accurate attendance reports and for the AI-powered award eligibility checks.</li>
                 </ol>
               </AccordionContent>
             </AccordionItem>
@@ -185,15 +159,18 @@ export default function InstructionsPage() {
                  <div className="flex items-center gap-3"><Trophy className="h-6 w-6" />Awards Management</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">Manage corps awards and determine eligible cadets.</p>
-                <h4 className="font-semibold">How it Works</h4>
-                <p>The page displays all National and Corps awards. The system automatically checks each cadet's eligibility based on their Phase and attendance record.</p>
+                <p className="text-muted-foreground">Manage corps awards and determine eligible cadets using AI assistance.</p>
+                <h4 className="font-semibold flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />AI-Powered Eligibility Check</h4>
                  <ul className="list-disc list-inside space-y-1">
-                    <li>Click on an award to expand it and view its criteria and description.</li>
-                    <li>The "Eligible Cadets" section will list all cadets who currently meet the criteria for that award.</li>
-                    <li>To assign an award, click the "Select" button next to a cadet's name. They will be marked as the winner.</li>
-                    <li>The winner's name will appear in the award title, and their button will change to "Winner".</li>
+                    <li>Expand an award to view its criteria.</li>
+                    <li>Click the <strong>"Check Eligibility with AI"</strong> button.</li>
+                    <li><strong>Automatic Logic:</strong> The application sends the award criteria and your entire cadet roster (including their calculated attendance percentages) to an AI model. The AI analyzes this data and returns a list of cadets who meet all requirements.</li>
+                    <li>The "Eligible Cadets" section will update to show the results.</li>
                 </ul>
+                <h4 className="font-semibold">Assigning Winners</h4>
+                <p>From the list of eligible cadets, click the "Select" button to mark a cadet as a winner. You can select multiple winners for corps awards. The winner's name will appear in the award title for easy reference.</p>
+                <h4 className="font-semibold">Managing Awards</h4>
+                <p>You can add, edit, or delete award definitions. Note that award definitions are global across all training years, but winners are specific to each year.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -204,11 +181,18 @@ export default function InstructionsPage() {
                  <div className="flex items-center gap-3"><Settings2 className="h-6 w-6" />Settings</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">Configure the application to match your corps' specific needs.</p>
-                <h4 className="font-semibold">Training Schedule</h4>
-                <p>Set your corps name, the day of the week you hold training, and the official first training night of the year. This date is used as the starting point for the planners.</p>
-                <h4 className="font-semibold">Manage Instructors, Classrooms, and Ranks</h4>
-                <p>In these sections, you can add or remove items from the lists that are used throughout the application (e.g., in the schedule dialogs and cadet forms). This allows you to customize the tool to your specific personnel, locations, and rank structure.</p>
+                <p className="text-muted-foreground">Configure the application to match your corps' specific needs. Changes here can affect automatic logic in other modules.</p>
+                <h4 className="font-semibold">Training Year Management</h4>
+                <p>Create a new training year or switch between existing ones. When creating a new year, you can choose to copy data from a previous year. The copy process includes an option to use <strong>AI to intelligently map</strong> last year's schedule to the new calendar, accounting for different start dates and holidays.</p>
+                
+                <h4 className="font-semibold">Personnel Management</h4>
+                <p>Manage your staff roster and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
+                
+                <h4 className="font-semibold">Planning Resources</h4>
+                <p>Customize the lists used throughout the planners. This includes Classrooms, Ranks (Cadet and Officer), and Orders of Dress. You can also define <strong>Weekly Activities</strong>, which are recurring events that will automatically appear in the "Upcoming Activities" section of the WRO for the relevant week.</p>
+                
+                <h4 className="font-semibold flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive"/>Danger Zone</h4>
+                <p>The "Reset Application" button will permanently delete <strong>all</strong> data from your browser's local storage, including all training years, schedules, cadets, and settings. Use this with extreme caution.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -218,5 +202,3 @@ export default function InstructionsPage() {
     </>
   );
 }
-
-    
