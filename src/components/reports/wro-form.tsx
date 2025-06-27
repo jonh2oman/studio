@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { format, addDays, isWithinInterval, startOfDay, endOfDay, eachDayOfInterval, getDay, parseISO } from "date-fns";
+import { format, addDays, isWithinInterval, startOfDay, endOfDay, eachDayOfInterval, getDay, parseISO, getWeek, getYear } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 
 const wroSchema = z.object({
-  roNumber: z.string().min(1, "RO # is required"),
+  roNumber: z.string().optional(),
   dutyOfficerName: z.string().min(1, "Duty Officer name is required"),
   dutyOfficerPhone: z.string().min(1, "Duty Officer phone is required"),
   dutyOfficerEmail: z.string().email({ message: "Invalid email address" }).optional().or(z.literal('')),
@@ -55,7 +55,7 @@ const wroSchema = z.object({
 type WroFormData = z.infer<typeof wroSchema>;
 
 export function WroForm() {
-  const { control, register, handleSubmit, watch, formState: { errors } } = useForm<WroFormData>({
+  const { control, register, handleSubmit, watch, setValue, formState: { errors } } = useForm<WroFormData>({
     resolver: zodResolver(wroSchema),
     defaultValues: {
       upcomingActivities: [],
@@ -74,6 +74,15 @@ export function WroForm() {
   const { schedule, isLoaded: scheduleLoaded } = useSchedule();
   const formData = watch();
   const trainingDate = watch("trainingDate");
+
+  useEffect(() => {
+    if (trainingDate) {
+        const year = getYear(trainingDate);
+        const week = getWeek(trainingDate);
+        setValue("roNumber", `RO-${year}-${String(week).padStart(2, '0')}`);
+    }
+  }, [trainingDate, setValue]);
+
 
   useEffect(() => {
     if (!trainingDate || !settings.weeklyActivities) {
@@ -221,8 +230,7 @@ export function WroForm() {
 
                         <div>
                             <Label htmlFor="roNumber">RO #</Label>
-                            <Input id="roNumber" {...register("roNumber")} />
-                            {errors.roNumber && <p className="text-destructive text-sm mt-1">{errors.roNumber.message}</p>}
+                            <Input id="roNumber" {...register("roNumber")} readOnly />
                         </div>
                     </div>
                     <div>
@@ -371,3 +379,5 @@ export function WroForm() {
     </>
   );
 }
+
+    
