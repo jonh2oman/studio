@@ -27,6 +27,7 @@ import { StaffManager } from "@/components/settings/staff-manager";
 import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { GuidedSetupDialog } from "@/components/settings/guided-setup-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const settingsSchema = z.object({
   corpsName: z.string().min(1, "Corps name is required"),
@@ -43,6 +44,8 @@ export default function SettingsPage() {
   const [newCadetDress, setNewCadetDress] = useState("");
   const [isGuidedSetupOpen, setIsGuidedSetupOpen] = useState(false);
   const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [resetConfirmation, setResetConfirmation] = useState("");
   const [newActivity, setNewActivity] = useState<{
     activity: string;
     dayOfWeek?: number;
@@ -199,7 +202,7 @@ export default function SettingsPage() {
       >
         <Button variant="outline" onClick={() => setIsGuidedSetupOpen(true)}>Run Guided Setup</Button>
       </PageHeader>
-      <div className="mt-8">
+      <div className="mt-8 space-y-6">
         <Accordion type="multiple" defaultValue={["general", "personnel", "resources"]} className="w-full space-y-6">
             <Card>
                 <AccordionItem value="general" className="border-b-0">
@@ -544,6 +547,20 @@ export default function SettingsPage() {
                 </AccordionItem>
             </Card>
         </Accordion>
+
+        <Card className="border-destructive">
+            <CardHeader>
+                <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                <CardDescription>
+                    These actions are irreversible. Please proceed with caution.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button variant="destructive" onClick={() => setIsResetDialogOpen(true)}>
+                    Reset Application
+                </Button>
+            </CardContent>
+        </Card>
       </div>
       
       {isNewYearDialogOpen && (
@@ -555,6 +572,40 @@ export default function SettingsPage() {
         onOpenChange={setIsGuidedSetupOpen}
         onFinish={() => setIsGuidedSetupOpen(false)}
       />
+
+      <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action is permanent and cannot be undone. It will delete all your corps data, including schedules, cadets, staff, and settings, and reset the application to its default state.
+                    <br /><br />
+                    To confirm, please type <strong>reset</strong> into the box below.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="py-2">
+                <Input
+                    id="reset-confirm"
+                    value={resetConfirmation}
+                    onChange={(e) => setResetConfirmation(e.target.value)}
+                    placeholder='Type "reset" to confirm'
+                />
+            </div>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setResetConfirmation("")}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                    variant="destructive"
+                    disabled={resetConfirmation !== "reset"}
+                    onClick={() => {
+                        localStorage.clear();
+                        window.location.reload();
+                    }}
+                >
+                    Reset Application
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
