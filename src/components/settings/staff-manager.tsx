@@ -31,8 +31,13 @@ const staffSchema = z.object({
 
 type StaffFormData = z.infer<typeof staffSchema>;
 
-export function StaffManager() {
-    const { settings, saveSettings } = useSettings();
+interface StaffManagerProps {
+    staff: StaffMember[];
+    onStaffChange: (newStaff: StaffMember[]) => void;
+}
+
+export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
+    const { settings } = useSettings(); // Used for officerRanks list
     const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
 
     const form = useForm<StaffFormData>({
@@ -59,15 +64,15 @@ export function StaffManager() {
         }
     }, [firstName, lastName, editingStaff, setValue]);
 
-    const handleEditClick = (staff: StaffMember) => {
-        setEditingStaff(staff);
+    const handleEditClick = (staffMember: StaffMember) => {
+        setEditingStaff(staffMember);
         form.reset({
-            type: staff.type,
-            rank: staff.rank,
-            firstName: staff.firstName,
-            lastName: staff.lastName,
-            phone: staff.phone || '',
-            email: staff.email || '',
+            type: staffMember.type,
+            rank: staffMember.rank,
+            firstName: staffMember.firstName,
+            lastName: staffMember.lastName,
+            phone: staffMember.phone || '',
+            email: staffMember.email || '',
         });
     }
 
@@ -79,19 +84,19 @@ export function StaffManager() {
     const onSubmit = (data: StaffFormData) => {
         if (editingStaff) {
             // Update existing staff
-            const updatedStaff = settings.staff.map(s => s.id === editingStaff.id ? { ...s, ...data } : s);
-            saveSettings({ staff: updatedStaff });
+            const updatedStaff = staff.map(s => s.id === editingStaff.id ? { ...s, ...data } : s);
+            onStaffChange(updatedStaff);
         } else {
             // Add new staff
-            const newStaff: StaffMember = { ...data, id: crypto.randomUUID() };
-            saveSettings({ staff: [...settings.staff, newStaff] });
+            const newStaffMember: StaffMember = { ...data, id: crypto.randomUUID() };
+            onStaffChange([...staff, newStaffMember]);
         }
         handleCancelEdit();
     };
 
     const handleRemoveStaff = (id: string) => {
-        const updatedStaff = settings.staff.filter(s => s.id !== id);
-        saveSettings({ staff: updatedStaff });
+        const updatedStaff = staff.filter(s => s.id !== id);
+        onStaffChange(updatedStaff);
     };
 
     return (
@@ -182,14 +187,14 @@ export function StaffManager() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {settings.staff.length === 0 && <TableRow><TableCell colSpan={4} className="text-center h-24">No staff members added.</TableCell></TableRow>}
-                                {settings.staff.map(staff => (
-                                    <TableRow key={staff.id}>
-                                        <TableCell className="font-medium">{staff.rank} {staff.firstName} {staff.lastName}</TableCell>
-                                        <TableCell>{staff.type}</TableCell>
-                                        <TableCell>{staff.email || staff.phone || 'N/A'}</TableCell>
+                                {staff.length === 0 && <TableRow><TableCell colSpan={4} className="text-center h-24">No staff members added.</TableCell></TableRow>}
+                                {staff.map(staffMember => (
+                                    <TableRow key={staffMember.id}>
+                                        <TableCell className="font-medium">{staffMember.rank} {staffMember.firstName} {staffMember.lastName}</TableCell>
+                                        <TableCell>{staffMember.type}</TableCell>
+                                        <TableCell>{staffMember.email || staffMember.phone || 'N/A'}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(staff)}><Edit className="h-4 w-4" /></Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(staffMember)}><Edit className="h-4 w-4" /></Button>
 
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
@@ -199,12 +204,12 @@ export function StaffManager() {
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            This will permanently remove {staff.rank} {staff.lastName} from the staff roster.
+                                                            This will permanently remove {staffMember.rank} {staffMember.lastName} from the staff roster.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
                                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleRemoveStaff(staff.id)}>Continue</AlertDialogAction>
+                                                        <AlertDialogAction onClick={() => handleRemoveStaff(staffMember.id)}>Continue</AlertDialogAction>
                                                     </AlertDialogFooter>
                                                 </AlertDialogContent>
                                             </AlertDialog>

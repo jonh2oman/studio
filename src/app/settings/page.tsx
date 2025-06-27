@@ -12,12 +12,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
-import type { WeeklyActivity } from "@/lib/types";
+import type { WeeklyActivity, Settings, StaffMember } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,6 +27,7 @@ import { StaffManager } from "@/components/settings/staff-manager";
 import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useSave } from "@/hooks/use-save-context";
 
 const settingsSchema = z.object({
   corpsName: z.string().min(1, "Corps name is required"),
@@ -34,14 +35,18 @@ const settingsSchema = z.object({
 });
 
 export default function SettingsPage() {
-  const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
+  const { settings: globalSettings, saveSettings: globalSaveSettings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
+  const { registerSave } = useSave();
+  
+  const [localSettings, setLocalSettings] = useState<Partial<Settings>>(globalSettings);
+  const [isDirty, setIsDirty] = useState(false);
+  
   const [newClassroom, setNewClassroom] = useState("");
   const [newCadetRank, setNewCadetRank] = useState("");
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
-  const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [resetConfirmation, setResetConfirmation] = useState("");
   const [newActivity, setNewActivity] = useState<{
@@ -70,101 +75,133 @@ export default function SettingsPage() {
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: {
-      corpsName: settings.corpsName,
-      trainingDay: settings.trainingDay,
+    values: {
+      corpsName: localSettings.corpsName || "",
+      trainingDay: localSettings.trainingDay ?? 2,
     },
   });
 
   useEffect(() => {
     if (settingsLoaded) {
+      setLocalSettings(globalSettings);
+      setIsDirty(false);
       form.reset({
-        corpsName: settings.corpsName,
-        trainingDay: settings.trainingDay,
+        corpsName: globalSettings.corpsName,
+        trainingDay: globalSettings.trainingDay,
       });
-      setWeeklyActivities(settings.weeklyActivities);
     }
-  }, [settingsLoaded, settings.corpsName, settings.trainingDay, settings.weeklyActivities, form]);
+  }, [globalSettings, settingsLoaded, form]);
 
+  const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
+    setLocalSettings(prev => ({ ...prev, [key]: value }));
+    setIsDirty(true);
+  }, []);
+  
+  const handleListChange = useCallback((key: keyof Settings, newList: any[]) => {
+    setLocalSettings(prev => ({ ...prev, [key]: newList }));
+    setIsDirty(true);
+  }, []);
 
-  const onSubmit = (data: z.infer<typeof settingsSchema>) => {
-    saveSettings(data);
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+        if (name && value[name as keyof typeof value] !== undefined) {
+             handleSettingChange(name as keyof Settings, value[name as keyof typeof value]);
+        }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, handleSettingChange]);
+  
+  const handleSave = useCallback(() => {
+    globalSaveSettings(localSettings);
+    setIsDirty(false);
     toast({
-      title: "Settings saved",
+      title: "Settings Saved",
       description: "Your changes have been saved successfully.",
     });
-  };
+  }, [localSettings, globalSaveSettings, toast]);
+
+  useEffect(() => {
+    if (isDirty) {
+      registerSave(handleSave);
+    } else {
+      registerSave(null);
+    }
+    return () => registerSave(null);
+  }, [isDirty, registerSave, handleSave]);
+
 
   const handleAddClassroom = () => {
-    if (newClassroom.trim() && !settings.classrooms.includes(newClassroom.trim())) {
-      saveSettings({ classrooms: [...settings.classrooms, newClassroom.trim()] });
+    const classrooms = localSettings.classrooms || [];
+    if (newClassroom.trim() && !classrooms.includes(newClassroom.trim())) {
+      handleListChange('classrooms', [...classrooms, newClassroom.trim()]);
       setNewClassroom("");
     }
   };
 
   const handleRemoveClassroom = (classroom: string) => {
-    saveSettings({ classrooms: settings.classrooms.filter(c => c !== classroom) });
+    const classrooms = localSettings.classrooms || [];
+    handleListChange('classrooms', classrooms.filter(c => c !== classroom));
   };
 
   const handleAddCadetRank = () => {
-    if (newCadetRank.trim() && !settings.cadetRanks.includes(newCadetRank.trim())) {
-      saveSettings({ cadetRanks: [...settings.cadetRanks, newCadetRank.trim()] });
+    const cadetRanks = localSettings.cadetRanks || [];
+    if (newCadetRank.trim() && !cadetRanks.includes(newCadetRank.trim())) {
+      handleListChange('cadetRanks', [...cadetRanks, newCadetRank.trim()]);
       setNewCadetRank("");
     }
   };
 
   const handleRemoveCadetRank = (rank: string) => {
-    saveSettings({ cadetRanks: settings.cadetRanks.filter(r => r !== rank) });
+    const cadetRanks = localSettings.cadetRanks || [];
+    handleListChange('cadetRanks', cadetRanks.filter(r => r !== rank));
   };
   
   const handleAddOfficerRank = () => {
-    if (newOfficerRank.trim() && !settings.officerRanks.includes(newOfficerRank.trim())) {
-      saveSettings({ officerRanks: [...settings.officerRanks, newOfficerRank.trim()] });
+    const officerRanks = localSettings.officerRanks || [];
+    if (newOfficerRank.trim() && !officerRanks.includes(newOfficerRank.trim())) {
+      handleListChange('officerRanks', [...officerRanks, newOfficerRank.trim()]);
       setNewOfficerRank("");
     }
   };
 
   const handleRemoveOfficerRank = (rank: string) => {
-    saveSettings({ officerRanks: settings.officerRanks.filter(r => r !== rank) });
+    const officerRanks = localSettings.officerRanks || [];
+    handleListChange('officerRanks', officerRanks.filter(r => r !== rank));
   };
 
   const handleAddCafDress = () => {
-    if (newCafDress.trim() && !settings.ordersOfDress.caf.includes(newCafDress.trim())) {
-      saveSettings({ ordersOfDress: { ...settings.ordersOfDress, caf: [...settings.ordersOfDress.caf, newCafDress.trim()] } });
+    const ordersOfDress = localSettings.ordersOfDress || { caf: [], cadets: [] };
+    if (newCafDress.trim() && !ordersOfDress.caf.includes(newCafDress.trim())) {
+      handleSettingChange('ordersOfDress', { ...ordersOfDress, caf: [...ordersOfDress.caf, newCafDress.trim()] });
       setNewCafDress("");
     }
   };
 
   const handleRemoveCafDress = (dress: string) => {
-    saveSettings({ ordersOfDress: { ...settings.ordersOfDress, caf: settings.ordersOfDress.caf.filter(d => d !== dress) } });
+    const ordersOfDress = localSettings.ordersOfDress || { caf: [], cadets: [] };
+    handleSettingChange('ordersOfDress', { ...ordersOfDress, caf: ordersOfDress.caf.filter(d => d !== dress) });
   };
 
   const handleAddCadetDress = () => {
-    if (newCadetDress.trim() && !settings.ordersOfDress.cadets.includes(newCadetDress.trim())) {
-      saveSettings({ ordersOfDress: { ...settings.ordersOfDress, cadets: [...settings.ordersOfDress.cadets, newCadetDress.trim()] } });
+    const ordersOfDress = localSettings.ordersOfDress || { caf: [], cadets: [] };
+    if (newCadetDress.trim() && !ordersOfDress.cadets.includes(newCadetDress.trim())) {
+      handleSettingChange('ordersOfDress', { ...ordersOfDress, cadets: [...ordersOfDress.cadets, newCadetDress.trim()] });
       setNewCadetDress("");
     }
   };
 
   const handleRemoveCadetDress = (dress: string) => {
-    saveSettings({ ordersOfDress: { ...settings.ordersOfDress, cadets: settings.ordersOfDress.cadets.filter(d => d !== dress) } });
+    const ordersOfDress = localSettings.ordersOfDress || { caf: [], cadets: [] };
+    handleSettingChange('ordersOfDress', { ...ordersOfDress, cadets: ordersOfDress.cadets.filter(d => d !== dress) });
   };
 
   const handleAddActivity = () => {
     if (!newActivity.activity || newActivity.dayOfWeek === undefined || !newActivity.startDate || !newActivity.endDate) {
-        toast({
-            variant: "destructive",
-            title: "Missing Information",
-            description: "Please provide an activity name, day of week, start date, and end date.",
-        });
+        toast({ variant: "destructive", title: "Missing Information", description: "Please provide an activity name, day of week, start date, and end date." });
         return;
     }
     if (newActivity.endDate < newActivity.startDate) {
-        toast({
-            variant: "destructive",
-            title: "Invalid Dates",
-            description: "The end date cannot be before the start date.",
-        });
+        toast({ variant: "destructive", title: "Invalid Dates", description: "The end date cannot be before the start date." });
         return;
     }
 
@@ -180,15 +217,19 @@ export default function SettingsPage() {
         dress: newActivity.dress,
         opi: newActivity.opi,
     };
-    const updatedActivities = [...weeklyActivities, newActivityToAdd];
-    saveSettings({ weeklyActivities: updatedActivities });
-    setNewActivity({ activity: '', startTime: '', endTime: '', location: '', dress: '', opi: '' }); // Reset form
+    const weeklyActivities = localSettings.weeklyActivities || [];
+    handleListChange('weeklyActivities', [...weeklyActivities, newActivityToAdd]);
+    setNewActivity({ activity: '', startTime: '', endTime: '', location: '', dress: '', opi: '' });
   };
 
   const handleRemoveActivity = (id: string) => {
-    const updatedActivities = weeklyActivities.filter(a => a.id !== id);
-    saveSettings({ weeklyActivities: updatedActivities });
+    const weeklyActivities = localSettings.weeklyActivities || [];
+    handleListChange('weeklyActivities', weeklyActivities.filter(a => a.id !== id));
   };
+  
+  const handleStaffChange = (newStaff: StaffMember[]) => {
+      handleListChange('staff', newStaff);
+  }
 
   const isLoading = !settingsLoaded || !yearsLoaded;
 
@@ -247,7 +288,7 @@ export default function SettingsPage() {
                                     <p>Loading settings...</p>
                                     ) : (
                                     <Form {...form}>
-                                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                                        <form className="space-y-8">
                                         <FormField
                                             control={form.control}
                                             name="corpsName"
@@ -285,7 +326,6 @@ export default function SettingsPage() {
                                             </FormItem>
                                             )}
                                         />
-                                        <Button type="submit">Save Changes</Button>
                                         </form>
                                     </Form>
                                     )}
@@ -304,7 +344,7 @@ export default function SettingsPage() {
                     <AccordionContent className="p-6 pt-0">
                         <p className="text-muted-foreground mb-6">Manage staff members and assign their parade night duties.</p>
                         <div className="grid gap-8">
-                            <StaffManager />
+                            <StaffManager staff={localSettings.staff || []} onStaffChange={handleStaffChange} />
                             <DutyRoster />
                         </div>
                     </AccordionContent>
@@ -334,7 +374,7 @@ export default function SettingsPage() {
                                     <Button onClick={handleAddClassroom}>Add</Button>
                                     </div>
                                     <div className="space-y-2">
-                                    {settings.classrooms.map(classroom => (
+                                    {(localSettings.classrooms || []).map(classroom => (
                                         <div key={classroom} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                         <span>{classroom}</span>
                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveClassroom(classroom)}>
@@ -361,7 +401,7 @@ export default function SettingsPage() {
                                     <Button onClick={handleAddOfficerRank}>Add</Button>
                                     </div>
                                     <div className="space-y-2">
-                                    {settings.officerRanks.map(rank => (
+                                    {(localSettings.officerRanks || []).map(rank => (
                                         <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                         <span>{rank}</span>
                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRank(rank)}>
@@ -388,7 +428,7 @@ export default function SettingsPage() {
                                     <Button onClick={handleAddCadetRank}>Add</Button>
                                     </div>
                                     <div className="space-y-2">
-                                    {settings.cadetRanks.map(rank => (
+                                    {(localSettings.cadetRanks || []).map(rank => (
                                         <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                         <span>{rank}</span>
                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetRank(rank)}>
@@ -413,7 +453,7 @@ export default function SettingsPage() {
                                             <Button onClick={handleAddCafDress}>Add</Button>
                                         </div>
                                         <div className="space-y-2">
-                                            {settings.ordersOfDress?.caf.map(dress => (
+                                            {(localSettings.ordersOfDress?.caf || []).map(dress => (
                                                 <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                                     <span>{dress}</span>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCafDress(dress)}>
@@ -430,7 +470,7 @@ export default function SettingsPage() {
                                             <Button onClick={handleAddCadetDress}>Add</Button>
                                         </div>
                                         <div className="space-y-2">
-                                            {settings.ordersOfDress?.cadets.map(dress => (
+                                            {(localSettings.ordersOfDress?.cadets || []).map(dress => (
                                                 <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                                     <span>{dress}</span>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetDress(dress)}>
@@ -512,8 +552,8 @@ export default function SettingsPage() {
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
-                                                    {weeklyActivities.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}
-                                                    {weeklyActivities.map(act => (
+                                                    {(localSettings.weeklyActivities || []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}
+                                                    {(localSettings.weeklyActivities || []).map(act => (
                                                         <TableRow key={act.id}>
                                                             <TableCell>
                                                                 <p className="font-medium">{act.activity}</p>
