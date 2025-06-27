@@ -10,6 +10,7 @@ import { SaveProvider } from '@/hooks/use-save-context';
 import { FloatingSaveButton } from '@/components/floating-save-button';
 import { AuthProvider } from '@/hooks/use-auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { BugReportButton } from '@/components/bug-report/bug-report-button';
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',
@@ -39,7 +40,10 @@ export default function RootLayout({
             </SidebarProvider>
             <Toaster />
             <div className="print:hidden">
-              <HelpButton />
+              <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
+                <HelpButton />
+                <BugReportButton />
+              </div>
               <FloatingSaveButton />
             </div>
           </TooltipProvider>

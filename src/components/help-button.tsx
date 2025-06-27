@@ -25,22 +25,18 @@ export function HelpButton() {
     }, [pathname]);
 
     return (
-        <div className="fixed bottom-6 right-6 z-50">
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button asChild size="icon" className="rounded-full w-14 h-14 shadow-lg">
-                         <Link href={helpLink}>
-                            <HelpCircle className="h-7 w-7" />
-                            <span className="sr-only">Help</span>
-                        </Link>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left" align="center">
-                    <p>Get Help</p>
-                </TooltipContent>
-            </Tooltip>
-        </div>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button asChild size="icon" className="rounded-full w-14 h-14 shadow-lg">
+                     <Link href={helpLink}>
+                        <HelpCircle className="h-7 w-7" />
+                        <span className="sr-only">Help</span>
+                    </Link>
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" align="center">
+                <p>Get Help</p>
+            </TooltipContent>
+        </Tooltip>
     )
 }
-
-    
