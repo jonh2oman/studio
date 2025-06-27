@@ -4,8 +4,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { Schedule, Cadet, AwardWinner, DayMetadataState, YearSpecificSettings, TrainingYearSettings } from '@/lib/types';
-import { useSettings } from './use-settings';
+import type { Settings, TrainingYearSettings } from '@/lib/types';
+import type { Cadet } from '@/lib/types';
 
 const getFirstTuesdayOfSeptember = (year: number) => {
     const d = new Date(year, 8, 1);
@@ -21,7 +21,6 @@ export function useTrainingYear() {
     const [isLoaded, setIsLoaded] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const { toast } = useToast();
-    const { settings } = useSettings();
 
     useEffect(() => {
         try {
@@ -34,8 +33,9 @@ export function useTrainingYear() {
             if (storedCurrentYear && years.includes(storedCurrentYear)) {
                 setCurrentYearState(storedCurrentYear);
             } else if (years.length > 0) {
-                setCurrentYearState(years[0]);
-                localStorage.setItem('currentTrainingYear', years[0]);
+                const latestYear = years.sort().reverse()[0];
+                setCurrentYearState(latestYear);
+                localStorage.setItem('currentTrainingYear', latestYear);
             } else {
                 // First time setup
                 const yearDate = new Date();
@@ -80,7 +80,7 @@ export function useTrainingYear() {
 
         try {
             // Update year list
-            const updatedYears = [...trainingYears, year];
+            const updatedYears = [...trainingYears, year].sort().reverse();
             localStorage.setItem('trainingYears', JSON.stringify(updatedYears));
             setTrainingYears(updatedYears);
 
@@ -105,11 +105,15 @@ export function useTrainingYear() {
                      const sourceYearSettings = yearSettings[copyFrom];
                      if (!sourceYearSettings) throw new Error(`Could not find settings for source year ${copyFrom}`);
                     
+                    const globalSettingsStr = localStorage.getItem('trainingSettings') || '{}';
+                    const globalSettings = JSON.parse(globalSettingsStr) as Partial<Settings>;
+                    const trainingDay = globalSettings.trainingDay ?? 2;
+
                     const result = await copyTrainingSchedule({
                         sourceScheduleJson: sourceScheduleStr,
                         sourceTrainingYearStart: sourceYearSettings.firstTrainingNight,
                         targetTrainingYearStart: startDate,
-                        trainingDayOfWeek: settings.trainingDay,
+                        trainingDayOfWeek: trainingDay,
                     });
                     localStorage.setItem(`${year}_trainingSchedule`, result.newScheduleJson);
 
@@ -136,7 +140,7 @@ export function useTrainingYear() {
         } finally {
             setIsCreating(false);
         }
-    }, [trainingYears, toast, settings.trainingDay]);
+    }, [trainingYears, toast]);
 
     return { trainingYears, currentYear, setCurrentYear, createNewYear, isLoaded, isCreating };
 }
