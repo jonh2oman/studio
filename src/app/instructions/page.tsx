@@ -21,8 +21,8 @@ export default function InstructionsPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-muted-foreground">
                 <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Data is Stored Locally</h4>
-                    <p>All your data (schedules, cadets, etc.) is saved directly in your web browser's local storage. This means it's private and fast, but it's tied to your specific browser on your computer. Use the Backup/Restore feature in Settings to move your data or keep it safe.</p>
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Real-Time Cloud Storage</h4>
+                    <p>All your data (schedules, cadets, etc.) is securely saved to the cloud and linked to your user account. Every change is saved automatically and in real-time. This means your data is safe, private, and accessible from any device where you log in.</p>
                 </div>
                 <div className="space-y-2">
                     <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Everything is Organized by Training Year</h4>
@@ -58,7 +58,7 @@ export default function InstructionsPage() {
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">The dashboard provides an at-a-glance overview of your training year and quick access to all modules.</p>
-                <h4 className="font-semibold">Mandatory Training Progress</h4>
+                <h4 className="font-semibold">Mandatory Training Planning Progress</h4>
                 <p>This section displays progress bars for each Phase, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Weekend, and LDA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
                 <h4 className="font-semibold">Navigation Cards</h4>
                 <p>Each card on the dashboard links to a major module of the application. The categories can be expanded or collapsed to keep the view tidy. Simply click on a card to navigate to the respective page.</p>
@@ -72,7 +72,7 @@ export default function InstructionsPage() {
                  <div className="flex items-center gap-3"><Calendar className="h-6 w-6" />The Planners (Annual, Weekend, LDA)</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">The application includes three planners for different scheduling needs. All scheduled activities, regardless of the planner used, contribute to the overall training progress on the Dashboard.</p>
+                <p className="text-muted-foreground">The application includes three planners for different scheduling needs. All planners feature a sticky header, so page controls are always accessible. All scheduled activities, regardless of the planner used, contribute to the overall training progress on the Dashboard.</p>
                 
                 <h4 className="font-semibold">The Objectives Panel</h4>
                 <p>This floating panel is your palette of lessons. It can be moved anywhere on the screen and resized to your liking. It contains all official EOs, plus any custom EOs you've created in Settings. Use the search bar to quickly find what you need.</p>
@@ -159,7 +159,7 @@ export default function InstructionsPage() {
                     <li>Select a training night using the calendar. Your regular training days (set in Settings) are highlighted.</li>
                     <li>For each cadet, select their status: Present, Absent, or Excused.</li>
                     <li>Use the checkboxes to mark if a cadet Arrived Late or Left Early.</li>
-                    <li>Click the floating "Save" button. This data is crucial for generating accurate attendance reports and for the AI-powered award eligibility checks.</li>
+                    <li>Changes are saved automatically. This data is crucial for generating accurate attendance reports and for the AI-powered award eligibility checks.</li>
                 </ol>
               </AccordionContent>
             </AccordionItem>
@@ -212,11 +212,11 @@ export default function InstructionsPage() {
                     <li><strong>Weekly Activities:</strong> Define recurring events (e.g., Band Practice every Thursday) that will automatically appear in the "Upcoming Activities" section of the WRO for the relevant week.</li>
                 </ul>
                 
-                <h4 className="font-semibold">Local & Cloud Data Management</h4>
-                <p>This powerful feature allows you to create a complete backup of all application data. The exported JSON file contains everything: all training years, schedules, cadet rosters, awards, and settings. You can import this file to restore your data on a different machine or after an update. You can also connect your Google account to save and load backups directly from a private folder in your Google Drive.</p>
+                <h4 className="font-semibold">Data Management</h4>
+                <p>Your data is automatically and securely saved to the cloud, tied to your user account. There is no need for manual backups. Your changes are available instantly across any device you log in from.</p>
                 
                 <h4 className="font-semibold flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive"/>Danger Zone</h4>
-                <p>The "Reset Application" button will permanently delete <strong>all</strong> data from your browser's local storage, including all training years, schedules, cadets, and settings. This action is irreversible. Use this with extreme caution.</p>
+                <p>The "Reset Application" button will permanently delete <strong>all</strong> of your data from the cloud, including all training years, schedules, cadets, and settings associated with your account. This action is irreversible and cannot be undone. Use this with extreme caution.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>

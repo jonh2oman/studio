@@ -1,14 +1,25 @@
 
-export interface ChangelogEntry {
-  version: string;
-  date: string;
-  changes: string[];
-}
+import type { ChangelogEntry } from './types';
 
 export const changelogData: ChangelogEntry[] = [
   {
-    version: "1.0.3 Beta",
+    version: "1.1.0",
     date: "Current Version",
+    changes: [
+      "Major Architecture Upgrade: Migrated all application data from browser local storage to Firebase Firestore for real-time, secure cloud storage.",
+      "Automatic Saving: All changes are now saved automatically to the user's account in the cloud. The manual save button and backup/restore features have been removed.",
+      "Cross-Device Sync: User data is now available on any device after logging in.",
+      "Production-Ready Authentication: Removed mock authentication mode. The application now exclusively uses Firebase for login and signup.",
+      "Improved UI Consistency: Standardized the layout across all three planner pages (Annual, Weekend, LDA) for a more intuitive experience.",
+      "Enhanced Planner UI: Implemented sticky headers that remain visible while scrolling. Moved the 'Print' and 'PO/EO' toggle buttons for easier access.",
+      "Static Navigation: The main sidebar is now permanently expanded on desktop to provide a stable navigation experience.",
+      "Layout Refinements: Added a thicker border and consistent padding between the navigation and content panels for better visual separation and spacing.",
+      "Bug Fixes: Corrected multiple bugs, including a critical initialization error and various text inconsistencies.",
+    ],
+  },
+  {
+    version: "1.0.3 Beta",
+    date: "July 31, 2024",
     changes: [
         "Reworked Staff Management system, adding role creation, primary/additional roles, permanent roles, and dynamic fields based on staff type.",
         "Enhanced Cadet Management with a new system for creating and assigning custom Cadet Roles.",
