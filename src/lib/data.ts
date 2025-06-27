@@ -42,6 +42,7 @@ const rawData = {
       "C": [["CX20.01", "Participate in CAF Familiarization Activities", 18]]
     },
     "PO 121 - Perform Basic Ropework": {
+      "M": [["M121.01", "Tie Knots, Bends and Hitches", 6], ["M121.02", "Whip the End of a Line Using a Common Whipping", 3], ["M121.03", "Coil and Heave a Line", 3]],
       "C": [["C121.01", "Whip the End of a Line Using a West Country Whipping", 1], ["C121.02", "Whip the End of a Line Using a Sailmaker's Whipping", 2], ["C121.03", "Complete a Rolling Hitch", 1], ["C121.04", "Complete a Marlin Hitch", 1]]
     },
     "PO 123 - Respond to Basic Forms of Naval Communications": {
