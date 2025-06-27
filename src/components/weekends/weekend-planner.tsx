@@ -7,7 +7,6 @@ import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Menu } from 'l
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
-import { ObjectivesList } from '@/components/planner/objectives-list';
 import { ScheduleDialog } from '@/components/planner/schedule-dialog';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -20,6 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CsarPlanner } from '@/components/csar/csar-planner';
+import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel';
 
 export function WeekendPlanner() {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
@@ -177,14 +177,9 @@ export function WeekendPlanner() {
 
     return (
         <div className="h-[calc(100vh-12rem)] rounded-lg border bg-card relative overflow-hidden">
-            {/* Floating Objectives Panel */}
-            <div className={cn(
-                "absolute top-0 left-0 h-full w-[340px] z-20 bg-card border-r transition-transform duration-300 ease-in-out print:hidden",
-                objectivesVisible ? "translate-x-0" : "-translate-x-full"
-            )}>
-                <ObjectivesList />
-            </div>
-
+            {/* Draggable Objectives Panel */}
+            {objectivesVisible && <DraggableObjectivesPanel />}
+            
             {/* Main Content */}
             <div className="h-full rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
@@ -220,15 +215,12 @@ export function WeekendPlanner() {
             </div>
 
             {/* Toggle Button */}
-            <div className="absolute top-4 left-4 z-30 print:hidden">
+            <div className="absolute top-4 left-4 z-50 print:hidden">
                  <Button
                     size="icon"
                     variant="outline"
                     onClick={() => setObjectivesVisible(!objectivesVisible)}
-                    className={cn(
-                        "transition-transform duration-300 ease-in-out bg-card hover:bg-muted",
-                        objectivesVisible && "translate-x-[340px]"
-                    )}
+                    className="bg-card hover:bg-muted shadow-md"
                  >
                     <Menu className="h-5 w-5" />
                  </Button>

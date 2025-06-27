@@ -1,14 +1,12 @@
-
 "use client";
 
 import { useState } from "react";
-import { ObjectivesList } from "@/components/planner/objectives-list";
 import { CalendarView } from "@/components/planner/calendar-view";
 import type { EO } from "@/lib/types";
 import { useSchedule } from "@/hooks/use-schedule";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { DraggableObjectivesPanel } from "./draggable-objectives-panel";
 
 interface PlannerProps {
   viewMode: string;
@@ -25,13 +23,8 @@ export default function Planner({ viewMode }: PlannerProps) {
 
     return (
         <div className="h-[calc(100vh-12rem)] rounded-lg border bg-card relative overflow-hidden print:h-auto print:overflow-visible print:border-none">
-            {/* Floating Objectives Panel */}
-            <div className={cn(
-                "absolute top-0 left-0 h-full w-[340px] z-20 bg-card border-r transition-transform duration-300 ease-in-out print:hidden",
-                objectivesVisible ? "translate-x-0" : "-translate-x-full"
-            )}>
-                <ObjectivesList />
-            </div>
+            {/* Draggable Objectives Panel */}
+            {objectivesVisible && <DraggableObjectivesPanel />}
 
             {/* Main Content */}
             <div className="h-full">
@@ -47,15 +40,12 @@ export default function Planner({ viewMode }: PlannerProps) {
             </div>
 
             {/* Toggle Button */}
-            <div className="absolute top-4 left-4 z-30 print:hidden">
+            <div className="absolute top-4 left-4 z-50 print:hidden">
                  <Button
                     size="icon"
                     variant="outline"
                     onClick={() => setObjectivesVisible(!objectivesVisible)}
-                    className={cn(
-                        "transition-transform duration-300 ease-in-out bg-card hover:bg-muted",
-                        objectivesVisible && "translate-x-[340px]"
-                    )}
+                    className="bg-card hover:bg-muted shadow-md"
                  >
                     <Menu className="h-5 w-5" />
                  </Button>
