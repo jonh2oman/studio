@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { WroForm } from "@/components/reports/wro-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CadetRosterReport } from "@/components/reports/cadet-roster-report";
-import { AttendanceSummaryReport } from "@/components/reports/attendance-summary-report";
+import { AttendanceReports } from "@/components/reports/attendance-reports";
 import { TrainingCompletionReport } from "@/components/reports/training-completion-report";
 import { AwardWinnersReport } from "@/components/reports/award-winners-report";
 
@@ -31,7 +31,7 @@ export default function ReportsPage() {
                     <CadetRosterReport />
                 </TabsContent>
                 <TabsContent value="attendance" className="mt-6">
-                    <AttendanceSummaryReport />
+                    <AttendanceReports />
                 </TabsContent>
                 <TabsContent value="completion" className="mt-6">
                     <TrainingCompletionReport />

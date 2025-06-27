@@ -5,54 +5,42 @@ import { useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Printer, Loader2 } from "lucide-react";
+import { Printer, Loader2, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
-export function AttendanceSummaryReport() {
+const AT_RISK_THRESHOLD = 75;
+
+export function AtRiskAttendanceReport() {
     const { cadets, attendance, isLoaded: cadetsLoaded } = useCadets();
 
-    const attendanceSummary = useMemo(() => {
+    const atRiskCadets = useMemo(() => {
         if (!cadetsLoaded) return [];
 
         const recordedTrainingDays = Object.keys(attendance);
+        if (recordedTrainingDays.length === 0) return [];
 
-        if (recordedTrainingDays.length === 0) {
-            return cadets.map(cadet => ({
-                ...cadet,
-                present: 0,
-                absent: 0,
-                excused: 0,
-                percentage: 100, // No days recorded, so 100%
-            }));
-        }
-
-        return cadets.map(cadet => {
+        const summaries = cadets.map(cadet => {
             let present = 0;
             let excused = 0;
-            let absent = 0;
             let daysTracked = 0;
 
             recordedTrainingDays.forEach(date => {
                 const record = attendance[date]?.find(r => r.cadetId === cadet.id);
-                // Only track attendance for cadets who have a record on a given day
                 if (record) {
                     daysTracked++;
                     if (record.status === 'present') present++;
                     else if (record.status === 'excused') excused++;
-                    else if (record.status === 'absent') absent++;
                 }
             });
             
             const percentage = daysTracked > 0 ? ((present + excused) / daysTracked) * 100 : 0;
-            
-            return {
-                ...cadet,
-                present,
-                absent,
-                excused,
-                percentage,
-            };
+            return { ...cadet, percentage };
         });
+
+        return summaries
+            .filter(c => c.percentage < AT_RISK_THRESHOLD)
+            .sort((a,b) => a.percentage - b.percentage);
+
     }, [cadets, attendance, cadetsLoaded]);
 
 
@@ -65,8 +53,8 @@ export function AttendanceSummaryReport() {
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
-                        <CardTitle>Attendance Summary</CardTitle>
-                        <CardDescription>Overall attendance summary for each cadet for the current training year.</CardDescription>
+                        <CardTitle>At-Risk Attendance Report</CardTitle>
+                        <CardDescription>Cadets with attendance below {AT_RISK_THRESHOLD}%, which may affect promotions or awards.</CardDescription>
                     </div>
                     <Button onClick={handlePrint} variant="outline" size="sm" className="print:hidden"><Printer className="mr-2 h-4 w-4" />Print</Button>
                 </div>
@@ -76,31 +64,33 @@ export function AttendanceSummaryReport() {
                     <div className="flex justify-center items-center h-64">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
-                ) : cadets.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-10">No cadets in the roster.</p>
+                ) : atRiskCadets.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-10">
+                        <p>No cadets are currently at risk.</p>
+                        <p className="text-xs">This report is based on saved attendance records.</p>
+                    </div>
                 ) : (
                     <div className="border rounded-lg">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Cadet</TableHead>
-                                <TableHead className="text-center">Present</TableHead>
-                                <TableHead className="text-center">Excused</TableHead>
-                                <TableHead className="text-center">Absent</TableHead>
                                 <TableHead className="w-[200px]">Attendance %</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {attendanceSummary.sort((a, b) => a.lastName.localeCompare(b.lastName)).map(summary => (
-                                <TableRow key={summary.id}>
-                                    <TableCell>{summary.rank} {summary.lastName}, {summary.firstName}</TableCell>
-                                    <TableCell className="text-center">{summary.present}</TableCell>
-                                    <TableCell className="text-center">{summary.excused}</TableCell>
-                                    <TableCell className="text-center">{summary.absent}</TableCell>
+                            {atRiskCadets.map(cadet => (
+                                <TableRow key={cadet.id} className="text-destructive/80">
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <Progress value={summary.percentage} className="h-2" />
-                                            <span className="text-xs font-medium">{summary.percentage.toFixed(0)}%</span>
+                                            <AlertTriangle className="h-4 w-4" />
+                                            <span>{cadet.rank} {cadet.lastName}, {cadet.firstName}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <Progress value={cadet.percentage} className="h-2 [&>div]:bg-destructive" />
+                                            <span className="text-xs font-medium">{cadet.percentage.toFixed(0)}%</span>
                                         </div>
                                     </TableCell>
                                 </TableRow>

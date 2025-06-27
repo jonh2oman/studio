@@ -91,5 +91,5 @@ export function useCadets() {
     }, [currentYear, attendance]);
 
 
-    return { cadets, addCadet, updateCadet, removeCadet, isLoaded: isLoaded && !!currentYear, getAttendanceForDate, saveAttendanceForDate };
+    return { cadets, addCadet, updateCadet, removeCadet, isLoaded: isLoaded && !!currentYear, getAttendanceForDate, saveAttendanceForDate, attendance };
 }
