@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -155,7 +156,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
           </div>
         </CardHeader>
         <CardContent>
-          <div className={cn("gap-4", viewMode === 'year' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-3')}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map(period => (
               <div key={period} className="space-y-2">
                 <h4 className="font-semibold text-center text-muted-foreground">Period {period} ({nightSchedule[period+1].time})</h4>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -141,19 +142,19 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
                         </Sheet>
                     </div>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map(phase => (
-                        <div key={phase} className="space-y-2">
-                            <h3 className="font-bold text-center text-lg">Phase {phase}</h3>
-                            <div className="space-y-2 rounded-lg bg-background/50 p-2 border">
-                                {[...Array(9)].map((_, i) => {
-                                    const period = i + 1;
-                                    const slotId = `${dateStr}-${period}-${phase}`;
-                                    const scheduledItem = schedule[slotId];
-                                    return (
-                                        <div key={period}>
-                                            <h4 className="font-semibold text-center text-muted-foreground mb-1 text-xs">Period {period}</h4>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[...Array(9)].map((_, i) => {
+                        const period = i + 1;
+                        return (
+                            <div key={period} className="space-y-2">
+                                <h4 className="font-semibold text-center text-muted-foreground text-sm">Period {period}</h4>
+                                <div className="space-y-2 rounded-lg bg-background/50 p-2 border">
+                                    {[1, 2, 3, 4].map(phase => {
+                                        const slotId = `${dateStr}-${period}-${phase}`;
+                                        const scheduledItem = schedule[slotId];
+                                        return (
                                             <div
+                                                key={phase}
                                                 onDragOver={(e) => handleDragOver(e, slotId)}
                                                 onDragLeave={handleDragLeave}
                                                 onDrop={(e) => handleDrop(e, dateStr, period, phase)}
@@ -167,6 +168,7 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
                                                     <div className="w-full text-left">
                                                         <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => updateScheduleItem(slotId, details)} >
                                                             <button className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
+                                                                <Badge className="mb-1">Phase {phase}</Badge>
                                                                 <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                                                                 <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
                                                                 <div className="text-xs space-y-0.5">
@@ -179,14 +181,14 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
                                                             <X className="w-4 h-4"/>
                                                         </Button>
                                                     </div>
-                                                ) : ( <span className="text-xs text-muted-foreground text-center">Drop EO here</span> )}
+                                                ) : ( <span className="text-xs text-muted-foreground text-center">Phase {phase}</span> )}
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </CardContent>
             </Card>
         );

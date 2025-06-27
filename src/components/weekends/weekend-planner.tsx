@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -125,14 +126,14 @@ export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
                         </Sheet>
                     </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[...Array(9)].map((_, i) => {
                         const period = i + 1;
                         return (
-                             <div key={period}>
-                                <h4 className="font-semibold text-center text-muted-foreground mb-1 text-sm">Period {period}</h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                     {[1, 2, 3, 4].map(phase => {
+                            <div key={period} className="space-y-2">
+                                <h4 className="font-semibold text-center text-muted-foreground text-sm">Period {period}</h4>
+                                <div className="space-y-2 rounded-lg bg-background/50 p-2 border">
+                                    {[1, 2, 3, 4].map(phase => {
                                         const slotId = `${dateStr}-${period}-${phase}`;
                                         const scheduledItem = schedule[slotId];
                                         return (
