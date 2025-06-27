@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { X, PlusCircle } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
+import { Label } from "@/components/ui/label";
 
 
 const settingsSchema = z.object({
