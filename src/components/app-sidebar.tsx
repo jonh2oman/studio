@@ -20,8 +20,6 @@ import {
 import { useSettings } from "@/hooks/use-settings";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { useAuth } from "@/hooks/use-auth";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { Button } from "./ui/button";
 
 const navGroups = [
@@ -63,14 +61,12 @@ const navGroups = [
 ];
 
 function AuthStatus() {
-    const { user, loading } = useAuth();
+    const { user, loading, logout } = useAuth();
     const router = useRouter();
 
     const handleLogout = async () => {
-        if (auth) {
-            await signOut(auth);
-            router.push('/login');
-        }
+        await logout();
+        router.push('/login');
     };
 
     if (loading) {
