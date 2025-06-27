@@ -75,6 +75,10 @@ export default function SettingsPage() {
     return localSettings.staff.find(s => s.primaryRole === 'Commanding Officer');
   }, [localSettings.staff]);
 
+  const trainingOfficer = useMemo(() => {
+    return localSettings.staff.find(s => s.primaryRole === 'Training Officer');
+  }, [localSettings.staff]);
+
   useEffect(() => {
     if (settingsLoaded) {
       setLocalSettings(globalSettings);
@@ -321,6 +325,15 @@ export default function SettingsPage() {
                                                 id="coDisplay"
                                                 readOnly
                                                 value={commandingOfficer ? `${commandingOfficer.rank} ${commandingOfficer.firstName} ${commandingOfficer.lastName}` : 'Not Assigned'}
+                                                className="font-medium"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="toDisplay">Training Officer</Label>
+                                            <Input 
+                                                id="toDisplay"
+                                                readOnly
+                                                value={trainingOfficer ? `${trainingOfficer.rank} ${trainingOfficer.firstName} ${trainingOfficer.lastName}` : 'Not Assigned'}
                                                 className="font-medium"
                                             />
                                         </div>
