@@ -182,289 +182,308 @@ export default function SettingsPage() {
         title="Settings"
         description="Configure the application to your corps' needs."
       />
-      <div className="mt-6 space-y-8">
-
-        <Card>
-            <CardHeader>
-                <CardTitle>Training Year Management</CardTitle>
-                <CardDescription>Select the active training year or create a new one to begin planning.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex-1">
-                    <Label htmlFor="training-year-select">Active Training Year</Label>
-                    <Select value={currentYear || ''} onValueChange={setCurrentYear}>
-                        <SelectTrigger id="training-year-select">
-                            <SelectValue placeholder="Select a year..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {trainingYears.map(year => (
-                                <SelectItem key={year} value={year}>{year}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button onClick={() => setIsNewYearDialogOpen(true)} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
-                    <PlusCircle className="mr-2" />
-                    Create New Year
-                </Button>
-            </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Corps Information</CardTitle>
-            <CardDescription>
-              Set the primary training night and corps information. These settings are global across all training years.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <p>Loading settings...</p>
-            ) : (
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  <FormField
-                    control={form.control}
-                    name="corpsName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Corps Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., RCSCC 288 ARDENT" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="trainingDay"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Weekly Training Night</FormLabel>
-                        <Select onValueChange={field.onChange} value={String(field.value)}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a day" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {weekDays.map((day, index) => (
-                              <SelectItem key={index} value={String(index)}>
-                                {day}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Save Changes</Button>
-                </form>
-              </Form>
-            )}
-          </CardContent>
-        </Card>
-
-        <StaffManager />
-
-        <DutyRoster />
+      <div className="mt-8 space-y-12">
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage Classrooms</CardTitle>
-            <CardDescription>Add or remove classrooms and locations.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input 
-                value={newClassroom}
-                onChange={(e) => setNewClassroom(e.target.value)}
-                placeholder="New classroom name"
-              />
-              <Button onClick={handleAddClassroom}>Add</Button>
-            </div>
-            <div className="space-y-2">
-              {settings.classrooms.map(classroom => (
-                <div key={classroom} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                  <span>{classroom}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveClassroom(classroom)}>
-                    <X className="h-4 w-4"/>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage Ranks</CardTitle>
-            <CardDescription>Add or remove cadet ranks from the list available in the app.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input 
-                value={newRank}
-                onChange={(e) => setNewRank(e.target.value)}
-                placeholder="New rank name"
-              />
-              <Button onClick={handleAddRank}>Add</Button>
-            </div>
-            <div className="space-y-2">
-              {settings.ranks.map(rank => (
-                <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                  <span>{rank}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveRank(rank)}>
-                    <X className="h-4 w-4"/>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-            <CardHeader>
-                <CardTitle>Manage Orders of Dress</CardTitle>
-                <CardDescription>Add or remove orders of dress for CAF Staff and Cadets.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                    <h4 className="font-semibold">CAF Staff Dress</h4>
-                    <div className="flex gap-2">
-                        <Input value={newCafDress} onChange={(e) => setNewCafDress(e.target.value)} placeholder="New staff dress" />
-                        <Button onClick={handleAddCafDress}>Add</Button>
-                    </div>
-                    <div className="space-y-2">
-                        {settings.ordersOfDress?.caf.map(dress => (
-                            <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                <span>{dress}</span>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCafDress(dress)}>
-                                    <X className="h-4 w-4"/>
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                <div className="space-y-4">
-                    <h4 className="font-semibold">Cadet Dress</h4>
-                    <div className="flex gap-2">
-                        <Input value={newCadetDress} onChange={(e) => setNewCadetDress(e.target.value)} placeholder="New cadet dress" />
-                        <Button onClick={handleAddCadetDress}>Add</Button>
-                    </div>
-                    <div className="space-y-2">
-                        {settings.ordersOfDress?.cadets.map(dress => (
-                            <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                <span>{dress}</span>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetDress(dress)}>
-                                    <X className="h-4 w-4"/>
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-
-        <Card>
-            <CardHeader>
-                <CardTitle>Manage Weekly Activities</CardTitle>
-                <CardDescription>Define recurring weekly activities with start and end dates.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4 p-4 border rounded-md">
-                    <h4 className="font-semibold">Add New Recurring Activity</h4>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2"><Label>Activity</Label><Input value={newActivity.activity} onChange={e => setNewActivity(prev => ({...prev, activity: e.target.value}))} /></div>
-                        
-                        <div className="flex flex-col space-y-1.5">
-                            <Label>Day of Week</Label>
-                            <Select value={newActivity.dayOfWeek?.toString()} onValueChange={val => setNewActivity(prev => ({ ...prev, dayOfWeek: parseInt(val)}))}>
-                                <SelectTrigger><SelectValue placeholder="Select a day..." /></SelectTrigger>
+        {/* --- GENERAL SETTINGS --- */}
+        <div>
+            <h2 className="text-2xl font-bold tracking-tight">General Settings</h2>
+            <p className="text-muted-foreground mt-1">High-level settings for the application and training year.</p>
+            <div className="mt-6 grid gap-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Training Year Management</CardTitle>
+                        <CardDescription>Select the active training year or create a new one to begin planning.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex-1">
+                            <Label htmlFor="training-year-select">Active Training Year</Label>
+                            <Select value={currentYear || ''} onValueChange={setCurrentYear}>
+                                <SelectTrigger id="training-year-select">
+                                    <SelectValue placeholder="Select a year..." />
+                                </SelectTrigger>
                                 <SelectContent>
-                                    {weekDays.map((day, index) => <SelectItem key={day} value={index.toString()}>{day}</SelectItem>)}
+                                    {trainingYears.map(year => (
+                                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div/>
+                        <Button onClick={() => setIsNewYearDialogOpen(true)} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
+                            <PlusCircle className="mr-2" />
+                            Create New Year
+                        </Button>
+                    </CardContent>
+                </Card>
 
-                        <div className="flex flex-col space-y-1.5">
-                            <Label>Start Date</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.startDate && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {newActivity.startDate ? formatDate(newActivity.startDate, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.startDate} onSelect={(d) => setNewActivity(prev => ({...prev, startDate: d}))} initialFocus /></PopoverContent>
-                            </Popover>
-                        </div>
-                         <div className="flex flex-col space-y-1.5">
-                            <Label>End Date</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.endDate && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {newActivity.endDate ? formatDate(newActivity.endDate, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.endDate} onSelect={(d) => setNewActivity(prev => ({...prev, endDate: d}))} initialFocus /></PopoverContent>
-                            </Popover>
-                        </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Corps Information</CardTitle>
+                        <CardDescription>
+                        Set the primary training night and corps information. These settings are global across all training years.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoading ? (
+                        <p>Loading settings...</p>
+                        ) : (
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                            <FormField
+                                control={form.control}
+                                name="corpsName"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Corps Name</FormLabel>
+                                    <FormControl>
+                                    <Input placeholder="e.g., RCSCC 288 ARDENT" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="trainingDay"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Weekly Training Night</FormLabel>
+                                    <Select onValueChange={field.onChange} value={String(field.value)}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                        <SelectValue placeholder="Select a day" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {weekDays.map((day, index) => (
+                                        <SelectItem key={index} value={String(index)}>
+                                            {day}
+                                        </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <Button type="submit">Save Changes</Button>
+                            </form>
+                        </Form>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+        
+        {/* --- PERSONNEL MANAGEMENT --- */}
+        <div>
+            <h2 className="text-2xl font-bold tracking-tight">Personnel Management</h2>
+            <p className="text-muted-foreground mt-1">Manage staff members and assign their parade night duties.</p>
+            <div className="mt-6 grid gap-8">
+                <StaffManager />
+                <DutyRoster />
+            </div>
+        </div>
 
-                        <div><Label>Start Time</Label><Input type="time" value={newActivity.startTime} onChange={e => setNewActivity(prev => ({...prev, startTime: e.target.value}))} /></div>
-                        <div><Label>End Time</Label><Input type="time" value={newActivity.endTime} onChange={e => setNewActivity(prev => ({...prev, endTime: e.target.value}))} /></div>
-                        
-                        <div><Label>Location</Label><Input value={newActivity.location} onChange={e => setNewActivity(prev => ({...prev, location: e.target.value}))} /></div>
-                        <div><Label>Dress</Label><Input value={newActivity.dress} onChange={e => setNewActivity(prev => ({...prev, dress: e.target.value}))} /></div>
-                        <div className="md:col-span-2"><Label>OPI</Label><Input value={newActivity.opi} onChange={e => setNewActivity(prev => ({...prev, opi: e.target.value}))} /></div>
-                    </div>
-                    <Button onClick={handleAddActivity} className="mt-4">Add Recurring Activity</Button>
-                </div>
-                <div className="mt-6">
-                    <h4 className="font-semibold mb-2">Scheduled Recurring Activities</h4>
-                     <div className="border rounded-lg">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Activity</TableHead>
-                                    <TableHead>Recurs On</TableHead>
-                                    <TableHead>OPI</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {weeklyActivities.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}
-                                {weeklyActivities.map(act => (
-                                    <TableRow key={act.id}>
-                                        <TableCell>
-                                            <p className="font-medium">{act.activity}</p>
-                                            <p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p>
-                                        </TableCell>
-                                        <TableCell>
-                                            <p className="font-medium">{weekDays[act.dayOfWeek]}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {formatDate(new Date(act.startDate.replace(/-/g, '/')), "MMM d, yyyy")} - {formatDate(new Date(act.endDate.replace(/-/g, '/')), "MMM d, yyyy")}
-                                            </p>
-                                        </TableCell>
-                                        <TableCell>{act.opi}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveActivity(act.id)}>
-                                                <X className="h-4 w-4"/>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
+        {/* --- PLANNING RESOURCES --- */}
+        <div>
+            <h2 className="text-2xl font-bold tracking-tight">Planning Resources</h2>
+            <p className="text-muted-foreground mt-1">Customize lists and recurring events used throughout the planners and reports.</p>
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Manage Classrooms</CardTitle>
+                        <CardDescription>Add or remove classrooms and locations.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex gap-2">
+                        <Input 
+                            value={newClassroom}
+                            onChange={(e) => setNewClassroom(e.target.value)}
+                            placeholder="New classroom name"
+                        />
+                        <Button onClick={handleAddClassroom}>Add</Button>
+                        </div>
+                        <div className="space-y-2">
+                        {settings.classrooms.map(classroom => (
+                            <div key={classroom} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                            <span>{classroom}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveClassroom(classroom)}>
+                                <X className="h-4 w-4"/>
+                            </Button>
+                            </div>
+                        ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Manage Ranks</CardTitle>
+                        <CardDescription>Add or remove cadet ranks from the list available in the app.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex gap-2">
+                        <Input 
+                            value={newRank}
+                            onChange={(e) => setNewRank(e.target.value)}
+                            placeholder="New rank name"
+                        />
+                        <Button onClick={handleAddRank}>Add</Button>
+                        </div>
+                        <div className="space-y-2">
+                        {settings.ranks.map(rank => (
+                            <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                            <span>{rank}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveRank(rank)}>
+                                <X className="h-4 w-4"/>
+                            </Button>
+                            </div>
+                        ))}
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Manage Orders of Dress</CardTitle>
+                        <CardDescription>Add or remove orders of dress for CAF Staff and Cadets.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            <h4 className="font-semibold">CAF Staff Dress</h4>
+                            <div className="flex gap-2">
+                                <Input value={newCafDress} onChange={(e) => setNewCafDress(e.target.value)} placeholder="New staff dress" />
+                                <Button onClick={handleAddCafDress}>Add</Button>
+                            </div>
+                            <div className="space-y-2">
+                                {settings.ordersOfDress?.caf.map(dress => (
+                                    <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                        <span>{dress}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCafDress(dress)}>
+                                            <X className="h-4 w-4"/>
+                                        </Button>
+                                    </div>
                                 ))}
-                            </TableBody>
-                        </Table>
-                     </div>
-                </div>
-            </CardContent>
-        </Card>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <h4 className="font-semibold">Cadet Dress</h4>
+                            <div className="flex gap-2">
+                                <Input value={newCadetDress} onChange={(e) => setNewCadetDress(e.target.value)} placeholder="New cadet dress" />
+                                <Button onClick={handleAddCadetDress}>Add</Button>
+                            </div>
+                            <div className="space-y-2">
+                                {settings.ordersOfDress?.cadets.map(dress => (
+                                    <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                        <span>{dress}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetDress(dress)}>
+                                            <X className="h-4 w-4"/>
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Manage Weekly Activities</CardTitle>
+                        <CardDescription>Define recurring weekly activities with start and end dates.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4 p-4 border rounded-md">
+                            <h4 className="font-semibold">Add New Recurring Activity</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2"><Label>Activity</Label><Input value={newActivity.activity} onChange={e => setNewActivity(prev => ({...prev, activity: e.target.value}))} /></div>
+                                
+                                <div className="flex flex-col space-y-1.5">
+                                    <Label>Day of Week</Label>
+                                    <Select value={newActivity.dayOfWeek?.toString()} onValueChange={val => setNewActivity(prev => ({ ...prev, dayOfWeek: parseInt(val)}))}>
+                                        <SelectTrigger><SelectValue placeholder="Select a day..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {weekDays.map((day, index) => <SelectItem key={day} value={index.toString()}>{day}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div/>
+
+                                <div className="flex flex-col space-y-1.5">
+                                    <Label>Start Date</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.startDate && "text-muted-foreground")}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {newActivity.startDate ? formatDate(newActivity.startDate, "PPP") : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.startDate} onSelect={(d) => setNewActivity(prev => ({...prev, startDate: d}))} initialFocus /></PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="flex flex-col space-y-1.5">
+                                    <Label>End Date</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.endDate && "text-muted-foreground")}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {newActivity.endDate ? formatDate(newActivity.endDate, "PPP") : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.endDate} onSelect={(d) => setNewActivity(prev => ({...prev, endDate: d}))} initialFocus /></PopoverContent>
+                                    </Popover>
+                                </div>
+
+                                <div><Label>Start Time</Label><Input type="time" value={newActivity.startTime} onChange={e => setNewActivity(prev => ({...prev, startTime: e.target.value}))} /></div>
+                                <div><Label>End Time</Label><Input type="time" value={newActivity.endTime} onChange={e => setNewActivity(prev => ({...prev, endTime: e.target.value}))} /></div>
+                                
+                                <div><Label>Location</Label><Input value={newActivity.location} onChange={e => setNewActivity(prev => ({...prev, location: e.target.value}))} /></div>
+                                <div><Label>Dress</Label><Input value={newActivity.dress} onChange={e => setNewActivity(prev => ({...prev, dress: e.target.value}))} /></div>
+                                <div className="md:col-span-2"><Label>OPI</Label><Input value={newActivity.opi} onChange={e => setNewActivity(prev => ({...prev, opi: e.target.value}))} /></div>
+                            </div>
+                            <Button onClick={handleAddActivity} className="mt-4">Add Recurring Activity</Button>
+                        </div>
+                        <div className="mt-6">
+                            <h4 className="font-semibold mb-2">Scheduled Recurring Activities</h4>
+                            <div className="border rounded-lg">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Activity</TableHead>
+                                            <TableHead>Recurs On</TableHead>
+                                            <TableHead>OPI</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {weeklyActivities.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}
+                                        {weeklyActivities.map(act => (
+                                            <TableRow key={act.id}>
+                                                <TableCell>
+                                                    <p className="font-medium">{act.activity}</p>
+                                                    <p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <p className="font-medium">{weekDays[act.dayOfWeek]}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {formatDate(new Date(act.startDate.replace(/-/g, '/')), "MMM d, yyyy")} - {formatDate(new Date(act.endDate.replace(/-/g, '/')), "MMM d, yyyy")}
+                                                    </p>
+                                                </TableCell>
+                                                <TableCell>{act.opi}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveActivity(act.id)}>
+                                                        <X className="h-4 w-4"/>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
       </div>
       
       {isNewYearDialogOpen && (
