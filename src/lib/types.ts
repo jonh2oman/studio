@@ -53,11 +53,31 @@ export interface WeeklyActivity {
   endDate: string; // YYYY-MM-DD
 }
 
+export type StaffMemberType = 'Officer' | 'PO/NCM';
+
+export interface StaffMember {
+  id: string;
+  type: StaffMemberType;
+  rank: string;
+  firstName: string;
+  lastName:string;
+  phone?: string;
+  email?: string;
+}
+
+export interface DutySchedule {
+    [date: string]: { 
+        dutyOfficerId?: string;
+        dutyPoId?: string;
+        altDutyPoId?: string;
+    }
+}
+
 // Global settings, not year-specific
 export interface Settings {
   trainingDay: number; // 0 for Sunday, 1 for Monday, etc.
   corpsName: string;
-  instructors: string[];
+  staff: StaffMember[];
   classrooms: string[];
   ranks: string[];
   weeklyActivities: WeeklyActivity[];
@@ -66,6 +86,7 @@ export interface Settings {
 // Settings that are specific to a training year
 export interface YearSpecificSettings {
     firstTrainingNight: string; // YYYY-MM-DD
+    dutySchedule: DutySchedule;
 }
 
 // The object that stores settings for all years

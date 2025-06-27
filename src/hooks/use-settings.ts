@@ -8,7 +8,7 @@ import { useTrainingYear } from './use-training-year';
 const defaultSettings: Settings = {
     trainingDay: 2, // Tuesday
     corpsName: "RCSCC 288 ARDENT",
-    instructors: ["CI Smith", "Lt(N) Jones", "OCdt Picard"],
+    staff: [],
     classrooms: ["#1", "#2", "#3", "Parade Deck", "Boathouse"],
     ranks: [
         "Able Cadet (AC)",
@@ -35,7 +35,7 @@ export function useSettings() {
             if (storedSettings) {
                 const parsedSettings = JSON.parse(storedSettings);
                 const mergedSettings = { ...defaultSettings, ...parsedSettings };
-                mergedSettings.instructors = mergedSettings.instructors?.length > 0 ? mergedSettings.instructors : defaultSettings.instructors;
+                mergedSettings.staff = parsedSettings.staff || [];
                 mergedSettings.classrooms = mergedSettings.classrooms?.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
                 mergedSettings.ranks = mergedSettings.ranks?.length > 0 ? mergedSettings.ranks : defaultSettings.ranks;
                 mergedSettings.weeklyActivities = parsedSettings.weeklyActivities || [];

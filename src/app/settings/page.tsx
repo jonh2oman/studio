@@ -21,9 +21,10 @@ import type { WeeklyActivity } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format as formatDate, getDay } from 'date-fns';
+import { format as formatDate } from 'date-fns';
 import { cn } from "@/lib/utils";
-
+import { StaffManager } from "@/components/settings/staff-manager";
+import { DutyRoster } from "@/components/settings/duty-roster";
 
 const settingsSchema = z.object({
   corpsName: z.string().min(1, "Corps name is required"),
@@ -33,7 +34,6 @@ const settingsSchema = z.object({
 export default function SettingsPage() {
   const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
-  const [newInstructor, setNewInstructor] = useState("");
   const [newClassroom, setNewClassroom] = useState("");
   const [newRank, setNewRank] = useState("");
   const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
@@ -86,17 +86,6 @@ export default function SettingsPage() {
       title: "Settings saved",
       description: "Your changes have been saved successfully.",
     });
-  };
-
-  const handleAddInstructor = () => {
-    if (newInstructor.trim() && !settings.instructors.includes(newInstructor.trim())) {
-      saveSettings({ instructors: [...settings.instructors, newInstructor.trim()] });
-      setNewInstructor("");
-    }
-  };
-
-  const handleRemoveInstructor = (instructor: string) => {
-    saveSettings({ instructors: settings.instructors.filter(i => i !== instructor) });
   };
 
   const handleAddClassroom = () => {
@@ -169,7 +158,7 @@ export default function SettingsPage() {
         title="Settings"
         description="Configure the application to your corps' needs."
       />
-      <div className="mt-6 space-y-8 max-w-4xl">
+      <div className="mt-6 space-y-8">
 
         <Card>
             <CardHeader>
@@ -254,33 +243,10 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage Instructors</CardTitle>
-            <CardDescription>Add or remove instructors from the list available in the planner.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input 
-                value={newInstructor}
-                onChange={(e) => setNewInstructor(e.target.value)}
-                placeholder="New instructor name"
-              />
-              <Button onClick={handleAddInstructor}>Add</Button>
-            </div>
-            <div className="space-y-2">
-              {settings.instructors.map(instructor => (
-                <div key={instructor} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                  <span>{instructor}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveInstructor(instructor)}>
-                    <X className="h-4 w-4"/>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <StaffManager />
 
+        <DutyRoster />
+        
         <Card>
           <CardHeader>
             <CardTitle>Manage Classrooms</CardTitle>

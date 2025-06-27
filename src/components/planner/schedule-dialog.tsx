@@ -63,8 +63,8 @@ export function ScheduleDialog({ children, scheduledItem, onUpdate }: ScheduleDi
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="">N/A</SelectItem>
-                    {settings.instructors.map(name => (
-                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                    {settings.staff.map(member => (
+                        <SelectItem key={member.id} value={`${member.rank} ${member.lastName}`}>{member.rank} {member.firstName} {member.lastName}</SelectItem>
                     ))}
                 </SelectContent>
             </Select>

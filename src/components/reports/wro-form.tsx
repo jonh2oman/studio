@@ -18,6 +18,7 @@ import { WroPreview } from "./wro-preview";
 import type { Schedule, UpcomingActivity } from "@/lib/types";
 import { useSettings } from "@/hooks/use-settings";
 import { useSchedule } from "@/hooks/use-schedule";
+import { useTrainingYear } from "@/hooks/use-training-year";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Loader2, PlusCircle, Trash2 } from "lucide-react";
@@ -72,6 +73,7 @@ export function WroForm() {
   const previewRef = useRef<HTMLDivElement>(null);
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { schedule, isLoaded: scheduleLoaded } = useSchedule();
+  const { dutySchedule, isLoaded: yearLoaded } = useTrainingYear();
   const formData = watch();
   const trainingDate = watch("trainingDate");
 
@@ -82,6 +84,31 @@ export function WroForm() {
         setValue("roNumber", `RO-${year}-${String(week).padStart(2, '0')}`);
     }
   }, [trainingDate, setValue]);
+
+  useEffect(() => {
+    if (trainingDate && dutySchedule && settings.staff) {
+        const dateStr = format(trainingDate, 'yyyy-MM-dd');
+        const duties = dutySchedule[dateStr];
+
+        if (duties) {
+            const officer = settings.staff.find(s => s.id === duties.dutyOfficerId);
+            const po = settings.staff.find(s => s.id === duties.dutyPoId);
+            const altPo = settings.staff.find(s => s.id === duties.altDutyPoId);
+
+            setValue('dutyOfficerName', officer ? `${officer.rank} ${officer.lastName}` : '');
+            setValue('dutyOfficerPhone', officer?.phone || '');
+            setValue('dutyOfficerEmail', officer?.email || '');
+            setValue('dutyPOName', po ? `${po.rank} ${po.lastName}` : '');
+            setValue('alternateDutyPO', altPo ? `${altPo.rank} ${altPo.lastName}` : '');
+        } else {
+            setValue('dutyOfficerName', '');
+            setValue('dutyOfficerPhone', '');
+            setValue('dutyOfficerEmail', '');
+            setValue('dutyPOName', '');
+            setValue('alternateDutyPO', '');
+        }
+    }
+  }, [trainingDate, dutySchedule, settings.staff, setValue]);
 
 
   useEffect(() => {
@@ -176,7 +203,7 @@ export function WroForm() {
     }, 500);
   };
   
-  if (!settingsLoaded || !scheduleLoaded) return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
+  if (!settingsLoaded || !scheduleLoaded || !yearLoaded) return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
 
   const trainingDaysFilter = (date: Date) => {
     return date.getDay() === settings.trainingDay;
@@ -379,5 +406,3 @@ export function WroForm() {
     </>
   );
 }
-
-    

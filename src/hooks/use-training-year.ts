@@ -4,8 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { Settings, TrainingYearSettings } from '@/lib/types';
-import type { Cadet } from '@/lib/types';
+import type { Settings, TrainingYearSettings, Cadet, DutySchedule } from '@/lib/types';
 
 const getFirstTuesdayOfSeptember = (year: number) => {
     const d = new Date(year, 8, 1);
@@ -18,6 +17,7 @@ const getFirstTuesdayOfSeptember = (year: number) => {
 export function useTrainingYear() {
     const [trainingYears, setTrainingYears] = useState<string[]>([]);
     const [currentYear, setCurrentYearState] = useState<string | null>(null);
+    const [dutySchedule, setDutySchedule] = useState<DutySchedule>({});
     const [isLoaded, setIsLoaded] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     const { toast } = useToast();
@@ -50,7 +50,7 @@ export function useTrainingYear() {
                 localStorage.setItem('currentTrainingYear', initialYear);
                 
                 const initialYearSettings: TrainingYearSettings = {
-                    [initialYear]: { firstTrainingNight: initialStartDate }
+                    [initialYear]: { firstTrainingNight: initialStartDate, dutySchedule: {} }
                 };
                 localStorage.setItem('trainingYearSettings', JSON.stringify(initialYearSettings));
             }
@@ -61,10 +61,19 @@ export function useTrainingYear() {
         }
     }, []);
 
+    useEffect(() => {
+        if (currentYear) {
+            const dutyScheduleKey = `${currentYear}_dutySchedule`;
+            const storedDutySchedule = localStorage.getItem(dutyScheduleKey);
+            setDutySchedule(storedDutySchedule ? JSON.parse(storedDutySchedule) : {});
+        }
+    }, [currentYear]);
+
     const setCurrentYear = useCallback((year: string) => {
         if (trainingYears.includes(year)) {
             localStorage.setItem('currentTrainingYear', year);
             setCurrentYearState(year);
+            // This will trigger the useEffect above to load the correct duty schedule
             toast({ title: "Switched Year", description: `Now viewing training year ${year}.` });
         }
     }, [trainingYears, toast]);
@@ -87,8 +96,9 @@ export function useTrainingYear() {
             // Set new year-specific settings
             const yearSettingsStr = localStorage.getItem('trainingYearSettings') || '{}';
             const yearSettings = JSON.parse(yearSettingsStr) as TrainingYearSettings;
-            yearSettings[year] = { firstTrainingNight: startDate };
+            yearSettings[year] = { firstTrainingNight: startDate, dutySchedule: {} };
             localStorage.setItem('trainingYearSettings', JSON.stringify(yearSettings));
+            localStorage.setItem(`${year}_dutySchedule`, '{}');
 
             if (copyFrom) {
                 // Copy Cadets
@@ -142,5 +152,23 @@ export function useTrainingYear() {
         }
     }, [trainingYears, toast]);
 
-    return { trainingYears, currentYear, setCurrentYear, createNewYear, isLoaded, isCreating };
+    const updateDutySchedule = useCallback((date: string, scheduleUpdate: { dutyOfficerId?: string; dutyPoId?: string; altDutyPoId?: string; }) => {
+        if (!currentYear) return;
+        const newDutySchedule = {
+            ...dutySchedule,
+            [date]: {
+                ...(dutySchedule[date] || {}),
+                ...scheduleUpdate
+            }
+        };
+        try {
+            const dutyScheduleKey = `${currentYear}_dutySchedule`;
+            localStorage.setItem(dutyScheduleKey, JSON.stringify(newDutySchedule));
+            setDutySchedule(newDutySchedule);
+        } catch (error) {
+            console.error("Failed to save duty schedule to localStorage", error);
+        }
+    }, [currentYear, dutySchedule]);
+
+    return { trainingYears, currentYear, setCurrentYear, createNewYear, isLoaded, isCreating, dutySchedule, updateDutySchedule };
 }
