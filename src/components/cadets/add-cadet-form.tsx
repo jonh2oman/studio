@@ -138,7 +138,6 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="">None</SelectItem>
                             {(settings.cadetRoles || []).map((role) => (
                             <SelectItem key={role} value={role}>
                                 {role}

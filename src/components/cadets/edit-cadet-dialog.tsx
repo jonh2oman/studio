@@ -127,14 +127,13 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Role (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
                             <SelectTrigger>
                             <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="">None</SelectItem>
                             {(settings.cadetRoles || []).map((role) => (
                             <SelectItem key={role} value={role}>
                                 {role}
