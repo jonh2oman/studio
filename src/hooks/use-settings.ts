@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Settings, CustomEO, UserDocument } from '@/lib/types';
 import { useAuth } from './use-auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 const permanentRoles = [
@@ -113,7 +113,7 @@ export function useSettings() {
 
         const userDocRef = doc(db, 'users', user.uid);
         try {
-            await updateDoc(userDocRef, { settings: updatedSettings });
+            await setDoc(userDocRef, { settings: updatedSettings }, { merge: true });
         } catch (error) {
             console.error("Failed to save global settings to Firestore", error);
             // Optionally revert optimistic update

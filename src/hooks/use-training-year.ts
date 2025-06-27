@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
 import type { UserDocument, TrainingYearData, DutySchedule } from '@/lib/types';
 import { defaultUserDocument } from './use-settings';
@@ -114,9 +114,11 @@ export function useTrainingYear() {
 
         const userDocRef = doc(db, 'users', user.uid);
         try {
-            await updateDoc(userDocRef, {
-                [`trainingYears.${currentYear}`]: updatedData
-            });
+            await setDoc(userDocRef, {
+                trainingYears: {
+                    [currentYear]: updatedData
+                }
+            }, { merge: true });
         } catch (error) {
             console.error("Failed to update year data in Firestore", error);
             // Optionally revert optimistic update
@@ -158,9 +160,12 @@ export function useTrainingYear() {
                 }
             }
             
-            await updateDoc(doc(db, 'users', user.uid), {
-                [`trainingYears.${year}`]: newYearData
-            });
+            const userDocRef = doc(db, 'users', user.uid);
+            await setDoc(userDocRef, {
+                trainingYears: {
+                    [year]: newYearData
+                }
+            }, { merge: true });
             
             // Manually update local state to avoid a full re-fetch
             setAllYearsData(prev => ({ ...prev, [year]: newYearData }));
@@ -175,9 +180,9 @@ export function useTrainingYear() {
         } finally {
             setIsCreating(false);
         }
-    }, [user, trainingYears, allYearsData, toast, setCurrentYear]);
+    }, [user, db, trainingYears, allYearsData, toast, setCurrentYear]);
     
-     const updateDutySchedule = useCallback((date: string, scheduleUpdate: Partial<DutySchedule[string]>) => {
+    const updateDutySchedule = useCallback((date: string, scheduleUpdate: Partial<DutySchedule[string]>) => {
         if (!currentYearData) return;
         const newDutySchedule = {
             ...currentYearData.dutySchedule,
