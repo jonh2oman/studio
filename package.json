@@ -1,6 +1,8 @@
 {
   "name": "nextn",
   "version": "0.1.0",
+  "description": "Interactive web app for planning Sea Cadet Corps training.",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
