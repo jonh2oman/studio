@@ -1,4 +1,3 @@
-
 "use client";
 
 import { CalendarView } from "@/components/planner/calendar-view";
@@ -20,9 +19,9 @@ export default function Planner({ viewMode, objectivesVisible }: PlannerProps) {
     };
 
     return (
-        <div className="h-full rounded-lg border bg-card print:h-auto print:overflow-visible print:border-none">
+        <div className="relative rounded-lg border bg-card print:border-none print:h-auto print:overflow-visible">
             {objectivesVisible && <DraggableObjectivesPanel />}
-            <div className="h-full">
+            <div>
                 <CalendarView 
                     schedule={schedule} 
                     onDrop={handleDrop} 

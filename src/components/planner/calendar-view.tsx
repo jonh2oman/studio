@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -8,7 +7,6 @@ import { useSettings } from "@/hooks/use-settings";
 import type { Schedule, EO, DayMetadataState, DayMetadata } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ScheduleDialog } from "./schedule-dialog";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
@@ -219,7 +217,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
   }, {} as Record<string, Date[]>);
 
   return (
-    <div className="flex flex-col h-full bg-card min-w-0 print:h-auto">
+    <div className="flex flex-col bg-card min-w-0 print:h-auto">
       <header className="flex items-center justify-between p-4 border-b print:hidden">
         <h2 className="text-xl font-bold">{headerText}</h2>
         <div className="flex items-center gap-2">
@@ -233,8 +231,8 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
       </header>
       
       {viewMode === 'year' ? (
-        <ScrollArea className="flex-1 print:h-auto print:overflow-visible">
-            <div className="p-4 flex gap-8 print:block">
+        <div className="p-4 print:h-auto print:overflow-visible">
+            <div className="flex gap-8 print:block">
               {Object.entries(groupedByMonth).map(([month, days]) => (
                 <div key={month} className="space-y-4 print:break-after-page">
                   <h3 className="text-lg font-bold sticky left-0">{month}</h3>
@@ -244,31 +242,27 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                 </div>
               ))}
             </div>
-        </ScrollArea>
+        </div>
       ) : viewMode === 'month' ? (
-        <ScrollArea className="flex-1 print:h-auto print:overflow-visible">
-          <div className="p-4 flex gap-4">
-            {trainingDaysToShow.length > 0 ? (
-              trainingDaysToShow.map(renderTrainingDayCard)
-            ) : (
-              <div className="text-center text-muted-foreground py-16">
-                No training days scheduled for this {viewMode}.
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+        <div className="p-4 flex flex-wrap gap-4 print:h-auto print:overflow-visible">
+          {trainingDaysToShow.length > 0 ? (
+            trainingDaysToShow.map(renderTrainingDayCard)
+          ) : (
+            <div className="text-center text-muted-foreground py-16 w-full">
+              No training days scheduled for this {viewMode}.
+            </div>
+          )}
+        </div>
       ) : (
-        <ScrollArea className="flex-1 print:h-auto print:overflow-visible">
-          <div className="p-4 space-y-8">
-            {trainingDaysToShow.length > 0 ? (
-              trainingDaysToShow.map(renderTrainingDayCard)
-            ) : (
-              <div className="text-center text-muted-foreground py-16">
-                No training days scheduled for this {viewMode}.
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+        <div className="p-4 space-y-8 print:h-auto print:overflow-visible">
+          {trainingDaysToShow.length > 0 ? (
+            trainingDaysToShow.map(renderTrainingDayCard)
+          ) : (
+            <div className="text-center text-muted-foreground py-16">
+              No training days scheduled for this {viewMode}.
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

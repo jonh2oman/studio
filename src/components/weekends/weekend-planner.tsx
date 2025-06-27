@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -179,9 +178,9 @@ export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
     };
 
     return (
-        <div className="h-full rounded-lg border bg-card">
+        <div className="relative rounded-lg border bg-card">
             {objectivesVisible && <DraggableObjectivesPanel />}
-            <div className="h-full rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
+            <div className="rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="text-xl font-bold">Select Weekend Start Date</h2>
                     <Popover>
@@ -207,7 +206,7 @@ export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
                         </PopoverContent>
                     </Popover>
                 </div>
-                <ScrollArea className="flex-1">
+                <ScrollArea>
                     <div className="p-4 flex gap-4">
                         {weekendDays.map(renderDayCard)}
                     </div>

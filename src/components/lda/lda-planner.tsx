@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -194,10 +193,9 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
     };
 
     return (
-        <div className="h-full rounded-lg border bg-card">
+        <div className="relative rounded-lg border bg-card">
             {objectivesVisible && <DraggableObjectivesPanel />}
-
-            <div className="h-full rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
+            <div className="rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="text-xl font-bold">Select a Date to Plan</h2>
                     <Popover>
@@ -248,15 +246,13 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
                     </div>
                 )}
                 
-                <ScrollArea className="flex-1">
-                    <div className="p-4">
-                        {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
-                            <div className="text-center text-muted-foreground py-16">
-                                Please select a date to start planning.
-                            </div>
-                        )}
-                    </div>
-                </ScrollArea>
+                <div className="p-4">
+                    {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
+                        <div className="text-center text-muted-foreground py-16">
+                            Please select a date to start planning.
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
