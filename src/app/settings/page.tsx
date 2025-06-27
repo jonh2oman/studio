@@ -48,7 +48,7 @@ export default function SettingsPage() {
         trainingDay: settings.trainingDay,
       });
     }
-  }, [settingsLoaded, settings, form]);
+  }, [settingsLoaded, settings.corpsName, settings.trainingDay, form.reset]);
 
   const onSubmit = (data: z.infer<typeof settingsSchema>) => {
     saveSettings(data);
