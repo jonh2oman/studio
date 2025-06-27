@@ -1,10 +1,17 @@
 
+"use client";
+
+import { useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Info, Mail, Github, Code, AlertTriangle } from 'lucide-react';
+import { Info, Mail, Github, Code, AlertTriangle, History } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { ChangelogDialog } from '@/components/about/changelog-dialog';
 
 export default function AboutPage() {
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+
   return (
     <>
       <PageHeader
@@ -29,16 +36,24 @@ export default function AboutPage() {
               Application Details
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 text-muted-foreground">
-            <p>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
               This Training Officer's Planning Tool is a comprehensive web application designed to assist Canadian Cadet Organization (CCO) Training Officers in planning, managing, and reporting on their corps/squadron's annual training schedule.
             </p>
-            <p>
+            <p className="text-muted-foreground">
               The goal is to provide an intuitive, all-in-one solution to streamline administrative tasks, track progress against the Cadet Program curriculum, and facilitate efficient communication through automated report generation.
             </p>
-            <p>
-              <strong>Version:</strong> 1.0.0
-            </p>
+            <div className="flex items-center gap-4">
+                <p>
+                    <strong>Version:</strong> 1.0.1 Beta
+                </p>
+                <ChangelogDialog isOpen={isChangelogOpen} onOpenChange={setIsChangelogOpen}>
+                    <Button variant="outline" size="sm" onClick={() => setIsChangelogOpen(true)}>
+                        <History className="mr-2 h-4 w-4" />
+                        View Changelog
+                    </Button>
+                </ChangelogDialog>
+            </div>
           </CardContent>
         </Card>
 
