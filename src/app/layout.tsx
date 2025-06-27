@@ -9,11 +9,14 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { SaveProvider } from '@/hooks/use-save-context';
 import { FloatingSaveButton } from '@/components/floating-save-button';
 import { AuthProvider } from '@/hooks/use-auth';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',
   description: 'Interactive web app for planning Sea Cadet Corps training.',
 };
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 export default function RootLayout({
   children,
@@ -35,6 +38,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <AuthProvider>
             <SaveProvider>
               <TooltipProvider delayDuration={0}>
@@ -56,6 +60,7 @@ export default function RootLayout({
               </TooltipProvider>
             </SaveProvider>
           </AuthProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

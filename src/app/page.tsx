@@ -194,7 +194,7 @@ export default function DashboardPage() {
         
         <Accordion 
             type="multiple" 
-            defaultValue={dashboardCategories.map(c => c.title)}
+            defaultValue={["Planning"]}
             className="space-y-4"
         >
             {dashboardCategories.map((category) => (

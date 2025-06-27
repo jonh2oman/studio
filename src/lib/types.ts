@@ -236,3 +236,9 @@ export interface Award {
 export interface AwardWinner {
     [awardId: string]: string[]; // awardId: array of cadetIds
 }
+
+export interface GoogleDriveFile {
+  id: string;
+  name: string;
+  modifiedTime: string;
+}
