@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, X, CheckCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
@@ -84,12 +84,17 @@ export function LdaPlanner() {
                             <Card className="p-3 bg-muted/50 w-72">
                                 <CardTitle className="text-base mb-2 flex items-center justify-between">
                                     <span>CSAR Status</span>
-                                    {metadata.csarApproved && (
+                                    {metadata.csarApproved ? (
                                         <Badge variant="outline" className="text-green-600 border-green-600/60 bg-green-50 dark:bg-green-950 dark:text-green-400 dark:border-green-500/60 text-xs">
                                             <CheckCircle className="mr-1 h-3 w-3" />
                                             Approved
                                         </Badge>
-                                    )}
+                                    ) : metadata.csarSubmitted ? (
+                                        <Badge variant="outline" className="text-amber-600 border-amber-600/60 bg-amber-50 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-500/60 text-xs">
+                                            <ArrowUpCircle className="mr-1 h-3 w-3" />
+                                            Submitted
+                                        </Badge>
+                                    ) : null}
                                 </CardTitle>
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
