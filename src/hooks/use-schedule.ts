@@ -42,7 +42,7 @@ const defaultCsarDetails: CsarDetails = {
         cost: 0,
     },
     mealsRequired: false,
-    mealPlanDetails: '',
+    mealPlan: [],
     j4Plan: {
         quartermasterLocation: '',
         items: [],

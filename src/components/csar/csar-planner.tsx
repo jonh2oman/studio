@@ -1,10 +1,11 @@
 
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { CsarDetails } from "@/lib/types";
+import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,13 +16,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, Calendar as CalendarIcon } from "lucide-react";
 import { useMemo } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { cn } from "@/lib/utils";
+import { Calendar } from "../ui/calendar";
 
 const j4ItemSchema = z.object({
   id: z.string(),
   description: z.string().min(1, "Description is required"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+});
+
+const mealPlanItemSchema = z.object({
+  id: z.string(),
+  dateRequired: z.date({ required_error: "Date is required." }),
+  timeRequired: z.string().min(1, "Time is required."),
+  mealType: z.enum(["boxed lunches", "Fresh Rations (corps/sqn)", "fresh Rations (RCSU)", "Hay Boxes", "IMP (Corps/sqn)", "IMP (RCSU)", "meal allowance", "Messing", "other", ""], {errorMap: () => ({ message: "Please select a meal type." })}),
+  mealTime: z.enum(["Between Meal Supplement", "Breakfast", "Lunch", "supper", ""], {errorMap: () => ({ message: "Please select a meal time." })}),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+  reservationHandledBy: z.enum(["Corps/Squadron", "RCSU", "Not Applicable", ""], {errorMap: () => ({ message: "Please select an option." })}),
+  quoteReceived: z.boolean(),
+  amount: z.coerce.number().optional(),
+  vendor: z.string().optional(),
+  comments: z.string().optional(),
 });
 
 const csarDetailsSchema = z.object({
@@ -57,7 +75,7 @@ const csarDetailsSchema = z.object({
     cost: z.coerce.number().min(0),
   }),
   mealsRequired: z.boolean(),
-  mealPlanDetails: z.string().optional(),
+  mealPlan: z.array(mealPlanItemSchema),
   j4Plan: z.object({
     quartermasterLocation: z.string().optional(),
     items: z.array(j4ItemSchema),
@@ -75,16 +93,29 @@ interface CsarPlannerProps {
 }
 
 export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }: CsarPlannerProps) {
+  const processedInitialData = {
+    ...initialData,
+    mealPlan: (initialData.mealPlan || []).map(item => ({
+        ...item,
+        dateRequired: new Date(item.dateRequired),
+    }))
+  };
+
   const form = useForm<CsarDetails>({
     resolver: zodResolver(csarDetailsSchema),
-    defaultValues: initialData,
+    defaultValues: processedInitialData,
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: j4Fields, append: appendJ4, remove: removeJ4 } = useFieldArray({
     control: form.control,
     name: "j4Plan.items",
   });
   
+  const { fields: mealFields, append: appendMeal, remove: removeMeal } = useFieldArray({
+    control: form.control,
+    name: "mealPlan",
+  });
+
   const watchFields = form.watch();
 
   const totalCadets = useMemo(() => Number(watchFields.numCadetsMale || 0) + Number(watchFields.numCadetsFemale || 0), [watchFields.numCadetsMale, watchFields.numCadetsFemale]);
@@ -183,14 +214,75 @@ export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }
               </TabsContent>
 
               <TabsContent value="meals" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Meal Planner</CardTitle>
-                    <CardDescription>This feature is coming soon. For now, please describe your meal plan below.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <FormField control={form.control} name="mealPlanDetails" render={({ field }) => (<FormItem><FormLabel>Meal Plan Details</FormLabel><FormControl><Textarea rows={10} {...field} /></FormControl><FormMessage /></FormItem>)} />
-                  </CardContent>
+                 <Card>
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <CardTitle>Meal Planner</CardTitle>
+                                <CardDescription>Add meal requirements for the activity.</CardDescription>
+                            </div>
+                            <Button type="button" onClick={() => appendMeal({ 
+                                id: crypto.randomUUID(),
+                                dateRequired: new Date(),
+                                timeRequired: '12:00',
+                                mealType: '',
+                                mealTime: 'Lunch',
+                                quantity: totalCadets + totalStaff || 1,
+                                reservationHandledBy: '',
+                                quoteReceived: false,
+                                amount: 0,
+                                vendor: '',
+                                comments: ''
+                            })}>Add Meal Request</Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {mealFields.length === 0 && <p className="text-muted-foreground text-center py-8">No meal requests added yet.</p>}
+                        {mealFields.map((field, index) => {
+                            const quoteReceived = form.watch(`mealPlan.${index}.quoteReceived`);
+                            return (
+                                <Card key={field.id} className="p-4 pt-6 relative bg-muted/30">
+                                    <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeMeal(index)}>
+                                        <Trash2 className="h-4 w-4" />
+                                        <span className="sr-only">Remove Meal Request</span>
+                                    </Button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <Controller
+                                            name={`mealPlan.${index}.dateRequired`}
+                                            control={form.control}
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-col"><FormLabel>Date Required</FormLabel>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant={"outline"} className={cn("justify-start text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus /></PopoverContent>
+                                                    </Popover>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField control={form.control} name={`mealPlan.${index}.timeRequired`} render={({ field }) => (<FormItem><FormLabel>Time Required</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name={`mealPlan.${index}.quantity`} render={({ field }) => (<FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        
+                                        <FormField control={form.control} name={`mealPlan.${index}.mealTime`} render={({ field }) => (<FormItem><FormLabel>Meal Time</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="Breakfast">Breakfast</SelectItem><SelectItem value="Lunch">Lunch</SelectItem><SelectItem value="supper">Supper</SelectItem><SelectItem value="Between Meal Supplement">Between Meal Supplement</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name={`mealPlan.${index}.mealType`} render={({ field }) => (<FormItem><FormLabel>Meal Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="boxed lunches">Boxed Lunches</SelectItem><SelectItem value="Fresh Rations (corps/sqn)">Fresh Rations (Corps/Sqn)</SelectItem><SelectItem value="fresh Rations (RCSU)">Fresh Rations (RCSU)</SelectItem><SelectItem value="Hay Boxes">Hay Boxes</SelectItem><SelectItem value="IMP (Corps/sqn)">IMP (Corps/Sqn)</SelectItem><SelectItem value="IMP (RCSU)">IMP (RCSU)</SelectItem><SelectItem value="meal allowance">Meal Allowance</SelectItem><SelectItem value="Messing">Messing</SelectItem><SelectItem value="other">Other</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name={`mealPlan.${index}.reservationHandledBy`} render={({ field }) => (<FormItem><FormLabel>Reservation Handled By</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="Corps/Squadron">Corps/Squadron</SelectItem><SelectItem value="RCSU">RCSU</SelectItem><SelectItem value="Not Applicable">Not Applicable</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
+                                        
+                                        <FormField control={form.control} name={`mealPlan.${index}.vendor`} render={({ field }) => (<FormItem><FormLabel>Vendor</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        
+                                        <div className="space-y-2">
+                                             <FormField control={form.control} name={`mealPlan.${index}.quoteReceived`} render={({ field }) => (<FormItem className="flex flex-row items-center gap-2 pt-6"><FormLabel className="text-sm">Quote Received?</FormLabel><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)} />
+                                             {quoteReceived && <FormField control={form.control} name={`mealPlan.${index}.amount`} render={({ field }) => (<FormItem><FormLabel>Amount ($)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>)} />}
+                                        </div>
+
+                                        <FormField control={form.control} name={`mealPlan.${index}.comments`} render={({ field }) => (<FormItem className="lg:col-span-3"><FormLabel>Other Comments</FormLabel><FormControl><Textarea rows={2} {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+                                    </div>
+                                </Card>
+                            )
+                        })}
+                    </CardContent>
                 </Card>
               </TabsContent>
 
@@ -212,18 +304,18 @@ export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }
                                   <CardTitle>Items Required</CardTitle>
                                   <CardDescription>List all equipment and supplies needed.</CardDescription>
                               </div>
-                              <Button type="button" onClick={() => append({ id: crypto.randomUUID(), description: "", quantity: 1 })}>Add Item</Button>
+                              <Button type="button" onClick={() => appendJ4({ id: crypto.randomUUID(), description: "", quantity: 1 })}>Add Item</Button>
                           </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {fields.map((field, index) => (
+                        {j4Fields.map((field, index) => (
                           <div key={field.id} className="flex items-end gap-4 p-3 border rounded-md">
                              <FormField control={form.control} name={`j4Plan.items.${index}.description`} render={({ field }) => (<FormItem className="flex-1"><FormLabel>Item Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                              <FormField control={form.control} name={`j4Plan.items.${index}.quantity`} render={({ field }) => (<FormItem className="w-24"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                             <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
+                             <Button type="button" variant="destructive" size="icon" onClick={() => removeJ4(index)}><Trash2 className="h-4 w-4" /></Button>
                           </div>
                         ))}
-                        {fields.length === 0 && <p className="text-muted-foreground text-center py-4">No items added yet.</p>}
+                        {j4Fields.length === 0 && <p className="text-muted-foreground text-center py-4">No items added yet.</p>}
                       </CardContent>
                  </Card>
               </TabsContent>

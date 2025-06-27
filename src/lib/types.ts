@@ -74,6 +74,20 @@ export interface AttendanceState {
     [date: string]: AttendanceRecord[];
 }
 
+export interface MealPlanItem {
+    id: string;
+    dateRequired: Date;
+    timeRequired: string;
+    mealType: 'boxed lunches' | 'Fresh Rations (corps/sqn)' | 'fresh Rations (RCSU)' | 'Hay Boxes' | 'IMP (Corps/sqn)' | 'IMP (RCSU)' | 'meal allowance' | 'Messing' | 'other' | '';
+    mealTime: 'Between Meal Supplement' | 'Breakfast' | 'Lunch' | 'supper' | '';
+    quantity: number;
+    reservationHandledBy: 'Corps/Squadron' | 'RCSU' | 'Not Applicable' | '';
+    quoteReceived: boolean;
+    amount?: number;
+    vendor?: string;
+    comments?: string;
+}
+
 export interface J4Item {
     id: string;
     description: string;
@@ -126,7 +140,7 @@ export interface CsarDetails {
     };
 
     mealsRequired: boolean;
-    mealPlanDetails?: string; 
+    mealPlan: MealPlanItem[];
     
     j4Plan: J4Plan;
 }
