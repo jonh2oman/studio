@@ -49,6 +49,7 @@ const defaultCustomEOs: CustomEO[] = [
 const defaultSettings: Settings = {
     trainingDay: 2, // Tuesday
     corpsName: "",
+    corpsLogo: "",
     staff: [],
     staffRoles: [...permanentRoles],
     cadetRoles: [],

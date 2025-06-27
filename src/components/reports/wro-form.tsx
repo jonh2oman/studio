@@ -71,7 +71,6 @@ export function WroForm() {
     name: "upcomingActivities",
   });
   
-  const [logo, setLogo] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const { settings, isLoaded: settingsLoaded } = useSettings();
@@ -178,16 +177,6 @@ export function WroForm() {
 
   }, [trainingDate, settings.weeklyActivities, replace]);
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setLogo(event.target?.result as string);
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  };
-
   const scheduleForDate = useMemo(() => {
     if (!formData.trainingDate || !scheduleLoaded) return {};
     const dateStr = format(formData.trainingDate, 'yyyy-MM-dd');
@@ -237,6 +226,9 @@ export function WroForm() {
             <Card>
                 <CardHeader>
                     <CardTitle>WRO Details</CardTitle>
+                    <CardDescription>
+                        The corps logo can be uploaded on the Settings page.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -280,10 +272,6 @@ export function WroForm() {
                             <Label htmlFor="roNumber">RO #</Label>
                             <Input id="roNumber" {...register("roNumber")} readOnly />
                         </div>
-                    </div>
-                    <div>
-                        <Label htmlFor="logo">Corps Logo</Label>
-                        <Input id="logo" type="file" accept="image/*" onChange={handleLogoUpload} />
                     </div>
                      <div>
                         <Label htmlFor="coName">Commanding Officer Name</Label>
@@ -419,7 +407,7 @@ export function WroForm() {
          <WroPreview 
             ref={previewRef}
             data={formData}
-            logo={logo}
+            logo={settings.corpsLogo || null}
             schedule={scheduleForDate}
             corpsName={settings.corpsName}
          />

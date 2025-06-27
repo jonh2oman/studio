@@ -250,6 +250,42 @@ export default function SettingsPage() {
       handleListChange('staff', newStaff);
   }
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 500 * 1024) { // 500KB limit
+        toast({
+            variant: "destructive",
+            title: "Image too large",
+            description: "Please upload an image smaller than 500KB.",
+        });
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const result = event.target?.result as string;
+        const newSettings = { ...localSettings, corpsLogo: result };
+        setLocalSettings(newSettings);
+        saveSettings({ corpsLogo: result });
+        toast({
+            title: "Logo Saved",
+            description: "Your new logo has been saved.",
+        });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    const newSettings = { ...localSettings, corpsLogo: "" };
+    setLocalSettings(newSettings);
+    saveSettings({ corpsLogo: "" });
+    toast({
+        title: "Logo Removed",
+    });
+  };
+
   const isLoading = !settingsLoaded || !yearsLoaded;
 
   return (
@@ -351,6 +387,25 @@ export default function SettingsPage() {
                                                 value={trainingOfficer ? `${trainingOfficer.rank} ${trainingOfficer.firstName} ${trainingOfficer.lastName}` : 'Not Assigned'}
                                                 className="font-medium"
                                             />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Corps Logo</Label>
+                                            <div className="flex items-center gap-4">
+                                                {localSettings.corpsLogo ? (
+                                                    <img src={localSettings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" />
+                                                ) : (
+                                                    <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50">
+                                                        <span className="text-xs text-muted-foreground">No Logo</span>
+                                                    </div>
+                                                )}
+                                                <div className="space-y-2">
+                                                    <Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" />
+                                                    <p className="text-sm text-muted-foreground">Upload a PNG or JPG file. Max 500KB.</p>
+                                                    {localSettings.corpsLogo && (
+                                                        <Button variant="outline" size="sm" onClick={handleRemoveLogo}>Remove Logo</Button>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     )}

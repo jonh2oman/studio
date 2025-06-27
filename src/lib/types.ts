@@ -83,6 +83,7 @@ export interface CustomEO {
 export interface Settings {
   trainingDay: number;
   corpsName: string;
+  corpsLogo?: string;
   staff: StaffMember[];
   staffRoles: string[];
   cadetRoles: string[];
