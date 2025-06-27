@@ -93,6 +93,8 @@ export function useTrainingYear() {
         loadData();
     }, [user]);
 
+    const currentYearData = currentYear ? allYearsData[currentYear] : null;
+
     const setCurrentYear = useCallback((year: string) => {
         if (trainingYears.includes(year)) {
             localStorage.setItem('currentTrainingYear', year);
@@ -186,9 +188,6 @@ export function useTrainingYear() {
         };
         updateCurrentYearData({ dutySchedule: newDutySchedule });
     }, [currentYearData, updateCurrentYearData]);
-
-
-    const currentYearData = currentYear ? allYearsData[currentYear] : null;
 
     return { 
         trainingYears, 
