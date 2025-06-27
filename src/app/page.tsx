@@ -2,14 +2,16 @@
 "use client";
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen, Rocket, CheckCircle } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { GuidedSetupDialog } from '@/components/settings/guided-setup-dialog';
 
 const dashboardCategories = [
     {
@@ -45,6 +47,19 @@ const dashboardCategories = [
 
 export default function DashboardPage() {
   const { schedule, isLoaded } = useSchedule();
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  const [isGuidedSetupOpen, setIsGuidedSetupOpen] = useState(false);
+
+  useEffect(() => {
+    const setupStatus = localStorage.getItem("isSetupComplete");
+    setIsSetupComplete(setupStatus === 'true');
+  }, []);
+
+  const handleSetupFinish = () => {
+    localStorage.setItem("isSetupComplete", 'true');
+    setIsSetupComplete(true);
+    setIsGuidedSetupOpen(false);
+  };
 
   const phaseProgress = useMemo(() => {
     if (!isLoaded) return [];
@@ -90,6 +105,35 @@ export default function DashboardPage() {
         description="Welcome to your Training Officer Planning Tool."
       />
       <div className="mt-8 space-y-8">
+        
+        {isSetupComplete ? (
+            <Card className="border border-green-500/50 bg-green-50 dark:bg-green-950/30">
+                <CardHeader className="flex-row items-center gap-4 space-y-0">
+                    <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+                    <div>
+                        <CardTitle className="text-green-800 dark:text-green-300">Initial Setup Complete</CardTitle>
+                        <CardDescription className="text-green-700 dark:text-green-400/80">You can manage all options from the Settings page.</CardDescription>
+                    </div>
+                </CardHeader>
+            </Card>
+        ) : (
+             <Card className="border">
+                <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <CardTitle>Welcome to the Training Planner!</CardTitle>
+                            <CardDescription>Click the button to complete the initial application setup.</CardDescription>
+                        </div>
+                        <Button onClick={() => setIsGuidedSetupOpen(true)}>
+                            <Rocket className="mr-2 h-4 w-4" />
+                            Run Guided Setup
+                        </Button>
+                    </div>
+                </CardHeader>
+            </Card>
+        )}
+
+
         <Card className="border">
           <CardHeader>
             <CardTitle>Mandatory Training Progress</CardTitle>
@@ -133,7 +177,7 @@ export default function DashboardPage() {
                              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {category.items.map((item) => (
                                     <Link key={item.href} href={item.href} className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full">
-                                        <Card className="h-full transition-colors border-2 border-transparent hover:border-primary/50 hover:bg-muted/30">
+                                        <Card className="h-full transition-colors border hover:border-primary/50 hover:bg-muted/30">
                                             <CardHeader>
                                                 <div className="flex items-start justify-between gap-4">
                                                     <CardTitle className="text-xl font-bold">
@@ -155,6 +199,14 @@ export default function DashboardPage() {
             ))}
         </Accordion>
       </div>
+      
+      {isGuidedSetupOpen && (
+        <GuidedSetupDialog 
+            isOpen={isGuidedSetupOpen}
+            onOpenChange={setIsGuidedSetupOpen}
+            onFinish={handleSetupFinish}
+        />
+      )}
     </>
   );
 }
