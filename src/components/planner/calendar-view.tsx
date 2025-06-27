@@ -128,7 +128,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
     };
 
     return (
-      <Card key={dateStr} className={cn("overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", viewMode === 'year' && "w-[22rem] flex-shrink-0")}>
+      <Card key={dateStr} className={cn("overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", (viewMode === 'year' || viewMode === 'month') && "w-[22rem] flex-shrink-0")}>
         <CardHeader>
           <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
           <div className="grid grid-cols-2 gap-4 pt-2">
@@ -244,6 +244,18 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                 </div>
               ))}
             </div>
+        </ScrollArea>
+      ) : viewMode === 'month' ? (
+        <ScrollArea className="flex-1 print:h-auto print:overflow-visible">
+          <div className="p-4 flex gap-4">
+            {trainingDaysToShow.length > 0 ? (
+              trainingDaysToShow.map(renderTrainingDayCard)
+            ) : (
+              <div className="text-center text-muted-foreground py-16">
+                No training days scheduled for this {viewMode}.
+              </div>
+            )}
+          </div>
         </ScrollArea>
       ) : (
         <ScrollArea className="flex-1 print:h-auto print:overflow-visible">
