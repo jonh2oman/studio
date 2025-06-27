@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { format } from "date-fns";
+import { format, addDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,7 @@ export function WroForm() {
     }
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: "upcomingActivities",
   });
@@ -73,6 +73,35 @@ export function WroForm() {
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { schedule, isLoaded: scheduleLoaded } = useSchedule();
   const formData = watch();
+  const trainingDate = watch("trainingDate");
+
+  useEffect(() => {
+    if (!trainingDate || !settings.weeklyActivities) {
+        replace([]);
+        return;
+    }
+
+    const weekStart = startOfDay(trainingDate);
+    const weekEnd = endOfDay(addDays(weekStart, 6)); // The week of and after the training date
+
+    const upcoming = settings.weeklyActivities
+        .filter(act => {
+            const actDate = new Date(act.date.replace(/-/g, '/'));
+            return isWithinInterval(actDate, { start: weekStart, end: weekEnd });
+        })
+        .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(act => ({
+            id: act.id,
+            activity: act.activity,
+            activityStart: `${format(new Date(act.date.replace(/-/g, '/')), 'E, MMM dd')} ${act.startTime}`,
+            activityEnd: act.endTime,
+            location: act.location,
+            dress: act.dress,
+            opi: act.opi,
+        }));
+    
+    replace(upcoming);
+  }, [trainingDate, settings.weeklyActivities, replace]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -263,7 +292,7 @@ export function WroForm() {
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle>Upcoming Activities</CardTitle>
-                        <CardDescription>Add activities for the upcoming week.</CardDescription>
+                        <CardDescription>Add or modify activities for the upcoming week. This list is auto-populated.</CardDescription>
                     </div>
                     <Button type="button" size="sm" onClick={() => append({ id: crypto.randomUUID(), activity: '', activityStart: '', activityEnd: '', location: '', dress: '', opi: '' })}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Activity
