@@ -15,7 +15,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -28,7 +27,6 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { isMock, login: mockLogin } = useAuth();
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -38,19 +36,18 @@ export default function SignupPage() {
   const onEmailSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
 
-    if (isMock) {
-      setTimeout(() => { // Simulate network delay
-        mockLogin(data.email);
-        toast({ title: "Account Created", description: "You have been successfully signed up (mock mode)." });
-        router.push("/");
+    if (!auth) {
+        toast({
+            variant: "destructive",
+            title: "Configuration Error",
+            description: "Firebase is not configured. Please check your environment variables.",
+        });
         setIsLoading(false);
-      }, 500);
-      return;
+        return;
     }
 
-    // Real Firebase signup
     try {
-      await createUserWithEmailAndPassword(auth!, data.email, data.password);
+      await createUserWithEmailAndPassword(auth, data.email, data.password);
       toast({ title: "Account Created", description: "You have been successfully signed up." });
       router.push("/");
     } catch (error: any) {

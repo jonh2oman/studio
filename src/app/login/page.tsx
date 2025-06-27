@@ -15,7 +15,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -28,7 +27,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { isMock, login: mockLogin } = useAuth();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -38,19 +36,18 @@ export default function LoginPage() {
   const onEmailSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
 
-    if (isMock) {
-      setTimeout(() => { // Simulate network delay
-        mockLogin(data.email);
-        toast({ title: "Success", description: "You are now logged in (mock mode)." });
-        router.push("/");
+    if (!auth) {
+        toast({
+            variant: "destructive",
+            title: "Configuration Error",
+            description: "Firebase is not configured. Please check your environment variables.",
+        });
         setIsLoading(false);
-      }, 500);
-      return;
+        return;
     }
 
-    // Real Firebase login
     try {
-      await signInWithEmailAndPassword(auth!, data.email, data.password);
+      await signInWithEmailAndPassword(auth, data.email, data.password);
       toast({ title: "Success", description: "You are now logged in." });
       router.push("/");
     } catch (error: any) {
