@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState, useMemo } from 'react';
 import { format, addDays } from 'date-fns';
-import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { Calendar as CalendarIcon, X, CheckCircle } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
@@ -67,7 +66,15 @@ export function WeekendPlanner() {
                         <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
                         <Sheet open={activeCsarDay === dateStr} onOpenChange={(isOpen) => setActiveCsarDay(isOpen ? dateStr : null)}>
                             <Card className="p-3 bg-muted/50 w-64">
-                                <CardTitle className="text-base mb-2">CSAR Status</CardTitle>
+                                <CardTitle className="text-base mb-2 flex items-center justify-between">
+                                    <span>CSAR Status</span>
+                                    {metadata.csarApproved && (
+                                        <Badge variant="outline" className="text-green-600 border-green-600/60 bg-green-50 dark:bg-green-950 dark:text-green-400 dark:border-green-500/60 text-xs">
+                                            <CheckCircle className="mr-1 h-3 w-3" />
+                                            Approved
+                                        </Badge>
+                                    )}
+                                </CardTitle>
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <Label htmlFor={`csar-required-${dateStr}`} className="text-sm">Required?</Label>
