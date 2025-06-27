@@ -25,7 +25,6 @@ const navGroups = [
     items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
       { href: "/instructions", label: "Instructions", icon: BookOpen },
-      { href: "/about", label: "About", icon: Info },
     ]
   },
   {
@@ -54,6 +53,7 @@ const navGroups = [
     title: "Settings",
     items: [
        { href: "/settings", label: "Settings", icon: Settings },
+       { href: "/about", label: "About", icon: Info },
     ]
   }
 ];
