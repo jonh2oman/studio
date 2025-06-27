@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,7 +46,17 @@ export function StaffManager() {
         },
     });
 
-    const watchType = form.watch('type');
+    const { watch, setValue } = form;
+    const watchType = watch('type');
+    const firstName = watch('firstName');
+    const lastName = watch('lastName');
+
+    useEffect(() => {
+        if (!editingStaff && firstName && lastName) {
+            const emailValue = `${firstName.toLowerCase().trim()}.${lastName.toLowerCase().trim()}@cadets.gc.ca`;
+            setValue('email', emailValue, { shouldValidate: true });
+        }
+    }, [firstName, lastName, editingStaff, setValue]);
 
     const handleEditClick = (staff: StaffMember) => {
         setEditingStaff(staff);
