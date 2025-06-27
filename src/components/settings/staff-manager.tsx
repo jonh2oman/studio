@@ -15,9 +15,17 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { X, Edit, UserPlus } from 'lucide-react';
+import { X, Edit, UserPlus, ChevronDown } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuCheckboxItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 
 const staffSchema = z.object({
@@ -27,6 +35,8 @@ const staffSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   phone: z.string().optional(),
   email: z.string().optional(),
+  primaryRole: z.string().min(1, 'Primary role is required'),
+  additionalRoles: z.array(z.string()).optional(),
 });
 
 type StaffFormData = z.infer<typeof staffSchema>;
@@ -37,7 +47,7 @@ interface StaffManagerProps {
 }
 
 export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
-    const { settings } = useSettings(); // Used for officerRanks list
+    const { settings } = useSettings();
     const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
 
     const form = useForm<StaffFormData>({
@@ -49,11 +59,14 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
             lastName: '',
             phone: '',
             email: '',
+            primaryRole: '',
+            additionalRoles: [],
         },
     });
 
-    const { watch, setValue } = form;
+    const { watch, setValue, control } = form;
     const watchType = watch('type');
+    const watchPrimaryRole = watch('primaryRole');
     const firstName = watch('firstName');
     const lastName = watch('lastName');
 
@@ -73,12 +86,23 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
             lastName: staffMember.lastName,
             phone: staffMember.phone || '',
             email: staffMember.email || '',
+            primaryRole: staffMember.primaryRole,
+            additionalRoles: staffMember.additionalRoles,
         });
     }
 
     const handleCancelEdit = () => {
         setEditingStaff(null);
-        form.reset();
+        form.reset({
+            type: 'Officer',
+            rank: '',
+            firstName: '',
+            lastName: '',
+            phone: '',
+            email: '',
+            primaryRole: '',
+            additionalRoles: [],
+        });
     }
 
     const onSubmit = (data: StaffFormData) => {
@@ -103,7 +127,7 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
         <Card className="border">
             <CardHeader>
                 <CardTitle>Manage Corps Staff</CardTitle>
-                <CardDescription>Add, edit, or remove staff members who can be assigned as instructors or duty personnel.</CardDescription>
+                <CardDescription>Add, edit, or remove staff members and assign their roles.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="p-4 border rounded-lg bg-muted/30">
@@ -111,13 +135,13 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             <h4 className="text-lg font-semibold">{editingStaff ? `Editing ${editingStaff.firstName} ${editingStaff.lastName}` : 'Add New Staff Member'}</h4>
                             <FormField
-                                control={form.control}
+                                control={control}
                                 name="type"
                                 render={({ field }) => (
                                     <FormItem className="space-y-3">
                                     <FormLabel>Staff Type</FormLabel>
                                     <FormControl>
-                                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-6">
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-6">
                                             <FormItem className="flex items-center space-x-3 space-y-0">
                                                 <FormControl><RadioGroupItem value="Officer" /></FormControl>
                                                 <FormLabel className="font-normal">Officer</FormLabel>
@@ -133,7 +157,7 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
                                 )}
                             />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <FormField control={form.control} name="rank" render={({ field }) => ( 
+                                <FormField control={control} name="rank" render={({ field }) => ( 
                                     <FormItem>
                                         <FormLabel>Rank</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
@@ -153,14 +177,69 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
                                         <FormMessage />
                                     </FormItem>
                                  )} />
-                                <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                                <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                <FormField control={control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                <FormField control={control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                            </div>
+
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={control} name="primaryRole" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Primary Role</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select primary role..." /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                {settings.staffRoles.map(role => (
+                                                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <FormField control={control} name="additionalRoles" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Additional Roles</FormLabel>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" className="w-full justify-between">
+                                                    {field.value?.length ? `${field.value.length} selected` : "Select additional roles..."}
+                                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                                                <DropdownMenuLabel>Assign Additional Roles</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                {settings.staffRoles.map(role => {
+                                                    const isChecked = field.value?.includes(role);
+                                                    const isPrimary = watchPrimaryRole === role;
+                                                    return (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={role}
+                                                            checked={isChecked}
+                                                            disabled={isPrimary}
+                                                            onCheckedChange={(checked) => {
+                                                                const currentRoles = field.value || [];
+                                                                const newRoles = checked
+                                                                    ? [...currentRoles, role]
+                                                                    : currentRoles.filter(r => r !== role);
+                                                                field.onChange(newRoles);
+                                                            }}
+                                                        >
+                                                            {role}
+                                                        </DropdownMenuCheckboxItem>
+                                                    );
+                                                })}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
                             </div>
 
                             {watchType === 'Officer' && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                                    <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} type="email"/></FormControl><FormMessage /></FormItem> )} />
+                                    <FormField control={control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                    <FormField control={control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} type="email"/></FormControl><FormMessage /></FormItem> )} />
                                 </div>
                             )}
                             
@@ -182,16 +261,25 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
                                 <TableRow>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Type</TableHead>
+                                    <TableHead>Roles</TableHead>
                                     <TableHead>Contact</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {staff.length === 0 && <TableRow><TableCell colSpan={4} className="text-center h-24">No staff members added.</TableCell></TableRow>}
+                                {staff.length === 0 && <TableRow><TableCell colSpan={5} className="text-center h-24">No staff members added.</TableCell></TableRow>}
                                 {staff.map(staffMember => (
                                     <TableRow key={staffMember.id}>
                                         <TableCell className="font-medium">{staffMember.rank} {staffMember.firstName} {staffMember.lastName}</TableCell>
                                         <TableCell>{staffMember.type}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold">{staffMember.primaryRole || 'N/A'}</span>
+                                                {staffMember.additionalRoles?.length > 0 && (
+                                                    <span className="text-xs text-muted-foreground">{staffMember.additionalRoles.join(', ')}</span>
+                                                )}
+                                            </div>
+                                        </TableCell>
                                         <TableCell>{staffMember.email || staffMember.phone || 'N/A'}</TableCell>
                                         <TableCell className="text-right">
                                             <Button variant="ghost" size="icon" onClick={() => handleEditClick(staffMember)}><Edit className="h-4 w-4" /></Button>

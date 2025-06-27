@@ -63,6 +63,8 @@ export interface StaffMember {
   lastName:string;
   phone?: string;
   email?: string;
+  primaryRole: string;
+  additionalRoles: string[];
 }
 
 export interface DutySchedule {
@@ -78,6 +80,7 @@ export interface Settings {
   trainingDay: number; // 0 for Sunday, 1 for Monday, etc.
   corpsName: string;
   staff: StaffMember[];
+  staffRoles: string[];
   classrooms: string[];
   cadetRanks: string[];
   officerRanks: string[];

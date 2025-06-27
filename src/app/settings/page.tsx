@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { X, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const [newClassroom, setNewClassroom] = useState("");
   const [newCadetRank, setNewCadetRank] = useState("");
   const [newOfficerRank, setNewOfficerRank] = useState("");
+  const [newStaffRole, setNewStaffRole] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -62,6 +63,17 @@ export default function SettingsPage() {
   const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
   const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const permanentRoles = useMemo(() => [
+    'Commanding Officer',
+    'Training Officer',
+    'Administration Officer',
+    'Supply Officer'
+  ], []);
+
+  const commandingOfficer = useMemo(() => {
+    return localSettings.staff.find(s => s.primaryRole === 'Commanding Officer');
+  }, [localSettings.staff]);
 
   useEffect(() => {
     if (settingsLoaded) {
@@ -134,6 +146,27 @@ export default function SettingsPage() {
   const handleRemoveOfficerRank = (rank: string) => {
     const officerRanks = localSettings.officerRanks || [];
     handleListChange('officerRanks', officerRanks.filter(r => r !== rank));
+  };
+
+  const handleAddStaffRole = () => {
+    const staffRoles = localSettings.staffRoles || [];
+    if (newStaffRole.trim() && !staffRoles.includes(newStaffRole.trim())) {
+      handleListChange('staffRoles', [...staffRoles, newStaffRole.trim()]);
+      setNewStaffRole("");
+    }
+  };
+
+  const handleRemoveStaffRole = (role: string) => {
+    if (permanentRoles.includes(role)) {
+        toast({
+            variant: "destructive",
+            title: "Action Not Allowed",
+            description: "This is a permanent role and cannot be removed.",
+        });
+        return;
+    }
+    const staffRoles = localSettings.staffRoles || [];
+    handleListChange('staffRoles', staffRoles.filter(r => r !== role));
   };
 
   const handleAddCafDress = () => {
@@ -282,6 +315,15 @@ export default function SettingsPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="coDisplay">Commanding Officer</Label>
+                                            <Input 
+                                                id="coDisplay"
+                                                readOnly
+                                                value={commandingOfficer ? `${commandingOfficer.rank} ${commandingOfficer.firstName} ${commandingOfficer.lastName}` : 'Not Assigned'}
+                                                className="font-medium"
+                                            />
+                                        </div>
                                     </div>
                                     )}
                                 </CardContent>
@@ -354,24 +396,31 @@ export default function SettingsPage() {
                             
                              <Card className="border">
                                 <CardHeader>
-                                    <CardTitle>Manage Officer Ranks</CardTitle>
-                                    <CardDescription>Add or remove staff ranks from the list available in the app.</CardDescription>
+                                    <CardTitle>Manage Staff Roles</CardTitle>
+                                    <CardDescription>Add or remove staff roles, except for permanent roles.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex gap-2">
                                     <Input 
-                                        value={newOfficerRank}
-                                        onChange={(e) => setNewOfficerRank(e.target.value)}
-                                        placeholder="New officer rank"
+                                        value={newStaffRole}
+                                        onChange={(e) => setNewStaffRole(e.target.value)}
+                                        placeholder="New staff role name"
                                     />
-                                    <Button onClick={handleAddOfficerRank}>Add</Button>
+                                    <Button onClick={handleAddStaffRole}>Add</Button>
                                     </div>
                                     <div className="space-y-2">
-                                    {(localSettings.officerRanks || []).map(rank => (
-                                        <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                        <span>{rank}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRank(rank)}>
-                                            <X className="h-4 w-4"/>
+                                    {(localSettings.staffRoles || []).map(role => (
+                                        <div key={role} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                        <span>{role}</span>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-6 w-6" 
+                                            onClick={() => handleRemoveStaffRole(role)}
+                                            disabled={permanentRoles.includes(role)}
+                                            aria-label={permanentRoles.includes(role) ? "Permanent role" : "Remove role"}
+                                        >
+                                            <X className={cn("h-4 w-4", permanentRoles.includes(role) && "opacity-30")}/>
                                         </Button>
                                         </div>
                                     ))}
@@ -398,6 +447,33 @@ export default function SettingsPage() {
                                         <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                         <span>{rank}</span>
                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetRank(rank)}>
+                                            <X className="h-4 w-4"/>
+                                        </Button>
+                                        </div>
+                                    ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border">
+                                <CardHeader>
+                                    <CardTitle>Manage Officer Ranks</CardTitle>
+                                    <CardDescription>Add or remove staff ranks from the list available in the app.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex gap-2">
+                                    <Input 
+                                        value={newOfficerRank}
+                                        onChange={(e) => setNewOfficerRank(e.target.value)}
+                                        placeholder="New officer rank"
+                                    />
+                                    <Button onClick={handleAddOfficerRank}>Add</Button>
+                                    </div>
+                                    <div className="space-y-2">
+                                    {(localSettings.officerRanks || []).map(rank => (
+                                        <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                        <span>{rank}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRank(rank)}>
                                             <X className="h-4 w-4"/>
                                         </Button>
                                         </div>

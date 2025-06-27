@@ -5,10 +5,18 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Settings, YearSpecificSettings, TrainingYearSettings, WeeklyActivity } from '@/lib/types';
 import { useTrainingYear } from './use-training-year';
 
+const permanentRoles = [
+    'Commanding Officer',
+    'Training Officer',
+    'Administration Officer',
+    'Supply Officer'
+];
+
 const defaultSettings: Settings = {
     trainingDay: 2, // Tuesday
     corpsName: "",
     staff: [],
+    staffRoles: [...permanentRoles],
     classrooms: [],
     cadetRanks: [],
     officerRanks: [],
@@ -43,7 +51,12 @@ export function useSettings() {
                     ...defaultSettings, // Start with new defaults
                     ...parsedSettings,  // Override with any stored values
                     // Explicitly ensure array/object properties are not null
-                    staff: parsedSettings.staff || [], 
+                    staff: (parsedSettings.staff || []).map((s: any) => ({
+                        ...s,
+                        primaryRole: s.primaryRole || '',
+                        additionalRoles: s.additionalRoles || [],
+                    })), 
+                    staffRoles: Array.from(new Set([...permanentRoles, ...(parsedSettings.staffRoles || [])])),
                     classrooms: parsedSettings.classrooms || [],
                     cadetRanks: parsedSettings.cadetRanks || [],
                     officerRanks: parsedSettings.officerRanks || [],
