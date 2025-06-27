@@ -13,7 +13,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
   SidebarSeparator,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
@@ -129,7 +128,6 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter className="items-center">
-                <SidebarTrigger />
             </SidebarFooter>
         </Sidebar>
     )
@@ -191,9 +189,6 @@ export function AppSidebar() {
       <SidebarFooter className="items-center p-2 space-y-2">
          <AuthStatus />
          <SidebarSeparator />
-         <div className="flex justify-center">
-            <SidebarTrigger />
-         </div>
       </SidebarFooter>
     </Sidebar>
   );
