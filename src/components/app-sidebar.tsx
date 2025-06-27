@@ -60,8 +60,8 @@ const navGroups = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { settings } = useSettings();
-  const { currentYear } = useTrainingYear();
+  const { settings, isLoaded: settingsLoaded } = useSettings();
+  const { currentYear, isLoaded: yearsLoaded } = useTrainingYear();
 
   return (
     <Sidebar>
@@ -70,9 +70,13 @@ export function AppSidebar() {
           <div className="bg-primary/20 p-2 rounded-lg">
             <Ship className="w-7 h-7 text-primary" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-lg font-semibold text-primary">{settings.corpsName}</h1>
-            <p className="text-xs text-muted-foreground">{currentYear ? `TY: ${currentYear}`: 'No Year Selected'}</p>
+          <div className="flex flex-col min-h-[2.5rem] justify-center">
+            <h1 className="text-lg font-semibold text-primary">
+              {settingsLoaded ? (settings.corpsName || <>&nbsp;</>) : <>&nbsp;</>}
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              {yearsLoaded ? (currentYear ? `TY: ${currentYear}` : 'No Year Selected') : <>&nbsp;</>}
+            </p>
           </div>
         </div>
       </SidebarHeader>
