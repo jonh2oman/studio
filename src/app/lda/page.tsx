@@ -11,7 +11,7 @@ export default function LdaPage() {
 
   return (
     <div className="flex h-full flex-col">
-       <div className="flex-shrink-0 border-b bg-background/95 p-4 backdrop-blur-sm md:p-6">
+       <div className="flex-shrink-0 border-b bg-background/95 pb-6 backdrop-blur-sm">
         <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 print:hidden">
                 <Tooltip>
@@ -41,7 +41,7 @@ export default function LdaPage() {
             </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+      <div className="flex-1 overflow-y-auto pt-6">
         <LdaPlanner objectivesVisible={objectivesVisible} />
       </div>
     </div>
