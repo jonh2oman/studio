@@ -36,6 +36,8 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [newClassroom, setNewClassroom] = useState("");
   const [newRank, setNewRank] = useState("");
+  const [newCafDress, setNewCafDress] = useState("");
+  const [newCadetDress, setNewCadetDress] = useState("");
   const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
   const [newActivity, setNewActivity] = useState<{
     activity: string;
@@ -108,6 +110,28 @@ export default function SettingsPage() {
 
   const handleRemoveRank = (rank: string) => {
     saveSettings({ ranks: settings.ranks.filter(r => r !== rank) });
+  };
+
+  const handleAddCafDress = () => {
+    if (newCafDress.trim() && !settings.ordersOfDress.caf.includes(newCafDress.trim())) {
+      saveSettings({ ordersOfDress: { ...settings.ordersOfDress, caf: [...settings.ordersOfDress.caf, newCafDress.trim()] } });
+      setNewCafDress("");
+    }
+  };
+
+  const handleRemoveCafDress = (dress: string) => {
+    saveSettings({ ordersOfDress: { ...settings.ordersOfDress, caf: settings.ordersOfDress.caf.filter(d => d !== dress) } });
+  };
+
+  const handleAddCadetDress = () => {
+    if (newCadetDress.trim() && !settings.ordersOfDress.cadets.includes(newCadetDress.trim())) {
+      saveSettings({ ordersOfDress: { ...settings.ordersOfDress, cadets: [...settings.ordersOfDress.cadets, newCadetDress.trim()] } });
+      setNewCadetDress("");
+    }
+  };
+
+  const handleRemoveCadetDress = (dress: string) => {
+    saveSettings({ ordersOfDress: { ...settings.ordersOfDress, cadets: settings.ordersOfDress.cadets.filter(d => d !== dress) } });
   };
 
   const handleAddActivity = () => {
@@ -299,6 +323,49 @@ export default function SettingsPage() {
               ))}
             </div>
           </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Manage Orders of Dress</CardTitle>
+                <CardDescription>Add or remove orders of dress for CAF Staff and Cadets.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                    <h4 className="font-semibold">CAF Staff Dress</h4>
+                    <div className="flex gap-2">
+                        <Input value={newCafDress} onChange={(e) => setNewCafDress(e.target.value)} placeholder="New staff dress" />
+                        <Button onClick={handleAddCafDress}>Add</Button>
+                    </div>
+                    <div className="space-y-2">
+                        {settings.ordersOfDress?.caf.map(dress => (
+                            <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                <span>{dress}</span>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCafDress(dress)}>
+                                    <X className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <h4 className="font-semibold">Cadet Dress</h4>
+                    <div className="flex gap-2">
+                        <Input value={newCadetDress} onChange={(e) => setNewCadetDress(e.target.value)} placeholder="New cadet dress" />
+                        <Button onClick={handleAddCadetDress}>Add</Button>
+                    </div>
+                    <div className="space-y-2">
+                        {settings.ordersOfDress?.cadets.map(dress => (
+                            <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                <span>{dress}</span>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetDress(dress)}>
+                                    <X className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </CardContent>
         </Card>
 
         <Card>

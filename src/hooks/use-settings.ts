@@ -19,6 +19,10 @@ const defaultSettings: Settings = {
         "Chief Petty Officer 1st Class (CPO1)",
     ],
     weeklyActivities: [],
+    ordersOfDress: {
+        caf: ['DEU 3B', 'DEU 3', 'CADPAT'],
+        cadets: ['C-1', 'C-2', 'C-3A', 'C-5 (Sports Gear)']
+    }
 };
 
 const defaultYearSettings: TrainingYearSettings = {};
@@ -39,6 +43,7 @@ export function useSettings() {
                 mergedSettings.classrooms = mergedSettings.classrooms?.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
                 mergedSettings.ranks = mergedSettings.ranks?.length > 0 ? mergedSettings.ranks : defaultSettings.ranks;
                 mergedSettings.weeklyActivities = parsedSettings.weeklyActivities || [];
+                mergedSettings.ordersOfDress = parsedSettings.ordersOfDress || defaultSettings.ordersOfDress;
                 setSettings(mergedSettings);
             } else {
                 setSettings(defaultSettings);

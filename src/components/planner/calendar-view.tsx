@@ -5,13 +5,15 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, addMonths, startOfMonth, eachDayOfInterval, getYear, addDays, addWeeks, startOfWeek, endOfWeek, addYears, getMonth } from "date-fns";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
-import type { Schedule, EO } from "@/lib/types";
+import type { Schedule, EO, DayMetadataState, DayMetadata } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ScheduleDialog } from "./schedule-dialog";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
+import { Label } from "../ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 interface CalendarViewProps {
   schedule: Schedule;
@@ -19,6 +21,8 @@ interface CalendarViewProps {
   onUpdate: (slotId: string, details: { instructor?: string; classroom?: string }) => void;
   onRemove: (slotId: string) => void;
   viewMode: string;
+  dayMetadata: DayMetadataState;
+  updateDayMetadata: (date: string, metadataUpdate: Partial<DayMetadata>) => void;
 }
 
 const nightSchedule = [
@@ -32,7 +36,7 @@ const nightSchedule = [
   { time: "2115", event: "Dismissal" },
 ];
 
-export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }: CalendarViewProps) {
+export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, dayMetadata, updateDayMetadata }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [trainingYear, setTrainingYear] = useState<{ start: Date; end: Date } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
@@ -115,10 +119,42 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
 
   const renderTrainingDayCard = useCallback((day: Date) => {
     const dateStr = format(day, "yyyy-MM-dd");
+    const metadata = dayMetadata[dateStr] || {};
+    const dress = metadata.dressOfTheDay || { caf: '', cadets: '' };
+
+    const handleDressChange = (type: 'caf' | 'cadets', value: string) => {
+        const newDress = { ...dress, [type]: value };
+        updateDayMetadata(dateStr, { dressOfTheDay: newDress });
+    };
+
     return (
       <Card key={dateStr} className={cn("overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", viewMode === 'year' && "w-[22rem] flex-shrink-0")}>
         <CardHeader>
           <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div>
+                <Label className="text-xs text-muted-foreground">CAF Dress</Label>
+                <Select value={dress.caf} onValueChange={(value) => handleDressChange('caf', value)}>
+                    <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Select dress..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {settings.ordersOfDress.caf.map(d => <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <Label className="text-xs text-muted-foreground">Cadet Dress</Label>
+                <Select value={dress.cadets} onValueChange={(value) => handleDressChange('cadets', value)}>
+                    <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Select dress..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {settings.ordersOfDress.cadets.map(d => <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className={cn("gap-4", viewMode === 'year' ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-3')}>
@@ -169,7 +205,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode }:
         </CardContent>
       </Card>
     );
-  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove]);
+  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove, dayMetadata, updateDayMetadata, settings.ordersOfDress]);
   
   if (!isLoaded || !currentDate || !trainingYear) {
     return <div className="flex items-center justify-center h-full"><p>Loading calendar...</p></div>;

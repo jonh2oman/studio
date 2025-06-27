@@ -60,6 +60,8 @@ export function WroForm() {
     resolver: zodResolver(wroSchema),
     defaultValues: {
       upcomingActivities: [],
+      dressCaf: 'DEU 3B',
+      dressCadets: 'C-2',
     }
   });
 
@@ -72,7 +74,7 @@ export function WroForm() {
   const [isGenerating, setIsGenerating] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const { settings, isLoaded: settingsLoaded } = useSettings();
-  const { schedule, isLoaded: scheduleLoaded } = useSchedule();
+  const { schedule, dayMetadata, isLoaded: scheduleLoaded } = useSchedule();
   const { dutySchedule, isLoaded: yearLoaded } = useTrainingYear();
   const formData = watch();
   const trainingDate = watch("trainingDate");
@@ -109,6 +111,23 @@ export function WroForm() {
         }
     }
   }, [trainingDate, dutySchedule, settings.staff, setValue]);
+
+  useEffect(() => {
+    if (trainingDate && dayMetadata) {
+        const dateStr = format(trainingDate, 'yyyy-MM-dd');
+        const metadata = dayMetadata[dateStr];
+        if (metadata?.dressOfTheDay?.caf) {
+            setValue('dressCaf', metadata.dressOfTheDay.caf);
+        } else {
+            setValue('dressCaf', 'DEU 3B'); // Reset to default if not set
+        }
+        if (metadata?.dressOfTheDay?.cadets) {
+            setValue('dressCadets', metadata.dressOfTheDay.cadets);
+        } else {
+            setValue('dressCadets', 'C-2'); // Reset to default if not set
+        }
+    }
+  }, [trainingDate, dayMetadata, setValue]);
 
 
   useEffect(() => {
@@ -322,11 +341,11 @@ export function WroForm() {
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <Label htmlFor="dressCaf">Dress (CAF Members)</Label>
-                        <Input id="dressCaf" {...register("dressCaf")} defaultValue="DEU 3B" />
+                        <Input id="dressCaf" {...register("dressCaf")} />
                     </div>
                     <div>
                         <Label htmlFor="dressCadets">Dress (Cadets)</Label>
-                        <Input id="dressCadets" {...register("dressCadets")} defaultValue="C-2" />
+                        <Input id="dressCadets" {...register("dressCadets")} />
                     </div>
                 </div>
                  <div>

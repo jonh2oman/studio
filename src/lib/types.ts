@@ -81,6 +81,10 @@ export interface Settings {
   classrooms: string[];
   ranks: string[];
   weeklyActivities: WeeklyActivity[];
+  ordersOfDress: {
+      caf: string[];
+      cadets: string[];
+  };
 }
 
 // Settings that are specific to a training year
@@ -195,6 +199,10 @@ export interface DayMetadata {
     csarSubmitted: boolean;
     csarApproved: boolean;
     csarDetails?: CsarDetails;
+    dressOfTheDay?: {
+        caf: string;
+        cadets: string;
+    };
 }
 
 export interface DayMetadataState {

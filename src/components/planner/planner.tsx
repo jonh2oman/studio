@@ -3,7 +3,7 @@
 
 import { ObjectivesList } from "@/components/planner/objectives-list";
 import { CalendarView } from "@/components/planner/calendar-view";
-import type { EO } from "@/lib/types";
+import type { EO, DayMetadata, DayMetadataState } from "@/lib/types";
 import { useSchedule } from "@/hooks/use-schedule";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
@@ -12,7 +12,7 @@ interface PlannerProps {
 }
 
 export default function Planner({ viewMode }: PlannerProps) {
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata } = useSchedule();
 
     const handleDrop = (date: string, period: number, phase: number, eo: EO) => {
         const slotId = `${date}-${period}-${phase}`;
@@ -32,6 +32,8 @@ export default function Planner({ viewMode }: PlannerProps) {
                         onUpdate={updateScheduleItem}
                         onRemove={removeScheduleItem}
                         viewMode={viewMode}
+                        dayMetadata={dayMetadata}
+                        updateDayMetadata={updateDayMetadata}
                     />
                 </div>
             </div>
@@ -56,6 +58,8 @@ export default function Planner({ viewMode }: PlannerProps) {
                     onUpdate={updateScheduleItem}
                     onRemove={removeScheduleItem}
                     viewMode={viewMode}
+                    dayMetadata={dayMetadata}
+                    updateDayMetadata={updateDayMetadata}
                 />
             </ResizablePanel>
         </ResizablePanelGroup>
