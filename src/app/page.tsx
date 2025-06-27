@@ -166,7 +166,7 @@ export default function DashboardPage() {
         
         <Card className="border">
           <CardHeader>
-            <CardTitle>Mandatory Training Progress</CardTitle>
+            <CardTitle>Mandatory Training Planning Progress</CardTitle>
             <CardDescription>
               A quick glance at the percentage of mandatory training periods scheduled for each phase.
             </CardDescription>
