@@ -16,11 +16,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Trash2, Calendar as CalendarIcon, CheckCircle } from "lucide-react";
 import { useMemo } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
+import { Badge } from "@/components/ui/badge";
 
 const j4ItemSchema = z.object({
   id: z.string(),
@@ -288,7 +289,17 @@ export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }
 
               <TabsContent value="j4" className="mt-4 space-y-6">
                  <Card>
-                    <CardHeader><CardTitle>J4 Plan</CardTitle></CardHeader>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                          <CardTitle>J4 Plan</CardTitle>
+                          {watchFields.j4Plan?.submitted && watchFields.j4Plan?.approved && (
+                              <Badge variant="outline" className="text-green-600 border-green-600/60 bg-green-50 dark:bg-green-950 dark:text-green-400 dark:border-green-500/60">
+                                  <CheckCircle className="mr-1.5 h-4 w-4" />
+                                  Approved
+                              </Badge>
+                          )}
+                      </div>
+                    </CardHeader>
                     <CardContent className="space-y-4">
                       <FormField control={form.control} name="j4Plan.quartermasterLocation" render={({ field }) => (<FormItem><FormLabel>J4 Quartermaster Location</FormLabel><FormControl><Input {...field} placeholder="e.g., Regional Warehouse" /></FormControl></FormItem>)} />
                       <div className="flex gap-8">
