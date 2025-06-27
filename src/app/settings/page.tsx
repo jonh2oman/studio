@@ -75,9 +75,9 @@ export default function SettingsPage() {
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    values: {
-      corpsName: localSettings.corpsName || "",
-      trainingDay: localSettings.trainingDay ?? 2,
+    defaultValues: {
+      corpsName: globalSettings.corpsName || "",
+      trainingDay: globalSettings.trainingDay ?? 2,
     },
   });
 
