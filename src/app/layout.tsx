@@ -8,6 +8,7 @@ import { HelpButton } from '@/components/help-button';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SaveProvider } from '@/hooks/use-save-context';
 import { FloatingSaveButton } from '@/components/floating-save-button';
+import { AuthProvider } from '@/hooks/use-auth';
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',
@@ -34,27 +35,27 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <SaveProvider>
-          <TooltipProvider delayDuration={0}>
-            <SidebarProvider>
-              <div className="flex min-h-screen">
-                <div className="print:hidden">
-                  <AppSidebar />
-                </div>
-                <SidebarInset>
-                  <div className="p-4 sm:p-6 lg:p-8 w-full print:p-0">
-                    {children}
+        <AuthProvider>
+          <SaveProvider>
+            <TooltipProvider delayDuration={0}>
+              <SidebarProvider>
+                <div className="flex min-h-screen">
+                  <div className="print:hidden">
+                    <AppSidebar />
                   </div>
-                </SidebarInset>
+                  <SidebarInset>
+                    {children}
+                  </SidebarInset>
+                </div>
+              </SidebarProvider>
+              <Toaster />
+              <div className="print:hidden">
+                <HelpButton />
+                <FloatingSaveButton />
               </div>
-            </SidebarProvider>
-            <Toaster />
-            <div className="print:hidden">
-              <HelpButton />
-              <FloatingSaveButton />
-            </div>
-          </TooltipProvider>
-        </SaveProvider>
+            </TooltipProvider>
+          </SaveProvider>
+        </AuthProvider>
       </body>
     </html>
   );

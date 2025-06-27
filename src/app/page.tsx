@@ -2,14 +2,16 @@
 "use client";
 
 import Link from 'next/link';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
 
 const dashboardCategories = [
     {
@@ -45,14 +47,9 @@ const dashboardCategories = [
 ];
 
 export default function DashboardPage() {
+  const { user, loading } = useAuth();
   const { schedule, isLoaded } = useSchedule();
-  const [isSetupComplete, setIsSetupComplete] = useState(false);
-
-  useEffect(() => {
-    const setupStatus = localStorage.getItem("isSetupComplete");
-    setIsSetupComplete(setupStatus === 'true');
-  }, []);
-
+  
   const phaseProgress = useMemo(() => {
     if (!isLoaded) return [];
 
@@ -90,11 +87,45 @@ export default function DashboardPage() {
     });
   }, [schedule, isLoaded]);
 
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <PageHeader
+          title="Welcome to the Training Officer's Planning Tool"
+          description="Please log in or sign up to continue."
+        />
+        <div className="mt-12 flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-12 text-center">
+          <div className="mb-4 rounded-full border bg-background p-4 shadow-sm">
+            <Users className="h-10 w-10 text-primary" />
+          </div>
+          <h2 className="text-xl font-semibold">Create an Account to Get Started</h2>
+          <p className="mt-2 max-w-sm text-muted-foreground">An account allows you to save your training plans and access them securely from any device.</p>
+          <div className="mt-6 flex gap-4">
+            <Button asChild size="lg">
+              <Link href="/login"><LogIn className="mr-2 h-4 w-4" /> Login</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/signup">Sign Up</Link>
+            </Button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <PageHeader
         title="Dashboard"
-        description="Welcome to your Training Officer Planning Tool."
+        description={`Welcome back, ${user.email}!`}
       />
       <div className="mt-8 space-y-8">
         

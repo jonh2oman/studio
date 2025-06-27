@@ -3,8 +3,8 @@
 
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2 } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -19,6 +19,10 @@ import {
 } from "@/components/ui/sidebar";
 import { useSettings } from "@/hooks/use-settings";
 import { useTrainingYear } from "@/hooks/use-training-year";
+import { useAuth } from "@/hooks/use-auth";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { Button } from "./ui/button";
 
 const navGroups = [
   {
@@ -58,9 +62,49 @@ const navGroups = [
   }
 ];
 
+function AuthStatus() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        if (auth) {
+            await signOut(auth);
+            router.push('/login');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center gap-2 px-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Loading...</span>
+            </div>
+        )
+    }
+
+    return user ? (
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 px-2 text-sm truncate">
+                <UserCircle className="h-5 w-5 flex-shrink-0"/>
+                <span className="truncate" title={user.email || 'User'}>{user.email}</span>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-7 w-7">
+                <LogOut />
+            </Button>
+        </div>
+    ) : (
+        <Link href="/login" className="w-full">
+            <Button variant="outline" className="w-full">
+                <LogIn className="mr-2" />
+                Login / Sign Up
+            </Button>
+        </Link>
+    )
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user, loading: authLoading } = useAuth();
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { currentYear, isLoaded: yearsLoaded } = useTrainingYear();
   const [isMounted, setIsMounted] = useState(false);
@@ -95,6 +139,12 @@ export function AppSidebar() {
     )
   }
 
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
+
+  if (isAuthPage) {
+    return null; // Don't render sidebar on auth pages
+  }
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -104,7 +154,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col min-h-[2.5rem] justify-center">
             <h1 className="text-lg font-semibold text-primary">
-              {settingsLoaded ? (settings.corpsName || <>&nbsp;</>) : <>&nbsp;</>}
+              {settingsLoaded ? (settings.corpsName || 'Training Planner') : <>&nbsp;</>}
             </h1>
             <p className="text-xs text-muted-foreground">
               {yearsLoaded ? (currentYear ? `TY: ${currentYear}` : 'No Year Selected') : <>&nbsp;</>}
@@ -116,9 +166,11 @@ export function AppSidebar() {
         <SidebarMenu>
           {navGroups.map((group, index) => (
             <React.Fragment key={group.title || index}>
-              {group.title && <li><SidebarGroupLabel className="px-2 pt-4">{group.title}</SidebarGroupLabel></li>}
+              {group.title && <SidebarGroupLabel className="px-2 pt-4">{group.title}</SidebarGroupLabel>}
               {group.items.map(item => {
-                const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href);
+                const isActive = item.href === "/"
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href) && item.href !== "/";
                 return (
                   <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
@@ -126,6 +178,7 @@ export function AppSidebar() {
                         isActive={isActive}
                         className="w-full"
                         tooltip={item.label}
+                        disabled={!user && !authLoading}
                       >
                         <item.icon className="w-5 h-5" />
                         <span>{item.label}</span>
@@ -134,13 +187,17 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
-              {index < navGroups.length - 1 && <li><SidebarSeparator className="my-2" /></li>}
+              {index < navGroups.length - 1 && <SidebarSeparator className="my-2" />}
             </React.Fragment>
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="items-center">
-         <SidebarTrigger />
+      <SidebarFooter className="items-center p-2 space-y-2">
+         <AuthStatus />
+         <SidebarSeparator />
+         <div className="flex justify-center">
+            <SidebarTrigger />
+         </div>
       </SidebarFooter>
     </Sidebar>
   );

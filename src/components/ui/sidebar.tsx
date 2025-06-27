@@ -19,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useAuth } from "@/hooks/use-auth"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -175,7 +176,19 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { user, loading } = useAuth();
+    const [isMounted, setIsMounted] = React.useState(false);
 
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+
+    if (!isMounted || loading) {
+        // You can return a skeleton loader here if you want
+        return null;
+    }
+    
     if (collapsible === "none") {
       return (
         <div
@@ -317,6 +330,25 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  const { user, loading } = useAuth();
+  const { isMobile } = useSidebar();
+  const pathname = usePathname();
+
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
+
+  if (isAuthPage && !isMobile) {
+    return (
+        <main
+          ref={ref}
+          className={cn(
+            "relative flex min-h-svh flex-1 flex-col bg-background",
+            className
+          )}
+          {...props}
+        />
+    )
+  }
+
   return (
     <main
       ref={ref}
@@ -372,7 +404,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2 p-2 mt-auto", className)}
       {...props}
     />
   )
