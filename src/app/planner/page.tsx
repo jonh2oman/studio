@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import { PageHeader } from '@/components/page-header';
 import Planner from '@/components/planner/planner';
 import { Button } from '@/components/ui/button';
 import { Printer, Menu } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function PlannerPage() {
   const [viewMode, setViewMode] = useState('month');
@@ -13,24 +13,34 @@ export default function PlannerPage() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex-shrink-0 border-b bg-background/95 p-4 backdrop-blur-sm md:p-6">
-        <PageHeader
-          title="Corps/Squadron Training Plan - Annual"
-          description="Drag and drop lessons to build your training year schedule."
-        >
-          <div className="flex items-center gap-4 print:hidden">
-            <Button onClick={() => window.print()} variant="outline" size="sm">
-              <Printer className="mr-2 h-4 w-4" /> Print Plan
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={() => setObjectivesVisible(!objectivesVisible)}
-              className="bg-card hover:bg-muted shadow-md"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
-        </PageHeader>
+        <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 print:hidden">
+                 <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setObjectivesVisible(!objectivesVisible)}
+                            className="bg-card hover:bg-muted shadow-md"
+                        >
+                            <Menu className="mr-2 h-4 w-4" />
+                            Objectives
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Click to show/hide POs & EOs</p>
+                    </TooltipContent>
+                </Tooltip>
+                <Button onClick={() => window.print()} variant="outline" size="sm">
+                  <Printer className="mr-2 h-4 w-4" /> Print Plan
+                </Button>
+            </div>
+            
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight md:text-3xl font-headline">Corps/Squadron Training Plan - Annual</h1>
+                <p className="text-muted-foreground mt-1">Drag and drop lessons to build your training year schedule.</p>
+            </div>
+        </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <Planner 
