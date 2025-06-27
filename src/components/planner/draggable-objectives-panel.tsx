@@ -89,7 +89,7 @@ export function DraggableObjectivesPanel() {
   return (
     <div
       ref={panelRef}
-      className="absolute flex flex-col shadow-2xl z-40 bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
+      className="fixed flex flex-col shadow-2xl z-50 bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
       style={{
         width: `${size.width}px`,
         height: `${size.height}px`,
