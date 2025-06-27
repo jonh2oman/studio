@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,7 @@ export function GuidedSetupDialog({ isOpen, onOpenChange, onFinish }: GuidedSetu
                                             <PopoverTrigger asChild>
                                                 <FormControl>
                                                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />{field.value && isValid(field.value) ? format(field.value, "PPP") : <span>Pick a date</span>}
                                                     </Button>
                                                 </FormControl>
                                             </PopoverTrigger>
