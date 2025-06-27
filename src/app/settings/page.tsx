@@ -913,7 +913,7 @@ export default function SettingsPage() {
             <CardHeader>
                 <CardTitle>Local Data Management</CardTitle>
                 <CardDescription>
-                    Export all your application data to a local file, or import data from a backup.
+                    Export a complete backup of all your application data to a single JSON file. This backup includes all training years, schedules, cadet rosters, attendance records, awards, and settings. You can use this file to restore your data on a different computer or after a major update.
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row gap-4">

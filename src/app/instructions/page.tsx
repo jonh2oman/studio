@@ -3,8 +3,8 @@
 
 import { PageHeader } from "@/components/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { List, Calendar, CalendarDays, CalendarPlus, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info } from "lucide-react";
 
 export default function InstructionsPage() {
   return (
@@ -14,6 +14,23 @@ export default function InstructionsPage() {
         description="A comprehensive guide to using the Training Officer Planning Tool."
       />
       <div className="mt-6 space-y-6">
+
+        <Card className="border-primary/50">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3"><Rocket className="h-6 w-6 text-primary" />Getting Started: Core Concepts</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-muted-foreground">
+                <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Data is Stored Locally</h4>
+                    <p>All your data (schedules, cadets, etc.) is saved directly in your web browser's local storage. This means it's private and fast, but it's tied to your specific browser on your computer. Use the Backup/Restore feature in Settings to move your data or keep it safe.</p>
+                </div>
+                <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Everything is Organized by Training Year</h4>
+                    <p>The application is designed around Training Years (e.g., "2024-2025"). All your schedules, cadets, and reports are specific to the currently selected year. You must create your first training year in Settings to begin.</p>
+                </div>
+            </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Table of Contents</CardTitle>
@@ -21,12 +38,13 @@ export default function InstructionsPage() {
           <CardContent>
             <ul className="space-y-2 text-primary underline">
               <li><a href="#dashboard"><p className="flex items-center gap-2"><List className="h-4 w-4" />Dashboard</p></a></li>
-              <li><a href="#planners"><p className="flex items-center gap-2"><Calendar className="h-4 w-4" />The Planners (Annual, Weekend, LDA)</p></a></li>
+              <li><a href="#planners"><p className="flex items-center gap-2"><Calendar className="h-4 w-4" />The Planners</p></a></li>
               <li><a href="#reports"><p className="flex items-center gap-2"><FileText className="h-4 w-4" />Reports</p></a></li>
               <li><a href="#cadets"><p className="flex items-center gap-2"><Users className="h-4 w-4" />Cadet Management</p></a></li>
               <li><a href="#attendance"><p className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Attendance</p></a></li>
               <li><a href="#awards"><p className="flex items-center gap-2"><Trophy className="h-4 w-4" />Awards Management</p></a></li>
               <li><a href="#settings"><p className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Settings</p></a></li>
+               <li><a href="#about"><p className="flex items-center gap-2"><Info className="h-4 w-4" />About</p></a></li>
             </ul>
           </CardContent>
         </Card>
@@ -43,7 +61,7 @@ export default function InstructionsPage() {
                 <h4 className="font-semibold">Mandatory Training Progress</h4>
                 <p>This section displays progress bars for each Phase, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Weekend, and LDA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
                 <h4 className="font-semibold">Navigation Cards</h4>
-                <p>Each card on the dashboard links to a major module of the application. Simply click on a card to navigate to the respective page.</p>
+                <p>Each card on the dashboard links to a major module of the application. The categories can be expanded or collapsed to keep the view tidy. Simply click on a card to navigate to the respective page.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -56,22 +74,16 @@ export default function InstructionsPage() {
               <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">The application includes three planners for different scheduling needs. All scheduled activities, regardless of the planner used, contribute to the overall training progress on the Dashboard.</p>
                 
+                <h4 className="font-semibold">The Objectives Panel</h4>
+                <p>This floating panel is your palette of lessons. It can be moved anywhere on the screen and resized to your liking. It contains all official EOs, plus any custom EOs you've created in Settings. Use the search bar to quickly find what you need.</p>
+                
                 <h4 className="font-semibold">Core Mechanic: Drag & Drop</h4>
                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Find the lesson (EO) you want to schedule in the "Training Objectives" list on the left.</li>
+                    <li>Find the lesson (EO) you want to schedule in the floating "Training Objectives" panel.</li>
                     <li>Click and drag the lesson from the list.</li>
                     <li>Drop it onto the desired Phase slot for a specific Period on a specific day.</li>
-                    <li>Once an EO is scheduled, click on it to open a dialog where you can assign an Instructor and a Classroom. The app will warn you if you create a scheduling conflict.</li>
+                    <li>Once an EO is scheduled, click on it to open a dialog where you can assign an Instructor and a Classroom. The app will warn you if you create a scheduling conflict (e.g., assigning the same instructor to two places at once).</li>
                 </ol>
-
-                <h4 className="font-semibold flex items-center gap-2"><Calendar className="h-5 w-5" />Corps/Squadron Training Plan - Annual</h4>
-                <p>This planner is for your regular weekly training nights. You can toggle the view between Week, Month, and Year. You can also set the Dress of the Day for both CAF Staff and Cadets for each training night, which will automatically populate the WRO.</p>
-
-                <h4 className="font-semibold flex items-center gap-2"><CalendarDays className="h-5 w-5" />Weekend Planner</h4>
-                <p>Designed for multi-day events, this planner displays three consecutive days, each with an intensive 9-period schedule. Use the calendar in the header to select the start date of the weekend.</p>
-
-                <h4 className="font-semibold flex items-center gap-2"><CalendarPlus className="h-5 w-5" />LDA Day Planner</h4>
-                <p>Use this planner for single, ad-hoc training days (LDAs). It provides a 9-period schedule for one selected day. You can quickly jump between previously planned days.</p>
 
                 <h4 className="font-semibold">CSAR Planning (Weekends & LDAs)</h4>
                 <p>The Weekend and LDA planners include a Cadet Support and Activity Request (CSAR) section for each day.</p>
@@ -128,7 +140,7 @@ export default function InstructionsPage() {
               <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">This is where you manage your corps' roster for the current training year.</p>
                  <h4 className="font-semibold">Adding a Cadet</h4>
-                 <p>Use the "Add New Cadet" form. Fill in their details, including their current Phase. The list of available ranks is managed on the Settings page.</p>
+                 <p>Use the "Add New Cadet" form. Fill in their details, including their current Phase and an optional role (if you've configured any in Settings). The list of available ranks is also managed on the Settings page.</p>
                 <h4 className="font-semibold">Editing or Removing a Cadet</h4>
                 <p>The "Cadet Roster" table lists all your cadets. Use the pencil icon to edit a cadet's details or the 'X' icon to remove them.</p>
               </AccordionContent>
@@ -147,7 +159,7 @@ export default function InstructionsPage() {
                     <li>Select a training night using the calendar. Your regular training days (set in Settings) are highlighted.</li>
                     <li>For each cadet, select their status: Present, Absent, or Excused.</li>
                     <li>Use the checkboxes to mark if a cadet Arrived Late or Left Early.</li>
-                    <li>Click "Save Attendance". This data is crucial for generating accurate attendance reports and for the AI-powered award eligibility checks.</li>
+                    <li>Click the floating "Save" button. This data is crucial for generating accurate attendance reports and for the AI-powered award eligibility checks.</li>
                 </ol>
               </AccordionContent>
             </AccordionItem>
@@ -182,17 +194,44 @@ export default function InstructionsPage() {
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">Configure the application to match your corps' specific needs. Changes here can affect automatic logic in other modules.</p>
+
                 <h4 className="font-semibold">Training Year Management</h4>
-                <p>Create a new training year or switch between existing ones. When creating a new year, you can choose to copy data from a previous year. The copy process includes an option to use <strong>AI to intelligently map</strong> last year's schedule to the new calendar, accounting for different start dates and holidays.</p>
+                <p>Create a new training year or switch between existing ones. When creating a new year, you have the option to copy all data from a previous year. This includes an AI-powered feature to intelligently map last year's schedule to the new calendar, automatically adjusting for different start dates and holidays.</p>
                 
                 <h4 className="font-semibold">Personnel Management</h4>
-                <p>Manage your staff roster and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
+                <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
                 
                 <h4 className="font-semibold">Planning Resources</h4>
-                <p>Customize the lists used throughout the planners. This includes Classrooms, Ranks (Cadet and Officer), and Orders of Dress. You can also define <strong>Weekly Activities</strong>, which are recurring events that will automatically appear in the "Upcoming Activities" section of the WRO for the relevant week.</p>
+                <p>Customize the lists used throughout the planners. This includes creating and managing:</p>
+                 <ul className="list-disc list-inside ml-4 space-y-1">
+                    <li>Classrooms and training locations.</li>
+                    <li>Cadet and Officer Ranks.</li>
+                    <li>Staff and Cadet Roles.</li>
+                    <li>Orders of Dress for both CAF Staff and Cadets.</li>
+                    <li><strong>Custom EOs:</strong> Add your own corps-specific training objectives that can be scheduled just like regular EOs.</li>
+                    <li><strong>Weekly Activities:</strong> Define recurring events (e.g., Band Practice every Thursday) that will automatically appear in the "Upcoming Activities" section of the WRO for the relevant week.</li>
+                </ul>
+                
+                <h4 className="font-semibold">Local & Cloud Data Management</h4>
+                <p>This powerful feature allows you to create a complete backup of all application data. The exported JSON file contains everything: all training years, schedules, cadet rosters, awards, and settings. You can import this file to restore your data on a different machine or after an update. You can also connect your Google account to save and load backups directly from a private folder in your Google Drive.</p>
                 
                 <h4 className="font-semibold flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive"/>Danger Zone</h4>
-                <p>The "Reset Application" button will permanently delete <strong>all</strong> data from your browser's local storage, including all training years, schedules, cadets, and settings. Use this with extreme caution.</p>
+                <p>The "Reset Application" button will permanently delete <strong>all</strong> data from your browser's local storage, including all training years, schedules, cadets, and settings. This action is irreversible. Use this with extreme caution.</p>
+              </AccordionContent>
+            </AccordionItem>
+          </Card>
+
+           <Card id="about">
+            <AccordionItem value="about" className="border-b-0">
+              <AccordionTrigger className="p-6 text-xl">
+                 <div className="flex items-center gap-3"><Info className="h-6 w-6" />About</div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This page contains version information, credits, contact details, and software licensing for the application.</p>
+                <h4 className="font-semibold">Disclaimer</h4>
+                <p>This is an unofficial planning tool and is not endorsed by the Canadian Cadet Organization (CCO) or the Department of National Defence (DND).</p>
+                 <h4 className="font-semibold">Changelog</h4>
+                <p>Click the "View Changelog" button to see a detailed history of all updates and new features added to the application.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>
