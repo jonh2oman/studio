@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -81,16 +80,18 @@ export default function SettingsPage() {
     },
   });
 
+  const { reset, watch } = form;
+
   useEffect(() => {
     if (settingsLoaded) {
       setLocalSettings(globalSettings);
       setIsDirty(false);
-      form.reset({
+      reset({
         corpsName: globalSettings.corpsName,
         trainingDay: globalSettings.trainingDay,
       });
     }
-  }, [globalSettings, settingsLoaded, form]);
+  }, [globalSettings, settingsLoaded, reset]);
 
   const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
@@ -103,13 +104,13 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
+    const subscription = watch((value, { name }) => {
         if (name && value[name as keyof typeof value] !== undefined) {
              handleSettingChange(name as keyof Settings, value[name as keyof typeof value]);
         }
     });
     return () => subscription.unsubscribe();
-  }, [form, handleSettingChange]);
+  }, [watch, handleSettingChange]);
   
   const handleSave = useCallback(() => {
     globalSaveSettings(localSettings);
