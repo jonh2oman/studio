@@ -62,7 +62,7 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            {settings.ranks.map((rank) => (
+                            {settings.cadetRanks.map((rank) => (
                             <SelectItem key={rank} value={rank}>
                                 {rank}
                             </SelectItem>

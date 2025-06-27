@@ -10,13 +10,20 @@ const defaultSettings: Settings = {
     corpsName: "RCSCC 288 ARDENT",
     staff: [],
     classrooms: ["#1", "#2", "#3", "Parade Deck", "Boathouse"],
-    ranks: [
+    cadetRanks: [
         "Able Cadet (AC)",
         "Leading Cadet (LC)",
         "Petty Officer 2nd Class (PO2)",
         "Petty Officer 1st Class (PO1)",
         "Chief Petty Officer 2nd Class (CPO2)",
         "Chief Petty Officer 1st Class (CPO1)",
+    ],
+    officerRanks: [
+        "Naval Cadet (NCdt)",
+        "Acting Sub-Lieutenant (A/SLt)",
+        "Sub-Lieutenant (SLt)",
+        "Lieutenant (Navy) (Lt[N])",
+        "Lieutenant-Commander (LCdr)",
     ],
     weeklyActivities: [],
     ordersOfDress: {
@@ -38,10 +45,16 @@ export function useSettings() {
             const storedSettings = localStorage.getItem('trainingSettings');
             if (storedSettings) {
                 const parsedSettings = JSON.parse(storedSettings);
+                // Gracefully handle migration from old `ranks` to new `cadetRanks` and `officerRanks`
+                if (parsedSettings.ranks && !parsedSettings.cadetRanks) {
+                    parsedSettings.cadetRanks = parsedSettings.ranks;
+                    delete parsedSettings.ranks;
+                }
                 const mergedSettings = { ...defaultSettings, ...parsedSettings };
                 mergedSettings.staff = parsedSettings.staff || [];
                 mergedSettings.classrooms = mergedSettings.classrooms?.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
-                mergedSettings.ranks = mergedSettings.ranks?.length > 0 ? mergedSettings.ranks : defaultSettings.ranks;
+                mergedSettings.cadetRanks = mergedSettings.cadetRanks?.length > 0 ? mergedSettings.cadetRanks : defaultSettings.cadetRanks;
+                mergedSettings.officerRanks = mergedSettings.officerRanks?.length > 0 ? mergedSettings.officerRanks : defaultSettings.officerRanks;
                 mergedSettings.weeklyActivities = parsedSettings.weeklyActivities || [];
                 mergedSettings.ordersOfDress = parsedSettings.ordersOfDress || defaultSettings.ordersOfDress;
                 setSettings(mergedSettings);

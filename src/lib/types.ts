@@ -79,7 +79,8 @@ export interface Settings {
   corpsName: string;
   staff: StaffMember[];
   classrooms: string[];
-  ranks: string[];
+  cadetRanks: string[];
+  officerRanks: string[];
   weeklyActivities: WeeklyActivity[];
   ordersOfDress: {
       caf: string[];

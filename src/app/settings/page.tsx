@@ -36,7 +36,8 @@ export default function SettingsPage() {
   const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
   const [newClassroom, setNewClassroom] = useState("");
-  const [newRank, setNewRank] = useState("");
+  const [newCadetRank, setNewCadetRank] = useState("");
+  const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
   const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
@@ -102,15 +103,26 @@ export default function SettingsPage() {
     saveSettings({ classrooms: settings.classrooms.filter(c => c !== classroom) });
   };
 
-  const handleAddRank = () => {
-    if (newRank.trim() && !settings.ranks.includes(newRank.trim())) {
-      saveSettings({ ranks: [...settings.ranks, newRank.trim()] });
-      setNewRank("");
+  const handleAddCadetRank = () => {
+    if (newCadetRank.trim() && !settings.cadetRanks.includes(newCadetRank.trim())) {
+      saveSettings({ cadetRanks: [...settings.cadetRanks, newCadetRank.trim()] });
+      setNewCadetRank("");
     }
   };
 
-  const handleRemoveRank = (rank: string) => {
-    saveSettings({ ranks: settings.ranks.filter(r => r !== rank) });
+  const handleRemoveCadetRank = (rank: string) => {
+    saveSettings({ cadetRanks: settings.cadetRanks.filter(r => r !== rank) });
+  };
+  
+  const handleAddOfficerRank = () => {
+    if (newOfficerRank.trim() && !settings.officerRanks.includes(newOfficerRank.trim())) {
+      saveSettings({ officerRanks: [...settings.officerRanks, newOfficerRank.trim()] });
+      setNewOfficerRank("");
+    }
+  };
+
+  const handleRemoveOfficerRank = (rank: string) => {
+    saveSettings({ officerRanks: settings.officerRanks.filter(r => r !== rank) });
   };
 
   const handleAddCafDress = () => {
@@ -329,26 +341,53 @@ export default function SettingsPage() {
                                     </div>
                                 </CardContent>
                             </Card>
+                            
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Manage Officer Ranks</CardTitle>
+                                    <CardDescription>Add or remove staff ranks from the list available in the app.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex gap-2">
+                                    <Input 
+                                        value={newOfficerRank}
+                                        onChange={(e) => setNewOfficerRank(e.target.value)}
+                                        placeholder="New officer rank"
+                                    />
+                                    <Button onClick={handleAddOfficerRank}>Add</Button>
+                                    </div>
+                                    <div className="space-y-2">
+                                    {settings.officerRanks.map(rank => (
+                                        <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                        <span>{rank}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRank(rank)}>
+                                            <X className="h-4 w-4"/>
+                                        </Button>
+                                        </div>
+                                    ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
 
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Manage Ranks</CardTitle>
+                                    <CardTitle>Manage Cadet Ranks</CardTitle>
                                     <CardDescription>Add or remove cadet ranks from the list available in the app.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex gap-2">
                                     <Input 
-                                        value={newRank}
-                                        onChange={(e) => setNewRank(e.target.value)}
-                                        placeholder="New rank name"
+                                        value={newCadetRank}
+                                        onChange={(e) => setNewCadetRank(e.target.value)}
+                                        placeholder="New cadet rank name"
                                     />
-                                    <Button onClick={handleAddRank}>Add</Button>
+                                    <Button onClick={handleAddCadetRank}>Add</Button>
                                     </div>
                                     <div className="space-y-2">
-                                    {settings.ranks.map(rank => (
+                                    {settings.cadetRanks.map(rank => (
                                         <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                         <span>{rank}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveRank(rank)}>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetRank(rank)}>
                                             <X className="h-4 w-4"/>
                                         </Button>
                                         </div>
