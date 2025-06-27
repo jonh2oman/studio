@@ -27,6 +27,7 @@ export function CadetList({ cadets, onRemoveCadet, onEditCadet }: CadetListProps
                 <TableHead>First Name</TableHead>
                 <TableHead>Rank</TableHead>
                 <TableHead>Phase</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
@@ -37,6 +38,7 @@ export function CadetList({ cadets, onRemoveCadet, onEditCadet }: CadetListProps
                     <TableCell>{cadet.firstName}</TableCell>
                     <TableCell>{cadet.rank}</TableCell>
                     <TableCell><Badge variant="secondary">Phase {cadet.phase}</Badge></TableCell>
+                    <TableCell>{cadet.role || 'N/A'}</TableCell>
                     <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => onEditCadet(cadet)}>
                         <Pencil className="h-4 w-4" />

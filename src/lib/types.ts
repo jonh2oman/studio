@@ -81,6 +81,7 @@ export interface Settings {
   corpsName: string;
   staff: StaffMember[];
   staffRoles: string[];
+  cadetRoles: string[];
   classrooms: string[];
   cadetRanks: string[];
   officerRanks: string[];
@@ -108,6 +109,7 @@ export interface Cadet {
     firstName: string;
     lastName: string;
     phase: number;
+    role?: string;
 }
 
 export interface CadetWithAttendance extends Cadet {

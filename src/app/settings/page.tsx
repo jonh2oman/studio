@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const [newCadetRank, setNewCadetRank] = useState("");
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newStaffRole, setNewStaffRole] = useState("");
+  const [newCadetRole, setNewCadetRole] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -170,6 +171,19 @@ export default function SettingsPage() {
     }
     const staffRoles = localSettings.staffRoles || [];
     handleListChange('staffRoles', staffRoles.filter(r => r !== role));
+  };
+
+  const handleAddCadetRole = () => {
+    const cadetRoles = localSettings.cadetRoles || [];
+    if (newCadetRole.trim() && !cadetRoles.includes(newCadetRole.trim())) {
+      handleListChange('cadetRoles', [...cadetRoles, newCadetRole.trim()]);
+      setNewCadetRole("");
+    }
+  };
+
+  const handleRemoveCadetRole = (role: string) => {
+    const cadetRoles = localSettings.cadetRoles || [];
+    handleListChange('cadetRoles', cadetRoles.filter(r => r !== role));
   };
 
   const handleAddCafDress = () => {
@@ -422,6 +436,33 @@ export default function SettingsPage() {
                                             aria-label={permanentRoles.includes(role) ? "Permanent role" : "Remove role"}
                                         >
                                             <X className={cn("h-4 w-4", permanentRoles.includes(role) && "opacity-30")}/>
+                                        </Button>
+                                        </div>
+                                    ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                             <Card className="border">
+                                <CardHeader>
+                                    <CardTitle>Manage Cadet Roles</CardTitle>
+                                    <CardDescription>Add or remove optional cadet roles.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex gap-2">
+                                    <Input 
+                                        value={newCadetRole}
+                                        onChange={(e) => setNewCadetRole(e.target.value)}
+                                        placeholder="New cadet role name"
+                                    />
+                                    <Button onClick={handleAddCadetRole}>Add</Button>
+                                    </div>
+                                    <div className="space-y-2">
+                                    {(localSettings.cadetRoles || []).map(role => (
+                                        <div key={role} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                        <span>{role}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetRole(role)}>
+                                            <X className="h-4 w-4"/>
                                         </Button>
                                         </div>
                                     ))}

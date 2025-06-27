@@ -64,22 +64,26 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
         },
     });
 
-    const { watch, setValue, control } = form;
+    const { watch, setValue, control, reset } = form;
     const watchType = watch('type');
     const watchPrimaryRole = watch('primaryRole');
     const firstName = watch('firstName');
     const lastName = watch('lastName');
 
     useEffect(() => {
-        if (!editingStaff && firstName && lastName) {
+        if (watchType === 'Officer' && !editingStaff && firstName && lastName) {
             const emailValue = `${firstName.toLowerCase().trim()}.${lastName.toLowerCase().trim()}@cadets.gc.ca`;
             setValue('email', emailValue, { shouldValidate: true });
         }
-    }, [firstName, lastName, editingStaff, setValue]);
+    }, [firstName, lastName, editingStaff, setValue, watchType]);
+
+    useEffect(() => {
+        setValue('rank', '');
+    }, [watchType, setValue]);
 
     const handleEditClick = (staffMember: StaffMember) => {
         setEditingStaff(staffMember);
-        form.reset({
+        reset({
             type: staffMember.type,
             rank: staffMember.rank,
             firstName: staffMember.firstName,
@@ -93,7 +97,7 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
 
     const handleCancelEdit = () => {
         setEditingStaff(null);
-        form.reset({
+        reset({
             type: 'Officer',
             rank: '',
             firstName: '',
@@ -167,7 +171,7 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {settings.officerRanks.map((rank) => (
+                                                {(watchType === 'Officer' ? settings.officerRanks : settings.cadetRanks).map((rank) => (
                                                 <SelectItem key={rank} value={rank}>
                                                     {rank}
                                                 </SelectItem>

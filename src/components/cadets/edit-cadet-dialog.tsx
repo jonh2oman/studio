@@ -18,6 +18,7 @@ const cadetSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phase: z.coerce.number().min(1).max(5),
+  role: z.string().optional(),
 });
 
 interface EditCadetDialogProps {
@@ -112,6 +113,31 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
                             {[1,2,3,4,5].map((phase) => (
                             <SelectItem key={phase} value={String(phase)}>
                                 Phase {phase}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Role (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="">None</SelectItem>
+                            {(settings.cadetRoles || []).map((role) => (
+                            <SelectItem key={role} value={role}>
+                                {role}
                             </SelectItem>
                             ))}
                         </SelectContent>
