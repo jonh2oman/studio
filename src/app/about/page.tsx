@@ -52,7 +52,7 @@ export default function AboutPage() {
           <CardContent className="space-y-4">
              <p className="text-muted-foreground">This application was designed and developed by Jonathan Waterman.</p>
              <div className="flex flex-wrap gap-4">
-                <a href="mailto:your-email@example.com" className="flex items-center gap-2 text-primary hover:underline">
+                <a href="mailto:jonathan@waterman.work" className="flex items-center gap-2 text-primary hover:underline">
                     <Mail className="h-4 w-4" /> Contact
                 </a>
                  <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline">

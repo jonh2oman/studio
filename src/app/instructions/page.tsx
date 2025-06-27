@@ -4,7 +4,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { List, Calendar, Tent, ClipboardPlus, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle } from "lucide-react";
+import { List, Calendar, CalendarDays, CalendarPlus, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle } from "lucide-react";
 
 export default function InstructionsPage() {
   return (
@@ -67,10 +67,10 @@ export default function InstructionsPage() {
                 <h4 className="font-semibold flex items-center gap-2"><Calendar className="h-5 w-5" />Corps/Squadron Training Plan - Annual</h4>
                 <p>This planner is for your regular weekly training nights. You can toggle the view between Week, Month, and Year. You can also set the Dress of the Day for both CAF Staff and Cadets for each training night, which will automatically populate the WRO.</p>
 
-                <h4 className="font-semibold flex items-center gap-2"><Tent className="h-5 w-5" />Weekend Planner</h4>
+                <h4 className="font-semibold flex items-center gap-2"><CalendarDays className="h-5 w-5" />Weekend Planner</h4>
                 <p>Designed for multi-day events, this planner displays three consecutive days, each with an intensive 9-period schedule. Use the calendar in the header to select the start date of the weekend.</p>
 
-                <h4 className="font-semibold flex items-center gap-2"><ClipboardPlus className="h-5 w-5" />LDA Day Planner</h4>
+                <h4 className="font-semibold flex items-center gap-2"><CalendarPlus className="h-5 w-5" />LDA Day Planner</h4>
                 <p>Use this planner for single, ad-hoc training days (LDAs). It provides a 9-period schedule for one selected day. You can quickly jump between previously planned days.</p>
 
                 <h4 className="font-semibold">CSAR Planning (Weekends & LDAs)</h4>
