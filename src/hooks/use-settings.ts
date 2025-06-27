@@ -39,6 +39,7 @@ export function useSettings() {
     const [settings, setSettings] = useState<Settings>(defaultSettings);
     const [yearSettings, setYearSettings] = useState<TrainingYearSettings>(defaultYearSettings);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isSetupComplete, setIsSetupComplete] = useState(false);
 
     useEffect(() => {
         try {
@@ -68,6 +69,10 @@ export function useSettings() {
             } else {
                 setYearSettings(defaultYearSettings);
             }
+
+            const setupCompleteFlag = localStorage.getItem('isSetupComplete');
+            setIsSetupComplete(setupCompleteFlag === 'true');
+
         } catch (error) {
             console.error("Failed to parse settings from localStorage", error);
             setSettings(defaultSettings);
@@ -87,9 +92,18 @@ export function useSettings() {
         }
     }, [settings]);
 
+    const completeSetup = useCallback(() => {
+        try {
+            localStorage.setItem('isSetupComplete', 'true');
+            setIsSetupComplete(true);
+        } catch (error) {
+            console.error("Failed to save setup complete flag to localStorage", error);
+        }
+    }, []);
+
     const firstTrainingNight = currentYear ? yearSettings[currentYear]?.firstTrainingNight : null;
 
     const settingsForHook = { ...settings, firstTrainingNight: firstTrainingNight || ''};
 
-    return { settings: settingsForHook, saveSettings, isLoaded };
+    return { settings: settingsForHook, saveSettings, isLoaded, isSetupComplete, completeSetup };
 }
