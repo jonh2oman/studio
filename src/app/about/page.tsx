@@ -39,7 +39,7 @@ export default function AboutPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-             <p className="text-muted-foreground">This application was developed by firebase.</p>
+             <p className="text-muted-foreground">This application was designed and developed by Jonathan Waterman.</p>
              <div className="flex flex-wrap gap-4">
                 <a href="mailto:your-email@example.com" className="flex items-center gap-2 text-primary hover:underline">
                     <Mail className="h-4 w-4" /> Contact
@@ -58,7 +58,7 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
              <p className="font-semibold">The MIT License (MIT)</p>
-             <p>Copyright © {new Date().getFullYear()} firebase</p>
+             <p>Copyright © {new Date().getFullYear()} Jonathan Waterman</p>
              <p>
                 Permission is hereby granted, free of charge, to any person obtaining a copy
                 of this software and associated documentation files (the "Software"), to deal
