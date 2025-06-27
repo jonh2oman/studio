@@ -69,6 +69,32 @@ export function AppSidebar() {
     setIsMounted(true);
   }, []);
 
+  if (!isMounted) {
+    return (
+        <Sidebar>
+            <SidebarHeader className="p-4">
+                <div className="flex items-center gap-3">
+                    <div className="bg-primary/20 p-2 rounded-lg">
+                        <Ship className="w-7 h-7 text-primary" />
+                    </div>
+                     <div className="flex flex-col min-h-[2.5rem] justify-center">
+                        <h1 className="text-lg font-semibold text-primary">&nbsp;</h1>
+                        <p className="text-xs text-muted-foreground">&nbsp;</p>
+                    </div>
+                </div>
+            </SidebarHeader>
+             <SidebarContent>
+                <SidebarMenu>
+                    {/* Skeletons or placeholders */}
+                </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter className="items-center">
+                <SidebarTrigger />
+            </SidebarFooter>
+        </Sidebar>
+    )
+  }
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -78,10 +104,10 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col min-h-[2.5rem] justify-center">
             <h1 className="text-lg font-semibold text-primary">
-              {isMounted && settingsLoaded ? (settings.corpsName || <>&nbsp;</>) : <>&nbsp;</>}
+              {settingsLoaded ? (settings.corpsName || <>&nbsp;</>) : <>&nbsp;</>}
             </h1>
             <p className="text-xs text-muted-foreground">
-              {isMounted && yearsLoaded ? (currentYear ? `TY: ${currentYear}` : 'No Year Selected') : <>&nbsp;</>}
+              {yearsLoaded ? (currentYear ? `TY: ${currentYear}` : 'No Year Selected') : <>&nbsp;</>}
             </p>
           </div>
         </div>
@@ -90,7 +116,7 @@ export function AppSidebar() {
         <SidebarMenu>
           {navGroups.map((group, index) => (
             <React.Fragment key={group.title || index}>
-              {group.title && <SidebarGroupLabel className="px-2 pt-4">{group.title}</SidebarGroupLabel>}
+              {group.title && <li><SidebarGroupLabel className="px-2 pt-4">{group.title}</SidebarGroupLabel></li>}
               {group.items.map(item => (
                 <SidebarMenuItem key={item.href}>
                   <Link href={item.href}>
@@ -105,7 +131,7 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuItem>
               ))}
-              {index < navGroups.length - 1 && <SidebarSeparator className="my-2" />}
+              {index < navGroups.length - 1 && <li><SidebarSeparator className="my-2" /></li>}
             </React.Fragment>
           ))}
         </SidebarMenu>
