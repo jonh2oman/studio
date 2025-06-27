@@ -2,17 +2,14 @@
 "use client";
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen, Rocket, CheckCircle } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { GuidedSetupDialog } from '@/components/settings/guided-setup-dialog';
-import { useSettings } from '@/hooks/use-settings';
-import { Button } from '@/components/ui/button';
 
 const dashboardCategories = [
     {
@@ -48,9 +45,6 @@ const dashboardCategories = [
 
 export default function DashboardPage() {
   const { schedule, isLoaded } = useSchedule();
-  const { isLoaded: settingsLoaded, isSetupComplete, completeSetup } = useSettings();
-  const [isGuidedSetupOpen, setIsGuidedSetupOpen] = useState(false);
-
 
   const phaseProgress = useMemo(() => {
     if (!isLoaded) return [];
@@ -89,9 +83,6 @@ export default function DashboardPage() {
     });
   }, [schedule, isLoaded]);
 
-  const showSetupCard = settingsLoaded && !isSetupComplete;
-  const showCompleteCard = settingsLoaded && isSetupComplete;
-
   return (
     <>
       <PageHeader
@@ -99,37 +90,6 @@ export default function DashboardPage() {
         description="Welcome to your Training Officer Planning Tool."
       />
       <div className="mt-8 space-y-8">
-        {showSetupCard && (
-            <Card className="bg-primary/5 border-primary/20">
-                <CardHeader>
-                    <div className="flex items-center gap-4">
-                        <Rocket className="w-8 h-8 text-primary flex-shrink-0" />
-                        <div>
-                            <CardTitle>Welcome to the Planner!</CardTitle>
-                            <CardDescription>Complete the guided setup to configure your corps and start planning.</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Button onClick={() => setIsGuidedSetupOpen(true)}>Start Guided Setup</Button>
-                </CardContent>
-            </Card>
-        )}
-        
-        {showCompleteCard && (
-             <Card className="bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-500/30">
-                <CardHeader>
-                    <div className="flex items-center gap-4 text-green-700 dark:text-green-400">
-                        <CheckCircle className="w-8 h-8 flex-shrink-0" />
-                        <div>
-                            <CardTitle>Initial Setup Complete</CardTitle>
-                            <CardDescription className="text-green-700/80 dark:text-green-400/80">You're all set! You can re-run the setup or change options in Settings anytime.</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-            </Card>
-        )}
-
         <Card>
           <CardHeader>
             <CardTitle>Mandatory Training Progress</CardTitle>
@@ -195,14 +155,6 @@ export default function DashboardPage() {
             ))}
         </Accordion>
       </div>
-      <GuidedSetupDialog 
-        isOpen={isGuidedSetupOpen}
-        onOpenChange={setIsGuidedSetupOpen}
-        onFinish={() => {
-            setIsGuidedSetupOpen(false);
-            completeSetup();
-        }}
-      />
     </>
   );
 }

@@ -26,7 +26,6 @@ import { cn } from "@/lib/utils";
 import { StaffManager } from "@/components/settings/staff-manager";
 import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { GuidedSetupDialog } from "@/components/settings/guided-setup-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const settingsSchema = z.object({
@@ -42,7 +41,6 @@ export default function SettingsPage() {
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
-  const [isGuidedSetupOpen, setIsGuidedSetupOpen] = useState(false);
   const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [resetConfirmation, setResetConfirmation] = useState("");
@@ -200,7 +198,6 @@ export default function SettingsPage() {
         title="Settings"
         description="Configure the application to your corps' needs."
       >
-        <Button variant="outline" onClick={() => setIsGuidedSetupOpen(true)}>Run Guided Setup</Button>
       </PageHeader>
       <div className="mt-8 space-y-6">
         <Accordion type="multiple" defaultValue={["general", "personnel", "resources"]} className="w-full space-y-6">
@@ -566,12 +563,6 @@ export default function SettingsPage() {
       {isNewYearDialogOpen && (
         <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />
       )}
-
-      <GuidedSetupDialog 
-        isOpen={isGuidedSetupOpen}
-        onOpenChange={setIsGuidedSetupOpen}
-        onFinish={() => setIsGuidedSetupOpen(false)}
-      />
 
       <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
         <AlertDialogContent>
