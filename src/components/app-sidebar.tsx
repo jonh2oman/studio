@@ -120,7 +120,7 @@ export function AppSidebar() {
               {group.items.map(item => {
                 const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href);
                 return (
-                  <li key={item.href}><SidebarMenuItem>
+                  <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
                       <SidebarMenuButton
                         isActive={isActive}
@@ -131,7 +131,7 @@ export function AppSidebar() {
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     </Link>
-                  </SidebarMenuItem></li>
+                  </SidebarMenuItem>
                 );
               })}
               {index < navGroups.length - 1 && <li><SidebarSeparator className="my-2" /></li>}
