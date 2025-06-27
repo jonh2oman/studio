@@ -7,28 +7,15 @@ import { useTrainingYear } from './use-training-year';
 
 const defaultSettings: Settings = {
     trainingDay: 2, // Tuesday
-    corpsName: "RCSCC 288 ARDENT",
+    corpsName: "",
     staff: [],
-    classrooms: ["#1", "#2", "#3", "Parade Deck", "Boathouse"],
-    cadetRanks: [
-        "Able Cadet (AC)",
-        "Leading Cadet (LC)",
-        "Petty Officer 2nd Class (PO2)",
-        "Petty Officer 1st Class (PO1)",
-        "Chief Petty Officer 2nd Class (CPO2)",
-        "Chief Petty Officer 1st Class (CPO1)",
-    ],
-    officerRanks: [
-        "Naval Cadet (NCdt)",
-        "Acting Sub-Lieutenant (A/SLt)",
-        "Sub-Lieutenant (SLt)",
-        "Lieutenant (Navy) (Lt[N])",
-        "Lieutenant-Commander (LCdr)",
-    ],
+    classrooms: [],
+    cadetRanks: [],
+    officerRanks: [],
     weeklyActivities: [],
     ordersOfDress: {
-        caf: ['DEU 3B', 'DEU 3', 'CADPAT'],
-        cadets: ['C-1', 'C-2', 'C-3A', 'C-5 (Sports Gear)']
+        caf: [],
+        cadets: []
     }
 };
 
@@ -51,13 +38,20 @@ export function useSettings() {
                     parsedSettings.cadetRanks = parsedSettings.ranks;
                     delete parsedSettings.ranks;
                 }
-                const mergedSettings = { ...defaultSettings, ...parsedSettings };
-                mergedSettings.staff = parsedSettings.staff || [];
-                mergedSettings.classrooms = mergedSettings.classrooms?.length > 0 ? mergedSettings.classrooms : defaultSettings.classrooms;
-                mergedSettings.cadetRanks = mergedSettings.cadetRanks?.length > 0 ? mergedSettings.cadetRanks : defaultSettings.cadetRanks;
-                mergedSettings.officerRanks = mergedSettings.officerRanks?.length > 0 ? mergedSettings.officerRanks : defaultSettings.officerRanks;
-                mergedSettings.weeklyActivities = parsedSettings.weeklyActivities || [];
-                mergedSettings.ordersOfDress = parsedSettings.ordersOfDress || defaultSettings.ordersOfDress;
+                
+                // Create a robust merged settings object, falling back to new empty defaults if stored values are null/undefined
+                const mergedSettings = {
+                    ...defaultSettings, // Start with new defaults
+                    ...parsedSettings,  // Override with any stored values
+                    // Explicitly ensure array/object properties are not null
+                    staff: parsedSettings.staff || [], 
+                    classrooms: parsedSettings.classrooms || [],
+                    cadetRanks: parsedSettings.cadetRanks || [],
+                    officerRanks: parsedSettings.officerRanks || [],
+                    weeklyActivities: parsedSettings.weeklyActivities || [],
+                    ordersOfDress: parsedSettings.ordersOfDress || { caf: [], cadets: [] }
+                };
+                
                 setSettings(mergedSettings);
             } else {
                 setSettings(defaultSettings);
