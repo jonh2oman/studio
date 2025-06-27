@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCadets } from "@/hooks/use-cadets";
 import { useSettings } from "@/hooks/use-settings";
 import { PageHeader } from "@/components/page-header";
@@ -17,6 +18,7 @@ import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import type { AttendanceRecord, AttendanceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useSave } from "@/hooks/use-save-context";
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -24,6 +26,7 @@ export default function AttendancePage() {
   const { cadets, isLoaded: cadetsLoaded, getAttendanceForDate, saveAttendanceForDate } = useCadets();
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
+  const { registerSave } = useSave();
 
   useEffect(() => {
     if (cadetsLoaded && selectedDate) {
@@ -46,7 +49,7 @@ export default function AttendancePage() {
     );
   };
   
-  const handleSaveAttendance = () => {
+  const handleSaveAttendance = useCallback(() => {
     if (selectedDate) {
         const dateString = format(selectedDate, 'yyyy-MM-dd');
         saveAttendanceForDate(dateString, attendanceRecords);
@@ -55,7 +58,14 @@ export default function AttendancePage() {
             description: `Attendance for ${format(selectedDate, 'PPP')} has been saved.`,
         });
     }
-  };
+  }, [selectedDate, attendanceRecords, saveAttendanceForDate, toast]);
+
+  useEffect(() => {
+    registerSave(handleSaveAttendance);
+    return () => {
+        registerSave(null);
+    }
+  }, [registerSave, handleSaveAttendance]);
 
   const trainingDaysFilter = (date: Date) => {
     return date.getDay() === settings.trainingDay;

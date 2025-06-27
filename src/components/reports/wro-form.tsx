@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,6 +24,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarIcon, Loader2, PlusCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { useToast } from "@/hooks/use-toast";
+import { useSave } from "@/hooks/use-save-context";
 
 const wroSchema = z.object({
   roNumber: z.string().optional(),
@@ -56,7 +58,7 @@ const wroSchema = z.object({
 type WroFormData = z.infer<typeof wroSchema>;
 
 export function WroForm() {
-  const { control, register, handleSubmit, watch, setValue, formState: { errors } } = useForm<WroFormData>({
+  const { control, register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<WroFormData>({
     resolver: zodResolver(wroSchema),
     defaultValues: {
       upcomingActivities: [],
@@ -75,9 +77,46 @@ export function WroForm() {
   const previewRef = useRef<HTMLDivElement>(null);
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { schedule, dayMetadata, isLoaded: scheduleLoaded } = useSchedule();
-  const { dutySchedule, isLoaded: yearLoaded } = useTrainingYear();
+  const { currentYear, dutySchedule, isLoaded: yearLoaded } = useTrainingYear();
+  const { toast } = useToast();
+  const { registerSave } = useSave();
   const formData = watch();
   const trainingDate = watch("trainingDate");
+
+  // Load Draft useEffect
+  useEffect(() => {
+    if (currentYear) {
+      const wroDraftKey = `${currentYear}_wroDraft`;
+      const savedDraft = localStorage.getItem(wroDraftKey);
+      if (savedDraft) {
+        try {
+          const parsedDraft = JSON.parse(savedDraft);
+          // Dates need to be converted back to Date objects
+          if (parsedDraft.trainingDate) {
+            parsedDraft.trainingDate = new Date(parsedDraft.trainingDate);
+          }
+          reset(parsedDraft);
+          toast({ title: "Draft Loaded", description: "Your previously saved WRO draft has been loaded." });
+        } catch (e) {
+          console.error("Failed to parse WRO draft", e);
+        }
+      }
+    }
+  }, [currentYear, reset, toast]);
+
+
+  const handleSaveDraft = useCallback(() => {
+    if (!currentYear) return;
+    const currentFormData = watch();
+    const wroDraftKey = `${currentYear}_wroDraft`;
+    localStorage.setItem(wroDraftKey, JSON.stringify(currentFormData));
+    toast({ title: "Draft Saved", description: "Your WRO draft has been saved locally." });
+  }, [currentYear, watch, toast]);
+
+  useEffect(() => {
+    registerSave(handleSaveDraft);
+    return () => registerSave(null);
+  }, [registerSave, handleSaveDraft]);
 
   useEffect(() => {
     if (trainingDate) {
@@ -213,6 +252,9 @@ export function WroForm() {
           });
           pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
           pdf.save(`WRO-${data.roNumber}-${format(data.trainingDate, "yyyy-MM-dd")}.pdf`);
+          if (currentYear) {
+            localStorage.removeItem(`${currentYear}_wroDraft`);
+          }
         } catch (error) {
           console.error("Failed to generate PDF", error);
         } finally {

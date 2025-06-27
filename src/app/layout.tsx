@@ -6,7 +6,8 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { HelpButton } from '@/components/help-button';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { TrainingYearProvider } from '@/hooks/use-training-year'; // This is a conceptual import, as the hook doesn't export a provider.
+import { SaveProvider } from '@/hooks/use-save-context';
+import { FloatingSaveButton } from '@/components/floating-save-button';
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',
@@ -33,24 +34,27 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <TooltipProvider delayDuration={0}>
-          <SidebarProvider>
-            <div className="flex min-h-screen">
-              <div className="print:hidden">
-                <AppSidebar />
-              </div>
-              <SidebarInset>
-                <div className="p-4 sm:p-6 lg:p-8 w-full print:p-0">
-                  {children}
+        <SaveProvider>
+          <TooltipProvider delayDuration={0}>
+            <SidebarProvider>
+              <div className="flex min-h-screen">
+                <div className="print:hidden">
+                  <AppSidebar />
                 </div>
-              </SidebarInset>
+                <SidebarInset>
+                  <div className="p-4 sm:p-6 lg:p-8 w-full print:p-0">
+                    {children}
+                  </div>
+                </SidebarInset>
+              </div>
+            </SidebarProvider>
+            <Toaster />
+            <div className="print:hidden">
+              <HelpButton />
+              <FloatingSaveButton />
             </div>
-          </SidebarProvider>
-          <Toaster />
-          <div className="print:hidden">
-            <HelpButton />
-          </div>
-        </TooltipProvider>
+          </TooltipProvider>
+        </SaveProvider>
       </body>
     </html>
   );
