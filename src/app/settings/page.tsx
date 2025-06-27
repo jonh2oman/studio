@@ -35,6 +35,10 @@ export default function SettingsPage() {
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
+    defaultValues: {
+      corpsName: settings.corpsName,
+      trainingDay: settings.trainingDay,
+    },
   });
 
   useEffect(() => {
