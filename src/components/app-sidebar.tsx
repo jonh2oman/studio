@@ -117,20 +117,23 @@ export function AppSidebar() {
           {navGroups.map((group, index) => (
             <React.Fragment key={group.title || index}>
               {group.title && <li><SidebarGroupLabel className="px-2 pt-4">{group.title}</SidebarGroupLabel></li>}
-              {group.items.map(item => (
-                <SidebarMenuItem key={item.href}>
-                  <Link href={item.href}>
-                    <SidebarMenuButton
-                      isActive={pathname === item.href}
-                      className="w-full"
-                      tooltip={item.label}
-                    >
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              ))}
+              {group.items.map(item => {
+                const isActive = item.href === '/' ? pathname === item.href : pathname.startsWith(item.href);
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <Link href={item.href}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        className="w-full"
+                        tooltip={item.label}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                );
+              })}
               {index < navGroups.length - 1 && <li><SidebarSeparator className="my-2" /></li>}
             </React.Fragment>
           ))}
