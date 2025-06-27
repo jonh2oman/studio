@@ -90,7 +90,7 @@ export default function DashboardPage() {
         description="Welcome to your Training Officer Planning Tool."
       />
       <div className="mt-8 space-y-8">
-        <Card>
+        <Card className="border">
           <CardHeader>
             <CardTitle>Mandatory Training Progress</CardTitle>
             <CardDescription>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
             className="space-y-4"
         >
             {dashboardCategories.map((category) => (
-                <Card key={category.title}>
+                <Card key={category.title} className="border">
                     <AccordionItem value={category.title} className="border-b-0">
                         <AccordionTrigger className="p-6 hover:no-underline text-xl font-bold tracking-tight">
                             {category.title}
