@@ -75,6 +75,12 @@ export interface DutySchedule {
     }
 }
 
+export interface CustomEO {
+  id: string;
+  title: string;
+  periods: number;
+}
+
 // Global settings, not year-specific
 export interface Settings {
   trainingDay: number; // 0 for Sunday, 1 for Monday, etc.
@@ -90,6 +96,7 @@ export interface Settings {
       caf: string[];
       cadets: string[];
   };
+  customEOs: CustomEO[];
 }
 
 // Settings that are specific to a training year

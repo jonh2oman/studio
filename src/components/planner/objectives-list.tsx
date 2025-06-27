@@ -4,6 +4,7 @@
 import { useMemo, useState } from "react";
 import { trainingData } from "@/lib/data";
 import { useSchedule } from "@/hooks/use-schedule";
+import { useSettings } from "@/hooks/use-settings";
 import {
   Accordion,
   AccordionContent,
@@ -12,17 +13,29 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { EO } from "@/lib/types";
+import type { EO, CustomEO } from "@/lib/types";
 import { CheckCircle2, Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 
 export function ObjectivesList() {
   const { schedule } = useSchedule();
+  const { settings } = useSettings();
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, eo: EO) => {
     e.dataTransfer.setData("application/json", JSON.stringify(eo));
+    e.dataTransfer.effectAllowed = "move";
+  };
+  
+  const handleCustomDragStart = (e: React.DragEvent<HTMLDivElement>, customEo: CustomEO) => {
+    const eoForDrag: EO = {
+        ...customEo,
+        id: `CS-${customEo.id}`,
+        type: 'complimentary',
+        poId: 'CS'
+    };
+    e.dataTransfer.setData("application/json", JSON.stringify(eoForDrag));
     e.dataTransfer.effectAllowed = "move";
   };
 
@@ -37,7 +50,7 @@ export function ObjectivesList() {
     return counts;
   }, [schedule]);
 
-  const filteredData = useMemo(() => {
+  const filteredTrainingData = useMemo(() => {
     if (!searchTerm) return trainingData;
     const lowercasedTerm = searchTerm.toLowerCase();
 
@@ -53,6 +66,16 @@ export function ObjectivesList() {
         return { ...phase, performanceObjectives: filteredPOs };
     }).filter(phase => phase.performanceObjectives.length > 0);
   }, [searchTerm]);
+  
+  const filteredCustomEOs = useMemo(() => {
+    if (!settings.customEOs) return [];
+    if (!searchTerm) return settings.customEOs;
+    const lowercasedTerm = searchTerm.toLowerCase();
+    return settings.customEOs.filter(eo => 
+        eo.id.toLowerCase().includes(lowercasedTerm) ||
+        eo.title.toLowerCase().includes(lowercasedTerm)
+    );
+  }, [searchTerm, settings.customEOs]);
 
   return (
     <div className="flex flex-col h-full">
@@ -72,7 +95,7 @@ export function ObjectivesList() {
       </div>
       <ScrollArea className="flex-1">
         <Accordion type="multiple" className="w-full p-4">
-          {filteredData.map((phase) => (
+          {filteredTrainingData.map((phase) => (
             <AccordionItem value={`phase-${phase.id}`} key={phase.id}>
               <AccordionTrigger className="text-base font-medium">{phase.name}</AccordionTrigger>
               <AccordionContent>
@@ -146,6 +169,50 @@ export function ObjectivesList() {
               </AccordionContent>
             </AccordionItem>
           ))}
+          
+          <AccordionItem value="custom-eos">
+            <AccordionTrigger className="text-base font-medium">Corps/Squadron EOs</AccordionTrigger>
+            <AccordionContent>
+                <div className="space-y-4">
+                  {filteredCustomEOs.length === 0 && <p className="text-sm text-muted-foreground px-2">No matching custom EOs found.</p>}
+                  {filteredCustomEOs.map((eo) => (
+                      <div key={eo.id} className="bg-muted/30 rounded-md">
+                        <div className="flex items-center p-3 rounded-t-md bg-muted/50">
+                            <div className="flex-1">
+                                <p className="font-semibold text-sm">{eo.id}</p>
+                                <p className="text-xs text-muted-foreground">{eo.title}</p>
+                            </div>
+                            <div className="ml-2 text-right text-xs space-y-1">
+                                <Badge variant={'secondary'}>
+                                    Custom
+                                </Badge>
+                                <p className="text-muted-foreground">{eo.periods} Period(s)</p>
+                            </div>
+                        </div>
+
+                          <div className="p-2 border-x border-b border-muted-foreground/10 rounded-b-md">
+                              <div
+                                  draggable
+                                  onDragStart={(e) => handleCustomDragStart(e, eo)}
+                                  className="p-2 rounded-md border bg-background cursor-grab active:cursor-grabbing flex justify-between items-start hover:border-primary/50 transition-colors"
+                              >
+                                  <div className="flex-1">
+                                      <p className="font-semibold text-sm">{eo.id}</p>
+                                      <p className="text-xs text-muted-foreground truncate">{eo.title}</p>
+                                  </div>
+                                  <div className="ml-2 text-right">
+                                      <Badge variant="outline" className="whitespace-nowrap">
+                                          1 Period
+                                      </Badge>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  ))}
+                </div>
+            </AccordionContent>
+          </AccordionItem>
+          
         </Accordion>
       </ScrollArea>
     </div>

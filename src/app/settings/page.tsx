@@ -13,7 +13,7 @@ import { X, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
-import type { WeeklyActivity, Settings, StaffMember } from "@/lib/types";
+import type { WeeklyActivity, Settings, StaffMember, CustomEO } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,6 +39,7 @@ export default function SettingsPage() {
   const [newCadetRole, setNewCadetRole] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
+  const [newCustomEo, setNewCustomEo] = useState({ id: "", title: "", periods: 1 });
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [resetConfirmation, setResetConfirmation] = useState("");
   const [newActivity, setNewActivity] = useState<{
@@ -242,6 +243,21 @@ export default function SettingsPage() {
   const handleRemoveActivity = (id: string) => {
     const weeklyActivities = localSettings.weeklyActivities || [];
     handleListChange('weeklyActivities', weeklyActivities.filter(a => a.id !== id));
+  };
+  
+  const handleAddCustomEo = () => {
+    const customEOs = localSettings.customEOs || [];
+    if (newCustomEo.id.trim() && newCustomEo.title.trim() && !customEOs.some(eo => eo.id === newCustomEo.id.trim())) {
+        handleListChange('customEOs', [...customEOs, { ...newCustomEo, id: newCustomEo.id.trim(), title: newCustomEo.title.trim() }]);
+        setNewCustomEo({ id: "", title: "", periods: 1 });
+    } else {
+        toast({ variant: "destructive", title: "Invalid Input", description: "EO ID and Title are required, and the ID must be unique." });
+    }
+  };
+
+  const handleRemoveCustomEo = (id: string) => {
+      const customEOs = localSettings.customEOs || [];
+      handleListChange('customEOs', customEOs.filter(eo => eo.id !== id));
   };
   
   const handleStaffChange = (newStaff: StaffMember[]) => {
@@ -518,6 +534,33 @@ export default function SettingsPage() {
                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRank(rank)}>
                                             <X className="h-4 w-4"/>
                                         </Button>
+                                        </div>
+                                    ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border">
+                                <CardHeader>
+                                    <CardTitle>Manage Custom EOs</CardTitle>
+                                    <CardDescription>Add or remove corps-specific activities.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border p-3 rounded-md">
+                                        <Input value={newCustomEo.id} onChange={(e) => setNewCustomEo(prev => ({ ...prev, id: e.target.value }))} placeholder="EO ID (e.g., CS032)" />
+                                        <Input value={newCustomEo.title} onChange={(e) => setNewCustomEo(prev => ({ ...prev, title: e.target.value }))} placeholder="EO Title" />
+                                        <Input value={newCustomEo.periods} onChange={(e) => setNewCustomEo(prev => ({ ...prev, periods: Number(e.target.value) }))} type="number" min="1" placeholder="Periods" />
+                                    </div>
+                                    <Button onClick={handleAddCustomEo} className="w-full">Add Custom EO</Button>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    {(localSettings.customEOs || []).map(eo => (
+                                        <div key={eo.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                            <div>
+                                                <span className="font-semibold">{eo.id}</span> - <span>{eo.title}</span>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCustomEo(eo.id)}>
+                                                <X className="h-4 w-4"/>
+                                            </Button>
                                         </div>
                                     ))}
                                     </div>
