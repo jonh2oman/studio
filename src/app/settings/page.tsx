@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { StaffManager } from "@/components/settings/staff-manager";
 import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { GuidedSetupDialog } from "@/components/settings/guided-setup-dialog";
 
 const settingsSchema = z.object({
   corpsName: z.string().min(1, "Corps name is required"),
@@ -40,6 +41,7 @@ export default function SettingsPage() {
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
+  const [isGuidedSetupOpen, setIsGuidedSetupOpen] = useState(false);
   const [weeklyActivities, setWeeklyActivities] = useState<WeeklyActivity[]>(settings.weeklyActivities);
   const [newActivity, setNewActivity] = useState<{
     activity: string;
@@ -194,7 +196,9 @@ export default function SettingsPage() {
       <PageHeader
         title="Settings"
         description="Configure the application to your corps' needs."
-      />
+      >
+        <Button variant="outline" onClick={() => setIsGuidedSetupOpen(true)}>Run Guided Setup</Button>
+      </PageHeader>
       <div className="mt-8">
         <Accordion type="multiple" defaultValue={["general", "personnel", "resources"]} className="w-full space-y-6">
             <Card>
@@ -545,6 +549,12 @@ export default function SettingsPage() {
       {isNewYearDialogOpen && (
         <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />
       )}
+
+      <GuidedSetupDialog 
+        isOpen={isGuidedSetupOpen}
+        onOpenChange={setIsGuidedSetupOpen}
+        onFinish={() => setIsGuidedSetupOpen(false)}
+      />
     </>
   );
 }
