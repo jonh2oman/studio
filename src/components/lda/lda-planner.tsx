@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Menu } from 'lucide-react';
+import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
@@ -21,12 +21,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { CsarPlanner } from '@/components/csar/csar-planner';
 import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel';
 
-export function LdaPlanner() {
+interface LdaPlannerProps {
+    objectivesVisible: boolean;
+}
+
+export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [isCsarSheetOpen, setIsCsarSheetOpen] = useState(false);
-    const [objectivesVisible, setObjectivesVisible] = useState(true);
 
     const plannedDates = useMemo(() => {
         const dates = new Set<string>();
@@ -191,11 +194,9 @@ export function LdaPlanner() {
     };
 
     return (
-        <div className="h-[calc(100vh-12rem)] rounded-lg border bg-card relative overflow-hidden">
-             {/* Draggable Objectives Panel */}
+        <div className="h-full rounded-lg border bg-card">
             {objectivesVisible && <DraggableObjectivesPanel />}
 
-            {/* Main Content */}
             <div className="h-full rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="text-xl font-bold">Select a Date to Plan</h2>
@@ -256,18 +257,6 @@ export function LdaPlanner() {
                         )}
                     </div>
                 </ScrollArea>
-            </div>
-            
-             {/* Toggle Button */}
-            <div className="absolute top-4 left-4 z-50 print:hidden">
-                 <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setObjectivesVisible(!objectivesVisible)}
-                    className="bg-card hover:bg-muted shadow-md"
-                 >
-                    <Menu className="h-5 w-5" />
-                 </Button>
             </div>
         </div>
     );

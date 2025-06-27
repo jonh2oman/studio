@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useCallback } from "react";
@@ -10,10 +11,16 @@ export function DraggableObjectivesPanel() {
   const dragStartOffset = useRef({ x: 0, y: 0 });
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    setPosition({
-      x: e.clientX - dragStartOffset.current.x,
-      y: e.clientY - dragStartOffset.current.y
-    });
+    if (!panelRef.current) return;
+    
+    const panelRect = panelRef.current.getBoundingClientRect();
+    const newX = e.clientX - dragStartOffset.current.x;
+    const newY = e.clientY - dragStartOffset.current.y;
+    
+    const clampedX = Math.max(0, Math.min(newX, window.innerWidth - panelRect.width));
+    const clampedY = Math.max(0, Math.min(newY, window.innerHeight - panelRect.height));
+
+    setPosition({ x: clampedX, y: clampedY });
   }, []);
 
   const handleMouseUp = useCallback(() => {

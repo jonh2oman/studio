@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { trainingData } from "@/lib/data";
 import { useSchedule } from "@/hooks/use-schedule";
 import {
@@ -13,11 +13,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { EO } from "@/lib/types";
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { Input } from "../ui/input";
 
 export function ObjectivesList() {
   const { schedule } = useSchedule();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, eo: EO) => {
     e.dataTransfer.setData("application/json", JSON.stringify(eo));
@@ -35,15 +37,42 @@ export function ObjectivesList() {
     return counts;
   }, [schedule]);
 
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return trainingData;
+    const lowercasedTerm = searchTerm.toLowerCase();
+
+    return trainingData.map(phase => {
+        const filteredPOs = phase.performanceObjectives.map(po => {
+            const filteredEOs = po.enablingObjectives.filter(eo =>
+                eo.title.toLowerCase().includes(lowercasedTerm) ||
+                eo.id.toLowerCase().includes(lowercasedTerm)
+            );
+            return { ...po, enablingObjectives: filteredEOs };
+        }).filter(po => po.enablingObjectives.length > 0);
+
+        return { ...phase, performanceObjectives: filteredPOs };
+    }).filter(phase => phase.performanceObjectives.length > 0);
+  }, [searchTerm]);
+
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b space-y-3">
         <h2 className="text-lg font-semibold">Training Objectives</h2>
+        <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+                type="search"
+                placeholder="Search by ID or keyword..."
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+        </div>
         <p className="text-sm text-muted-foreground">Drag periods onto the calendar.</p>
       </div>
       <ScrollArea className="flex-1">
         <Accordion type="multiple" className="w-full p-4">
-          {trainingData.map((phase) => (
+          {filteredData.map((phase) => (
             <AccordionItem value={`phase-${phase.id}`} key={phase.id}>
               <AccordionTrigger className="text-base font-medium">{phase.name}</AccordionTrigger>
               <AccordionContent>
