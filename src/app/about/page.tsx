@@ -45,7 +45,7 @@ export default function AboutPage() {
             </p>
             <div className="flex items-center gap-4">
                 <p>
-                    <strong>Version:</strong> 1.0.1 Beta
+                    <strong>Version:</strong> 1.0.2 Beta
                 </p>
                 <ChangelogDialog isOpen={isChangelogOpen} onOpenChange={setIsChangelogOpen}>
                     <Button variant="outline" size="sm" onClick={() => setIsChangelogOpen(true)}>

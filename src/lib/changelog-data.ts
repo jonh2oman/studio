@@ -7,8 +7,22 @@ export interface ChangelogEntry {
 
 export const changelogData: ChangelogEntry[] = [
   {
-    version: "1.0.1 Beta",
+    version: "1.0.2 Beta",
     date: "Current Version",
+    changes: [
+        "Implemented a robust user authentication system with sign-up, login, and logout functionality.",
+        "Added a mock authentication mode to allow for testing and development without requiring Firebase credentials.",
+        "Introduced a theme switcher in Settings, allowing users to choose between four color schemes (Ocean, Blue, Green, Red).",
+        "Moved the theme switcher into a new 'Make It Yours' card for better organization on the Settings page.",
+        "Fixed a critical bug causing 'maximum update depth exceeded' errors on the Settings page.",
+        "Resolved a crash related to missing Firebase API keys by implementing a graceful fallback.",
+        "Fixed an import error for `usePathname` in the sidebar component.",
+        "Improved the theme switcher's UX by providing immediate feedback on selection.",
+    ],
+  },
+  {
+    version: "1.0.1 Beta",
+    date: "July 29, 2024",
     changes: [
         "Added a comprehensive changelog to track application updates.",
         "Updated application version to 1.0.1 Beta.",
@@ -24,7 +38,7 @@ export const changelogData: ChangelogEntry[] = [
   },
   {
     version: "1.0.0",
-    date: "Initial Release",
+    date: "July 28, 2024",
     changes: [
         "Initial application release.",
         "Implemented core planning features for Annual, Weekend, and LDA schedules.",

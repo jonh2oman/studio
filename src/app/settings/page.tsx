@@ -282,11 +282,21 @@ export default function SettingsPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <ThemeSwitcher />
                                     </div>
                                     )}
                                 </CardContent>
                             </Card>
+
+                            <Card className="border">
+                                <CardHeader>
+                                    <CardTitle>Make It Yours</CardTitle>
+                                    <CardDescription>Personalize the look and feel of the application.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <ThemeSwitcher />
+                                </CardContent>
+                            </Card>
+
                         </div>
                     </AccordionContent>
                 </AccordionItem>
