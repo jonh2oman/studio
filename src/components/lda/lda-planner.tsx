@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Menu } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
@@ -19,13 +20,13 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CsarPlanner } from '@/components/csar/csar-planner';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 export function LdaPlanner() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [isCsarSheetOpen, setIsCsarSheetOpen] = useState(false);
+    const [objectivesVisible, setObjectivesVisible] = useState(true);
 
     const plannedDates = useMemo(() => {
         const dates = new Set<string>();
@@ -190,76 +191,92 @@ export function LdaPlanner() {
     };
 
     return (
-        <ResizablePanelGroup direction="horizontal" className="h-[calc(100vh-12rem)]">
-            <ResizablePanel defaultSize={25} minSize={20}>
-                 <div className="h-full rounded-lg border bg-card text-card-foreground overflow-hidden">
-                    <ObjectivesList />
-                </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={75}>
-                <div className="h-full rounded-lg border bg-card text-card-foreground overflow-hidden flex flex-col">
-                    <div className="flex items-center justify-between p-4 border-b">
-                        <h2 className="text-xl font-bold">Select a Date to Plan</h2>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-[280px] justify-start text-left font-normal",
-                                    !selectedDate && "text-muted-foreground"
-                                )}
-                                >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={setSelectedDate}
-                                initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                    
-                    {plannedDates.length > 0 && (
-                        <div className="p-4 border-b">
-                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Jump to a Planned Day</h3>
-                            <ScrollArea className="h-24">
-                                <div className="flex flex-wrap gap-2">
-                                    {plannedDates.map(dateStr => {
-                                        const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
-                                        return (
-                                            <Button 
-                                                key={dateStr}
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleDateLinkClick(dateStr)}
-                                                className={cn(isSelected && "border-primary text-primary")}
-                                            >
-                                                {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
-                                            </Button>
-                                        );
-                                    })}
-                                </div>
-                            </ScrollArea>
-                        </div>
-                    )}
-                    
-                    <ScrollArea className="flex-1">
-                        <div className="p-4">
-                            {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
-                                <div className="text-center text-muted-foreground py-16">
-                                    Please select a date to start planning.
-                                </div>
+        <div className="h-[calc(100vh-12rem)] rounded-lg border bg-card relative overflow-hidden">
+             {/* Floating Objectives Panel */}
+            <div className={cn(
+                "absolute top-0 left-0 h-full w-[340px] z-20 bg-card border-r transition-transform duration-300 ease-in-out print:hidden",
+                objectivesVisible ? "translate-x-0" : "-translate-x-full"
+            )}>
+                <ObjectivesList />
+            </div>
+
+            {/* Main Content */}
+            <div className="h-full rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                    <h2 className="text-xl font-bold">Select a Date to Plan</h2>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                            variant={"outline"}
+                            className={cn(
+                                "w-[280px] justify-start text-left font-normal",
+                                !selectedDate && "text-muted-foreground"
                             )}
-                        </div>
-                    </ScrollArea>
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
-            </ResizablePanel>
-        </ResizablePanelGroup>
+                
+                {plannedDates.length > 0 && (
+                    <div className="p-4 border-b">
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">Jump to a Planned Day</h3>
+                        <ScrollArea className="h-24">
+                            <div className="flex flex-wrap gap-2">
+                                {plannedDates.map(dateStr => {
+                                    const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
+                                    return (
+                                        <Button 
+                                            key={dateStr}
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDateLinkClick(dateStr)}
+                                            className={cn(isSelected && "border-primary text-primary")}
+                                        >
+                                            {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                )}
+                
+                <ScrollArea className="flex-1">
+                    <div className="p-4">
+                        {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
+                            <div className="text-center text-muted-foreground py-16">
+                                Please select a date to start planning.
+                            </div>
+                        )}
+                    </div>
+                </ScrollArea>
+            </div>
+            
+             {/* Toggle Button */}
+            <div className="absolute top-4 left-4 z-30 print:hidden">
+                 <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setObjectivesVisible(!objectivesVisible)}
+                    className={cn(
+                        "transition-transform duration-300 ease-in-out bg-card hover:bg-muted",
+                        objectivesVisible && "translate-x-[340px]"
+                    )}
+                 >
+                    <Menu className="h-5 w-5" />
+                 </Button>
+            </div>
+        </div>
     );
 }
