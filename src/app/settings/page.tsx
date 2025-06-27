@@ -24,7 +24,6 @@ import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSave } from "@/hooks/use-save-context";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 
 export default function SettingsPage() {
   const { settings: globalSettings, saveSettings: globalSaveSettings, isLoaded: settingsLoaded } = useSettings();
@@ -341,17 +340,6 @@ export default function SettingsPage() {
                                     )}
                                 </CardContent>
                             </Card>
-
-                            <Card className="border">
-                                <CardHeader>
-                                    <CardTitle>Make It Yours</CardTitle>
-                                    <CardDescription>Personalize the look and feel of the application.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <ThemeSwitcher />
-                                </CardContent>
-                            </Card>
-
                         </div>
                     </AccordionContent>
                 </AccordionItem>

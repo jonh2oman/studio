@@ -9,7 +9,6 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { SaveProvider } from '@/hooks/use-save-context';
 import { FloatingSaveButton } from '@/components/floating-save-button';
 import { AuthProvider } from '@/hooks/use-auth';
-import { ThemeProvider } from '@/hooks/use-theme';
 
 export const metadata: Metadata = {
   title: 'RCSCC 288 Ardent Training Officer Planning Tool',
@@ -36,7 +35,6 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <ThemeProvider>
           <AuthProvider>
             <SaveProvider>
               <TooltipProvider delayDuration={0}>
@@ -58,7 +56,6 @@ export default function RootLayout({
               </TooltipProvider>
             </SaveProvider>
           </AuthProvider>
-        </ThemeProvider>
       </body>
     </html>
   );
