@@ -146,7 +146,7 @@ export function WroForm() {
 
     settings.weeklyActivities.forEach(activity => {
         const activityStartDate = parseISO(activity.startDate);
-        const activityEndDate = parseISO(activity.endDate);
+        const activityEndDate = endOfDay(parseISO(activity.endDate)); // FIX: Use endOfDay to make interval inclusive
 
         const daysInWroWeek = eachDayOfInterval({ start: wroWeekStart, end: wroWeekEnd });
 
