@@ -1,13 +1,10 @@
+
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useSettings } from "@/hooks/use-settings";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -28,17 +25,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useSave } from "@/hooks/use-save-context";
 
-const settingsSchema = z.object({
-  corpsName: z.string().min(1, "Corps name is required"),
-  trainingDay: z.coerce.number().min(0).max(6),
-});
-
 export default function SettingsPage() {
   const { settings: globalSettings, saveSettings: globalSaveSettings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
   const { registerSave } = useSave();
   
-  const [localSettings, setLocalSettings] = useState<Partial<Settings>>(globalSettings);
+  const [localSettings, setLocalSettings] = useState<Settings>(globalSettings);
   const [isDirty, setIsDirty] = useState(false);
   
   const [newClassroom, setNewClassroom] = useState("");
@@ -71,27 +63,12 @@ export default function SettingsPage() {
   const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-
-  const form = useForm<z.infer<typeof settingsSchema>>({
-    resolver: zodResolver(settingsSchema),
-    defaultValues: {
-      corpsName: globalSettings.corpsName || "",
-      trainingDay: globalSettings.trainingDay ?? 2,
-    },
-  });
-
-  const { reset, watch } = form;
-
   useEffect(() => {
     if (settingsLoaded) {
       setLocalSettings(globalSettings);
       setIsDirty(false);
-      reset({
-        corpsName: globalSettings.corpsName,
-        trainingDay: globalSettings.trainingDay,
-      });
     }
-  }, [globalSettings, settingsLoaded, reset]);
+  }, [globalSettings, settingsLoaded]);
 
   const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
@@ -99,18 +76,8 @@ export default function SettingsPage() {
   }, []);
   
   const handleListChange = useCallback((key: keyof Settings, newList: any[]) => {
-    setLocalSettings(prev => ({ ...prev, [key]: newList }));
-    setIsDirty(true);
-  }, []);
-
-  useEffect(() => {
-    const subscription = watch((value, { name }) => {
-        if (name && value[name as keyof typeof value] !== undefined) {
-             handleSettingChange(name as keyof Settings, value[name as keyof typeof value]);
-        }
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, handleSettingChange]);
+    handleSettingChange(key, newList);
+  }, [handleSettingChange]);
   
   const handleSave = useCallback(() => {
     globalSaveSettings(localSettings);
@@ -288,47 +255,35 @@ export default function SettingsPage() {
                                     {isLoading ? (
                                     <p>Loading settings...</p>
                                     ) : (
-                                    <Form {...form}>
-                                        <form className="space-y-8">
-                                        <FormField
-                                            control={form.control}
-                                            name="corpsName"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Corps Name</FormLabel>
-                                                <FormControl>
-                                                <Input placeholder="e.g., RCSCC 288 ARDENT" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="trainingDay"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Weekly Training Night</FormLabel>
-                                                <Select onValueChange={field.onChange} value={String(field.value)}>
-                                                <FormControl>
-                                                    <SelectTrigger>
+                                    <div className="space-y-8">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="corpsName">Corps Name</Label>
+                                            <Input 
+                                                id="corpsName"
+                                                placeholder="e.g., RCSCC 288 ARDENT"
+                                                value={localSettings.corpsName}
+                                                onChange={(e) => handleSettingChange('corpsName', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Weekly Training Night</Label>
+                                            <Select 
+                                                value={String(localSettings.trainingDay)}
+                                                onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}
+                                            >
+                                                <SelectTrigger>
                                                     <SelectValue placeholder="Select a day" />
-                                                    </SelectTrigger>
-                                                </FormControl>
+                                                </SelectTrigger>
                                                 <SelectContent>
                                                     {weekDays.map((day, index) => (
-                                                    <SelectItem key={index} value={String(index)}>
-                                                        {day}
-                                                    </SelectItem>
+                                                        <SelectItem key={index} value={String(index)}>
+                                                            {day}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        </form>
-                                    </Form>
+                                            </Select>
+                                        </div>
+                                    </div>
                                     )}
                                 </CardContent>
                             </Card>
