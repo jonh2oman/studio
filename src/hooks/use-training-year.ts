@@ -38,10 +38,8 @@ export function useTrainingYear() {
                 localStorage.setItem('currentTrainingYear', latestYear);
             } else {
                 // First time setup
-                const yearDate = new Date();
-                const year = yearDate.getMonth() >= 8 ? yearDate.getFullYear() : yearDate.getFullYear() - 1;
-                const initialYear = `${year}-${year + 1}`;
-                const initialStartDate = getFirstTuesdayOfSeptember(year);
+                const initialYear = `2025-2026`;
+                const initialStartDate = getFirstTuesdayOfSeptember(2025);
                 
                 setTrainingYears([initialYear]);
                 localStorage.setItem('trainingYears', JSON.stringify([initialYear]));
