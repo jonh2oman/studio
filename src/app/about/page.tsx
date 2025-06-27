@@ -1,7 +1,8 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Info, Mail, Github, Code } from 'lucide-react';
+import { Info, Mail, Github, Code, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function AboutPage() {
   return (
@@ -11,6 +12,16 @@ export default function AboutPage() {
         description="Information, credits, and licensing for the application."
       />
       <div className="mt-6 space-y-8">
+
+        <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Important Disclaimer</AlertTitle>
+            <AlertDescription>
+                <p>This is an unofficial planning tool and is not endorsed by the Canadian Cadet Organization (CCO) or the Department of National Defence (DND).</p>
+                <p className="mt-2">It is not a replacement for official CCO applications such as FORTRESS or Extranet. Always refer to official sources for policy and administration.</p>
+            </AlertDescription>
+        </Alert>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
