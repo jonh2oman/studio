@@ -1,0 +1,88 @@
+
+import { PageHeader } from '@/components/page-header';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Info, Mail, Github, Code } from 'lucide-react';
+
+export default function AboutPage() {
+  return (
+    <>
+      <PageHeader
+        title="About The Training Officer's Planning Tool"
+        description="Information, credits, and licensing for the application."
+      />
+      <div className="mt-6 space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="h-6 w-6" />
+              Application Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-muted-foreground">
+            <p>
+              This Training Officer's Planning Tool is a comprehensive web application designed to assist Canadian Cadet Organization (CCO) Training Officers in planning, managing, and reporting on their corps/squadron's annual training schedule.
+            </p>
+            <p>
+              The goal is to provide an intuitive, all-in-one solution to streamline administrative tasks, track progress against the Cadet Program curriculum, and facilitate efficient communication through automated report generation.
+            </p>
+            <p>
+              <strong>Version:</strong> 1.0.0
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Code className="h-6 w-6" />
+              Author & Credits
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             <p className="text-muted-foreground">This application was developed by Firebase Studio.</p>
+             <div className="flex flex-wrap gap-4">
+                <a href="mailto:your-email@example.com" className="flex items-center gap-2 text-primary hover:underline">
+                    <Mail className="h-4 w-4" /> Contact
+                </a>
+                 <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline">
+                    <Github className="h-4 w-4" /> GitHub
+                </a>
+             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>License Information</CardTitle>
+            <CardDescription>This software is distributed under the MIT License.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-muted-foreground">
+             <p className="font-semibold">The MIT License (MIT)</p>
+             <p>Copyright © {new Date().getFullYear()} Firebase Studio</p>
+             <p>
+                Permission is hereby granted, free of charge, to any person obtaining a copy
+                of this software and associated documentation files (the "Software"), to deal
+                in the Software without restriction, including without limitation the rights
+                to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+                copies of the Software, and to permit persons to whom the Software is
+                furnished to do so, subject to the following conditions:
+             </p>
+              <p>
+                The above copyright notice and this permission notice shall be included in all
+                copies or substantial portions of the Software.
+             </p>
+             <p>
+                THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+                IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+                FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+                AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+                LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+                OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+                SOFTWARE.
+             </p>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}

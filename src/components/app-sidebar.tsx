@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, Tent, ClipboardPlus, Trophy, BookOpen } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, Tent, ClipboardPlus, Trophy, BookOpen, Info } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -25,6 +25,7 @@ const navGroups = [
     items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
       { href: "/instructions", label: "Instructions", icon: BookOpen },
+      { href: "/about", label: "About", icon: Info },
     ]
   },
   {

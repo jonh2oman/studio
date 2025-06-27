@@ -6,12 +6,10 @@ import { useMemo, useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen, Rocket, CheckCircle } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Tent, Loader2, ClipboardPlus, Trophy, BookOpen, Info, CheckCircle } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
-import { GuidedSetupDialog } from '@/components/settings/guided-setup-dialog';
 
 const dashboardCategories = [
     {
@@ -41,6 +39,7 @@ const dashboardCategories = [
         items: [
             { href: "/instructions", title: "Instructions", icon: BookOpen, description: "Read the user guide for this application." },
             { href: "/settings", title: "Settings", icon: Settings, description: "Configure corps information, instructors, and classrooms." },
+            { href: "/about", title: "About", icon: Info, description: "View application details and license information." },
         ]
     }
 ];
@@ -48,18 +47,11 @@ const dashboardCategories = [
 export default function DashboardPage() {
   const { schedule, isLoaded } = useSchedule();
   const [isSetupComplete, setIsSetupComplete] = useState(false);
-  const [isGuidedSetupOpen, setIsGuidedSetupOpen] = useState(false);
 
   useEffect(() => {
     const setupStatus = localStorage.getItem("isSetupComplete");
     setIsSetupComplete(setupStatus === 'true');
   }, []);
-
-  const handleSetupFinish = () => {
-    localStorage.setItem("isSetupComplete", 'true');
-    setIsSetupComplete(true);
-    setIsGuidedSetupOpen(false);
-  };
 
   const phaseProgress = useMemo(() => {
     if (!isLoaded) return [];
@@ -106,34 +98,6 @@ export default function DashboardPage() {
       />
       <div className="mt-8 space-y-8">
         
-        {isSetupComplete ? (
-            <Card className="border border-green-500/50 bg-green-50 dark:bg-green-950/30">
-                <CardHeader className="flex-row items-center gap-4 space-y-0">
-                    <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-                    <div>
-                        <CardTitle className="text-green-800 dark:text-green-300">Initial Setup Complete</CardTitle>
-                        <CardDescription className="text-green-700 dark:text-green-400/80">You can manage all options from the Settings page.</CardDescription>
-                    </div>
-                </CardHeader>
-            </Card>
-        ) : (
-             <Card className="border">
-                <CardHeader>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <CardTitle>Welcome to the Training Planner!</CardTitle>
-                            <CardDescription>Click the button to complete the initial application setup.</CardDescription>
-                        </div>
-                        <Button onClick={() => setIsGuidedSetupOpen(true)}>
-                            <Rocket className="mr-2 h-4 w-4" />
-                            Run Guided Setup
-                        </Button>
-                    </div>
-                </CardHeader>
-            </Card>
-        )}
-
-
         <Card className="border">
           <CardHeader>
             <CardTitle>Mandatory Training Progress</CardTitle>
@@ -199,14 +163,6 @@ export default function DashboardPage() {
             ))}
         </Accordion>
       </div>
-      
-      {isGuidedSetupOpen && (
-        <GuidedSetupDialog 
-            isOpen={isGuidedSetupOpen}
-            onOpenChange={setIsGuidedSetupOpen}
-            onFinish={handleSetupFinish}
-        />
-      )}
     </>
   );
 }
