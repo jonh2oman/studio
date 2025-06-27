@@ -4,8 +4,14 @@
 import { useState, useRef, useCallback } from "react";
 import { GripVertical } from "lucide-react";
 import { ObjectivesList } from "./objectives-list";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export function DraggableObjectivesPanel() {
+interface DraggableObjectivesPanelProps {
+    viewMode?: string;
+    setViewMode?: (mode: string) => void;
+}
+
+export function DraggableObjectivesPanel({ viewMode, setViewMode }: DraggableObjectivesPanelProps) {
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [size, setSize] = useState({ width: 350, height: 600 });
   const panelRef = useRef<HTMLDivElement>(null);
@@ -105,6 +111,17 @@ export function DraggableObjectivesPanel() {
       <div className="flex-1 overflow-hidden">
         <ObjectivesList />
       </div>
+       {viewMode && setViewMode && (
+        <div className="border-t p-2 flex-shrink-0 bg-card/90">
+            <Tabs value={viewMode} onValueChange={setViewMode} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="week">Week</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="year">Year</TabsTrigger>
+            </TabsList>
+            </Tabs>
+        </div>
+        )}
       <div
         onMouseDown={handleResizeDown}
         className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"

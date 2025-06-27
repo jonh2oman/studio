@@ -8,9 +8,10 @@ import { DraggableObjectivesPanel } from "./draggable-objectives-panel";
 interface PlannerProps {
   viewMode: string;
   objectivesVisible: boolean;
+  setViewMode: (mode: string) => void;
 }
 
-export default function Planner({ viewMode, objectivesVisible }: PlannerProps) {
+export default function Planner({ viewMode, objectivesVisible, setViewMode }: PlannerProps) {
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata } = useSchedule();
 
     const handleDrop = (date: string, period: number, phase: number, eo: EO) => {
@@ -20,7 +21,7 @@ export default function Planner({ viewMode, objectivesVisible }: PlannerProps) {
 
     return (
         <div className="relative rounded-lg border bg-card print:border-none print:h-auto print:overflow-visible">
-            {objectivesVisible && <DraggableObjectivesPanel />}
+            {objectivesVisible && <DraggableObjectivesPanel viewMode={viewMode} setViewMode={setViewMode} />}
             <div>
                 <CalendarView 
                     schedule={schedule} 
