@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Settings, YearSpecificSettings, TrainingYearSettings, WeeklyActivity } from '@/lib/types';
 import { useTrainingYear } from './use-training-year';
 
@@ -83,7 +83,10 @@ export function useSettings() {
 
     const firstTrainingNight = currentYear ? yearSettings[currentYear]?.firstTrainingNight : null;
 
-    const settingsForHook = { ...settings, firstTrainingNight: firstTrainingNight || ''};
+    const settingsForHook = useMemo(() => ({
+        ...settings,
+        firstTrainingNight: firstTrainingNight || ''
+    }), [settings, firstTrainingNight]);
 
     return { settings: settingsForHook, saveSettings, isLoaded };
 }
