@@ -41,12 +41,19 @@ export function useCadets() {
         }));
     }, [attendance, cadets]);
 
-    const saveAttendanceForDate = useCallback((date: string, records: AttendanceRecord[]) => {
+    const saveAttendanceForDate = useCallback(async (date: string, records: AttendanceRecord[]) => {
         if (!currentYear) return;
         const newAttendance = { ...attendance, [date]: records };
-        updateCurrentYearData({ attendance: newAttendance });
+        await updateCurrentYearData({ attendance: newAttendance });
+    }, [currentYear, attendance, updateCurrentYearData]);
+
+    const deleteAttendanceForDate = useCallback(async (date: string) => {
+        if (!currentYear) return;
+        const newAttendance = { ...attendance };
+        delete newAttendance[date];
+        await updateCurrentYearData({ attendance: newAttendance });
     }, [currentYear, attendance, updateCurrentYearData]);
 
 
-    return { cadets, addCadet, updateCadet, removeCadet, isLoaded, getAttendanceForDate, saveAttendanceForDate, attendance };
+    return { cadets, addCadet, updateCadet, removeCadet, isLoaded, getAttendanceForDate, saveAttendanceForDate, deleteAttendanceForDate, attendance };
 }

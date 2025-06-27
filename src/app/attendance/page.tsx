@@ -14,17 +14,28 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2, Save } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, Save, Trash2 } from "lucide-react";
 import type { AttendanceRecord, AttendanceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { 
+    AlertDialog, 
+    AlertDialogAction, 
+    AlertDialogCancel, 
+    AlertDialogContent, 
+    AlertDialogDescription, 
+    AlertDialogFooter, 
+    AlertDialogHeader, 
+    AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [initialRecords, setInitialRecords] = useState<string>("[]");
   const [isSaving, setIsSaving] = useState(false);
-  const { cadets, isLoaded: cadetsLoaded, getAttendanceForDate, saveAttendanceForDate } = useCadets();
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const { cadets, isLoaded: cadetsLoaded, getAttendanceForDate, saveAttendanceForDate, deleteAttendanceForDate, attendance } = useCadets();
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
 
@@ -35,7 +46,7 @@ export default function AttendancePage() {
       setAttendanceRecords(records);
       setInitialRecords(JSON.stringify(records)); // Set initial state for comparison
     }
-  }, [cadetsLoaded, selectedDate, getAttendanceForDate, cadets]);
+  }, [cadetsLoaded, selectedDate, getAttendanceForDate, cadets, attendance]);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -65,8 +76,23 @@ export default function AttendancePage() {
         });
     }
   }, [selectedDate, attendanceRecords, saveAttendanceForDate, toast]);
+
+  const handleDeleteAttendance = useCallback(async () => {
+    if (selectedDate) {
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
+        await deleteAttendanceForDate(dateString);
+        toast({
+            variant: "destructive",
+            title: "Attendance Deleted",
+            description: `Records for ${format(selectedDate, 'PPP')} have been deleted.`,
+        });
+    }
+    setIsDeleteAlertOpen(false);
+  }, [selectedDate, deleteAttendanceForDate, toast]);
   
   const hasUnsavedChanges = JSON.stringify(attendanceRecords) !== initialRecords;
+
+  const recordsExistForDate = selectedDate && !!attendance[format(selectedDate, "yyyy-MM-dd")];
 
   const trainingDaysFilter = (date: Date) => {
     return date.getDay() === settings.trainingDay;
@@ -78,7 +104,7 @@ export default function AttendancePage() {
     <>
       <PageHeader
         title="Attendance Taker"
-        description="Mark attendance for a specific training night and click 'Save Attendance' to record changes."
+        description="Mark attendance for a specific training night. Remember to save your changes."
       />
       
       <div className="mt-6">
@@ -188,13 +214,42 @@ export default function AttendancePage() {
             )}
           </CardContent>
           <CardFooter>
-            <Button onClick={handleSaveAttendance} disabled={!hasUnsavedChanges || isSaving}>
-                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                {isSaving ? "Saving..." : "Save Attendance"}
-            </Button>
+            <div className="flex justify-between w-full items-center">
+                <Button onClick={handleSaveAttendance} disabled={!hasUnsavedChanges || isSaving}>
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    {isSaving ? "Saving..." : "Save Attendance"}
+                </Button>
+
+                {recordsExistForDate && (
+                    <Button variant="destructive" onClick={() => setIsDeleteAlertOpen(true)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Records
+                    </Button>
+                )}
+            </div>
           </CardFooter>
         </Card>
       </div>
+
+       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This will permanently delete the attendance records for {selectedDate ? format(selectedDate, 'PPP') : 'this date'}. This action cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                    className="bg-destructive hover:bg-destructive/90"
+                    onClick={handleDeleteAttendance}
+                >
+                    Delete
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
