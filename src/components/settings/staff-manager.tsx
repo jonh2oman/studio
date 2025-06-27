@@ -53,7 +53,6 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
     const form = useForm<StaffFormData>({
         resolver: zodResolver(staffSchema),
         defaultValues: {
-            type: 'Officer',
             rank: '',
             firstName: '',
             lastName: '',
@@ -78,8 +77,10 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
     }, [firstName, lastName, editingStaff, setValue, watchType]);
 
     useEffect(() => {
-        setValue('rank', '');
-    }, [watchType, setValue]);
+        if (!editingStaff) {
+             setValue('rank', '');
+        }
+    }, [watchType, setValue, editingStaff]);
 
     const handleEditClick = (staffMember: StaffMember) => {
         setEditingStaff(staffMember);
@@ -98,7 +99,6 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
     const handleCancelEdit = () => {
         setEditingStaff(null);
         reset({
-            type: 'Officer',
             rank: '',
             firstName: '',
             lastName: '',
@@ -164,7 +164,7 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
                                 <FormField control={control} name="rank" render={({ field }) => ( 
                                     <FormItem>
                                         <FormLabel>Rank</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchType}>
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Select a rank" />

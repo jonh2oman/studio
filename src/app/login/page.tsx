@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { GoogleIcon } from "@/components/icons/google-icon";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -64,32 +64,6 @@ export default function LoginPage() {
     }
   };
 
-  const onGoogleSignIn = async () => {
-    if (isMock) {
-        toast({
-            variant: "destructive",
-            title: "Mock Mode",
-            description: "Google Sign-In is not available in mock mode. Please set up Firebase credentials."
-        });
-        return;
-    }
-    setIsLoading(true);
-    const provider = new GoogleAuthProvider();
-    try {
-        await signInWithPopup(auth!, provider);
-        toast({ title: "Success", description: "You are now logged in with Google." });
-        router.push("/");
-    } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Google Sign-In Failed",
-            description: error.message,
-        });
-    } finally {
-        setIsLoading(false);
-    }
-  }
-
   return (
     <div className="flex h-full w-full items-center justify-center bg-background">
       <Card className="w-full max-w-sm mx-auto">
@@ -121,23 +95,7 @@ export default function LoginPage() {
             </form>
           </Form>
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                </span>
-            </div>
-          </div>
-          
-          <Button variant="outline" className="w-full" onClick={onGoogleSignIn} disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
-            Google
-          </Button>
-
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link href="/signup" className="font-semibold text-primary hover:underline">
               Sign up

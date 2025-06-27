@@ -6,14 +6,6 @@ import { useToast } from './use-toast';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
 import type { Settings, TrainingYearSettings, Cadet, DutySchedule } from '@/lib/types';
 
-const getFirstTuesdayOfSeptember = (year: number) => {
-    const d = new Date(year, 8, 1);
-    const day = d.getDay();
-    const diff = (2 - day + 7) % 7;
-    d.setDate(1 + diff);
-    return d.toISOString().split('T')[0];
-};
-
 export function useTrainingYear() {
     const [trainingYears, setTrainingYears] = useState<string[]>([]);
     const [currentYear, setCurrentYearState] = useState<string | null>(null);
@@ -37,20 +29,7 @@ export function useTrainingYear() {
                 setCurrentYearState(latestYear);
                 localStorage.setItem('currentTrainingYear', latestYear);
             } else {
-                // First time setup
-                const initialYear = `2025-2026`;
-                const initialStartDate = getFirstTuesdayOfSeptember(2025);
-                
-                setTrainingYears([initialYear]);
-                localStorage.setItem('trainingYears', JSON.stringify([initialYear]));
-                
-                setCurrentYearState(initialYear);
-                localStorage.setItem('currentTrainingYear', initialYear);
-                
-                const initialYearSettings: TrainingYearSettings = {
-                    [initialYear]: { firstTrainingNight: initialStartDate, dutySchedule: {} }
-                };
-                localStorage.setItem('trainingYearSettings', JSON.stringify(initialYearSettings));
+                setCurrentYearState(null);
             }
         } catch (error) {
             console.error("Failed to initialize training year", error);

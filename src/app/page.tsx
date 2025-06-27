@@ -12,6 +12,7 @@ import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+import { useTrainingYear } from '@/hooks/use-training-year';
 
 const dashboardCategories = [
     {
@@ -49,6 +50,7 @@ const dashboardCategories = [
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const { schedule, isLoaded } = useSchedule();
+  const { currentYear, isLoaded: yearsLoaded } = useTrainingYear();
   
   const phaseProgress = useMemo(() => {
     if (!isLoaded) return [];
@@ -119,6 +121,39 @@ export default function DashboardPage() {
         </div>
       </>
     )
+  }
+
+  if (user && yearsLoaded && !currentYear) {
+    return (
+      <>
+        <PageHeader
+          title="Welcome to the Training Planner!"
+          description="The first step is to create a new training year."
+        />
+        <div className="mt-12 flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-12 text-center">
+          <div className="mb-4 rounded-full border bg-background p-4 shadow-sm">
+            <CalendarPlus className="h-10 w-10 text-primary" />
+          </div>
+          <h2 className="text-xl font-semibold">Create Your First Training Year</h2>
+          <p className="mt-2 max-w-sm text-muted-foreground">
+            All your schedules, cadets, and reports are organized by training year. Go to settings to set one up now.
+          </p>
+          <div className="mt-6">
+            <Button asChild size="lg">
+              <Link href="/settings"><Settings className="mr-2 h-4 w-4" /> Go to Settings</Link>
+            </Button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!currentYear) {
+      return (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          </div>
+      )
   }
 
   return (
