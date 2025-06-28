@@ -287,7 +287,7 @@ export default function AttendancePage() {
         </AlertDialogContent>
     </AlertDialog>
 
-    <div className="absolute -left-full top-0">
+    <div className="absolute -top-[9999px] -left-[9999px]">
         {selectedDate && <PrintableAttendanceSheet ref={pdfRef} cadets={cadets} date={selectedDate} />}
     </div>
     </>

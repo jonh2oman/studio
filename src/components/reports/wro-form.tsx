@@ -405,7 +405,7 @@ export function WroForm() {
         </Button>
       </form>
 
-      <div className="absolute -left-full top-0">
+      <div className="absolute -top-[9999px] -left-[9999px]">
          <WroPreview 
             ref={previewRef}
             data={formData}
