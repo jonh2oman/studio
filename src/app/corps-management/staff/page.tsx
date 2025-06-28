@@ -1,11 +1,9 @@
-
 "use client";
 
 import { PageHeader } from "@/components/page-header";
 import { useSettings } from "@/hooks/use-settings";
 import type { StaffMember } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { StaffManager } from "@/components/settings/staff-manager";
 import { DutyRoster } from "@/components/settings/duty-roster";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useMemo, useCallback } from "react";
@@ -14,10 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AddStaffForm } from "@/components/corps-management/add-staff-form";
+import { StaffList } from "@/components/corps-management/staff-list";
 
 export default function StaffManagementPage() {
   const { settings, saveSettings } = useSettings();
   const { toast } = useToast();
+  
+  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
 
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newStaffRole, setNewStaffRole] = useState("");
@@ -102,6 +104,15 @@ export default function StaffManagementPage() {
     });
   };
 
+  const handleRemoveStaff = (id: string) => {
+    const updatedStaff = (settings.staff || []).filter(s => s.id !== id);
+    handleStaffChange(updatedStaff);
+  }
+  
+  const handleCancelEdit = () => {
+    setEditingStaff(null);
+  }
+
   return (
     <>
       <PageHeader
@@ -109,11 +120,31 @@ export default function StaffManagementPage() {
         description="Manage staff roster and parade night duties."
       />
       <div className="mt-6 space-y-8">
-          <Card>
-              <CardContent className="pt-6">
-                  <StaffManager staff={settings.staff || []} onStaffChange={handleStaffChange} />
-              </CardContent>
-          </Card>
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="md:col-span-1">
+                <AddStaffForm 
+                    staff={settings.staff || []}
+                    onStaffChange={handleStaffChange}
+                    editingStaff={editingStaff}
+                    onCancelEdit={handleCancelEdit}
+                />
+            </div>
+            <div className="md:col-span-2">
+                 <Card>
+                  <CardHeader>
+                      <CardTitle>Staff Roster</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <StaffList 
+                          staff={settings.staff || []}
+                          onEditStaff={setEditingStaff}
+                          onRemoveStaff={handleRemoveStaff}
+                      />
+                  </CardContent>
+              </Card>
+            </div>
+          </div>
+        
            <Card>
               <CardContent className="pt-6">
                   <DutyRoster />

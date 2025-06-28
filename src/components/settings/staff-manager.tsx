@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -53,6 +52,7 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
     const form = useForm<StaffFormData>({
         resolver: zodResolver(staffSchema),
         defaultValues: {
+            type: 'Officer',
             rank: '',
             firstName: '',
             lastName: '',
@@ -99,6 +99,7 @@ export function StaffManager({ staff, onStaffChange }: StaffManagerProps) {
     const handleCancelEdit = () => {
         setEditingStaff(null);
         reset({
+            type: 'Officer',
             rank: '',
             firstName: '',
             lastName: '',
