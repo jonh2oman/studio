@@ -16,10 +16,11 @@ import { cn } from "@/lib/utils";
 import { AddStaffForm } from "@/components/corps-management/add-staff-form";
 import { StaffList } from "@/components/corps-management/staff-list";
 import { UserAccessManager } from "@/components/corps-management/user-access-manager";
-import { useTrainingYear } from "@/hooks/use-training-year";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function StaffManagementPage() {
-  const { settings, saveSettings, userRole } = useSettings();
+  const { user } = useAuth();
+  const { settings, saveSettings } = useSettings();
   const { toast } = useToast();
   
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
@@ -27,6 +28,8 @@ export default function StaffManagementPage() {
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newStaffRole, setNewStaffRole] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
+
+  const isOwner = user && settings.permissions?.[user.uid]?.role === 'owner';
 
   const permanentRoles = useMemo(() => [
     'Commanding Officer',
@@ -153,7 +156,7 @@ export default function StaffManagementPage() {
                   <DutyRoster />
               </CardContent>
           </Card>
-           {userRole === 'owner' && (
+           {isOwner && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
