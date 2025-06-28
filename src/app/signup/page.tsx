@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Ship } from "lucide-react";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -62,11 +62,18 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-background">
-      <Card className="w-full max-w-sm mx-auto">
-        <CardHeader>
-          <CardTitle>Create an Account</CardTitle>
-          <CardDescription>Enter your email and password to sign up.</CardDescription>
+    <div className="flex h-full w-full items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+                <div className="bg-primary/20 p-3 rounded-full">
+                    <Ship className="w-8 h-8 text-primary" />
+                </div>
+            </div>
+            <CardTitle className="text-2xl">Create an Account</CardTitle>
+            <CardDescription className="px-4 text-center pt-2">
+                Create an account to securely save your training plans and access them from any device.
+            </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
