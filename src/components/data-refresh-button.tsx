@@ -1,0 +1,32 @@
+
+"use client";
+
+import { RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+export function DataRefreshButton() {
+    const handleRefresh = () => {
+        // A hard reload is the most reliable way to ensure all data is re-fetched from the server
+        window.location.reload();
+    };
+
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    size="icon"
+                    variant="outline"
+                    className="rounded-full w-14 h-14 shadow-lg bg-background"
+                    onClick={handleRefresh}
+                >
+                    <RefreshCw className="h-7 w-7" />
+                    <span className="sr-only">Refresh Data</span>
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" align="center">
+                <p>Refresh App Data</p>
+            </TooltipContent>
+        </Tooltip>
+    );
+}

@@ -9,6 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/hooks/use-auth';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { BugReportButton } from '@/components/bug-report/bug-report-button';
+import { DataRefreshButton } from '@/components/data-refresh-button';
 
 export const metadata: Metadata = {
   title: 'Corps/Sqn Manager',
@@ -38,6 +39,7 @@ export default function RootLayout({
           <Toaster />
           <div className="print:hidden">
             <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
+              <DataRefreshButton />
               <HelpButton />
               <BugReportButton />
             </div>

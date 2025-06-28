@@ -1,6 +1,7 @@
 
 
 
+
 export interface EO {
   id: string;
   title: string;
@@ -128,6 +129,10 @@ export interface Settings {
   planningResourcesCardOrder?: string[];
   cadetSettingsCardOrder?: string[];
   sidebarNavOrder?: Record<string, string[]>;
+  dashboardCardOrder?: {
+    categoryOrder: string[];
+    itemOrder: Record<string, string[]>;
+  };
   permissions: { [userId: string]: Permission };
 }
 
@@ -291,5 +296,7 @@ export interface Invite {
     ownerEmail: string;
     inviteeEmail: string;
     role: 'editor' | 'viewer';
-    status: 'pending' | 'accepted';
+    status: 'pending' | 'accepted' | 'processed';
+    acceptedBy?: string;
+    acceptedAt?: Date;
 }

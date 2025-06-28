@@ -1,5 +1,6 @@
 
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -43,6 +44,7 @@ const defaultSettings: Settings = {
     planningResourcesCardOrder: ['classrooms', 'customEos', 'weeklyActivities'],
     cadetSettingsCardOrder: ['cadetRoles', 'cadetRanks', 'cadetDress'],
     sidebarNavOrder: {},
+    dashboardCardOrder: { categoryOrder: [], itemOrder: {} },
 };
 
 export const defaultUserDocument: (userId: string, email: string) => UserDocument = (userId, email) => ({
@@ -186,7 +188,7 @@ export function useSettings() {
                 }
             } catch (error) {
                 console.error("Fatal error loading settings:", error);
-                toast({ variant: 'destructive', title: 'Data Load Error', description: 'Could not load corps data. Check permissions and connection.' });
+                toast({ variant: 'destructive', title: 'Failed to load corps data.', description: 'Please check your connection and permissions, or try refreshing the page.' });
             } finally {
                 setIsLoaded(true);
             }
