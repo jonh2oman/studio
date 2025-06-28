@@ -1,4 +1,5 @@
 
+
 export interface EO {
   id: string;
   title: string;
@@ -118,6 +119,7 @@ export interface Settings {
   generalSettingsCardOrder?: string[];
   planningResourcesCardOrder?: string[];
   cadetSettingsCardOrder?: string[];
+  sidebarNavOrder?: Record<string, string[]>;
 }
 
 export interface Cadet {

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -70,6 +71,7 @@ const defaultSettings: Settings = {
     generalSettingsCardOrder: ['trainingYear', 'corpsInfo'],
     planningResourcesCardOrder: ['classrooms', 'customEos', 'weeklyActivities'],
     cadetSettingsCardOrder: ['cadetRoles', 'cadetRanks', 'cadetDress'],
+    sidebarNavOrder: {},
 };
 
 export const defaultUserDocument: UserDocument = {
@@ -104,6 +106,7 @@ export function useSettings() {
                     generalSettingsCardOrder: data.settings.generalSettingsCardOrder || defaultSettings.generalSettingsCardOrder,
                     planningResourcesCardOrder: data.settings.planningResourcesCardOrder || defaultSettings.planningResourcesCardOrder,
                     cadetSettingsCardOrder: data.settings.cadetSettingsCardOrder || defaultSettings.cadetSettingsCardOrder,
+                    sidebarNavOrder: data.settings.sidebarNavOrder || defaultSettings.sidebarNavOrder,
                 };
                 setSettings(mergedSettings);
             } else {
