@@ -3,9 +3,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Settings, CustomEO, UserDocument } from '@/lib/types';
+import type { Settings, UserDocument, Invite, UserRole } from '@/lib/types';
 import { useAuth } from './use-auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { awardsData } from '@/lib/awards-data';
 
@@ -14,38 +14,6 @@ const permanentRoles = [
     'Training Officer',
     'Administration Officer',
     'Supply Officer'
-];
-
-const defaultCustomEOs: CustomEO[] = [
-    { id: 'CS001', title: 'Drill Team Practice', periods: 1 },
-    { id: 'CS002', title: 'Music Practice', periods: 1 },
-    { id: 'CS003', title: 'Marksmanship Practice', periods: 1 },
-    { id: 'CS004', title: 'Biathlon Practice', periods: 1 },
-    { id: 'CS005', title: 'Orienteering Practice', periods: 1 },
-    { id: 'CS006', title: 'Model Boat Club', periods: 1 },
-    { id: 'CS009', title: 'Seamanship Team Practice', periods: 1 },
-    { id: 'CS010', title: 'Halloween Costume Dance', periods: 1 },
-    { id: 'CS011', title: 'Poppy Campaign', periods: 1 },
-    { id: 'CS012', title: "Remembrance Day Visit to Veterans' Home", periods: 1 },
-    { id: 'CS013', title: "Christmas Mess Dinner", periods: 1 },
-    { id: 'CS014', title: "Caroling at Veterans' Home", periods: 1 },
-    { id: 'CS015', title: 'Santa Claus Parade', periods: 1 },
-    { id: 'CS016', title: 'Treasure Hunt Day', periods: 1 },
-    { id: 'CS017', title: 'Volunteering at Animal Shelter', periods: 1 },
-    { id: 'CS018', title: 'Swimming night', periods: 1 },
-    { id: 'CS019', title: 'Pirate Sports Day', periods: 1 },
-    { id: 'CS020', title: "Valentine's Skating Party", periods: 1 },
-    { id: 'CS021', title: 'Yoga day', periods: 1 },
-    { id: 'CS022', title: 'Movie night', periods: 1 },
-    { id: 'CS023', title: 'Geocaching', periods: 1 },
-    { id: 'CS024', title: 'Charity Relay', periods: 1 },
-    { id: 'CS025', title: 'Maritime Museum Tour', periods: 1 },
-    { id: 'CS026', title: 'ACR Setup', periods: 1 },
-    { id: 'CS027', title: 'Beach Day', periods: 1 },
-    { id: 'CS028', title: 'End-of-Year Barbecue', periods: 1 },
-    { id: 'CS029', title: 'Halloween Theme Night', periods: 1 },
-    { id: 'CS030', title: 'Christmas Theme Night', periods: 1 },
-    { id: 'CS031', title: "Valentines Day Theme Night", periods: 1 },
 ];
 
 const defaultSettings: Settings = {
@@ -63,11 +31,12 @@ const defaultSettings: Settings = {
         caf: [],
         cadets: []
     },
-    customEOs: defaultCustomEOs,
+    customEOs: [],
     firstTrainingNight: '', // This is now a dummy value, real value is per-year
     awards: awardsData,
     assets: [],
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
+    permissions: {},
     settingsCardOrder: ['general', 'resources', 'data', 'danger'],
     generalSettingsCardOrder: ['trainingYear', 'corpsInfo'],
     planningResourcesCardOrder: ['classrooms', 'customEos', 'weeklyActivities'],
@@ -75,65 +44,140 @@ const defaultSettings: Settings = {
     sidebarNavOrder: {},
 };
 
-export const defaultUserDocument: UserDocument = {
-    settings: defaultSettings,
+export const defaultUserDocument: (userId: string, email: string) => UserDocument = (userId, email) => ({
+    settings: {
+        ...defaultSettings,
+        permissions: {
+            [userId]: { email, role: 'owner' }
+        }
+    },
     trainingYears: {}
-}
+});
 
 export function useSettings() {
     const { user } = useAuth();
-    const [settings, setSettings] = useState<Settings>(defaultSettings);
+    const [userDocument, setUserDocument] = useState<UserDocument | null>(null);
+    const [userRole, setUserRole] = useState<UserRole | null>(null);
+    const [dataOwnerId, setDataOwnerId] = useState<string | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
+
+    const processInvites = useCallback(async (userId: string, userEmail: string) => {
+        if (!db) return null;
+        const invitesRef = collection(db, "invites");
+        const q = query(invitesRef, where("inviteeEmail", "==", userEmail), where("status", "==", "pending"));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) return null;
+
+        const inviteDoc = querySnapshot.docs[0];
+        const inviteData = inviteDoc.data() as Invite;
+        const ownerId = inviteData.corpsDataOwnerId;
+
+        const ownerDocRef = doc(db, 'users', ownerId);
+        const userDocRef = doc(db, 'users', userId);
+
+        const batch = writeBatch(db);
+
+        // Update owner's doc with new user's permission
+        batch.set(ownerDocRef, {
+            settings: {
+                permissions: {
+                    [userId]: { email: userEmail, role: inviteData.role }
+                }
+            }
+        }, { merge: true });
+
+        // Update invitee's doc with a pointer
+        batch.set(userDocRef, { pointerToCorpsData: ownerId }, { merge: true });
+        
+        // Update invite status
+        batch.update(inviteDoc.ref, { status: "accepted", acceptedBy: userId, acceptedAt: new Date() });
+
+        await batch.commit();
+
+        return ownerId;
+    }, []);
 
     useEffect(() => {
         const loadSettings = async () => {
             if (!user || !db) {
-                setSettings(defaultSettings);
+                setUserDocument(null);
                 setIsLoaded(true);
                 return;
             };
 
             setIsLoaded(false);
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
 
-            if (userDocSnap.exists()) {
-                const data = userDocSnap.data() as UserDocument;
-                 const mergedSettings: Settings = {
+            // 1. Check for and process any pending invites
+            const ownerIdFromInvite = await processInvites(user.uid, user.email!);
+
+            // 2. Determine where the data lives
+            let effectiveOwnerId = ownerIdFromInvite;
+            if (!effectiveOwnerId) {
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists() && userDocSnap.data()?.pointerToCorpsData) {
+                    effectiveOwnerId = userDocSnap.data()?.pointerToCorpsData;
+                } else {
+                    effectiveOwnerId = user.uid; // User is the owner
+                }
+            }
+            setDataOwnerId(effectiveOwnerId);
+
+            // 3. Load the data from the owner's document
+            const dataDocRef = doc(db, 'users', effectiveOwnerId);
+            const dataDocSnap = await getDoc(dataDocRef);
+
+            if (dataDocSnap.exists()) {
+                const data = dataDocSnap.data() as UserDocument;
+                const mergedSettings: Settings = {
                     ...defaultSettings,
                     ...data.settings,
                     staffRoles: Array.from(new Set([...permanentRoles, ...(data.settings.staffRoles || [])])),
-                    settingsCardOrder: data.settings.settingsCardOrder || defaultSettings.settingsCardOrder,
-                    generalSettingsCardOrder: data.settings.generalSettingsCardOrder || defaultSettings.generalSettingsCardOrder,
-                    planningResourcesCardOrder: data.settings.planningResourcesCardOrder || defaultSettings.planningResourcesCardOrder,
-                    cadetSettingsCardOrder: data.settings.cadetSettingsCardOrder || defaultSettings.cadetSettingsCardOrder,
-                    sidebarNavOrder: data.settings.sidebarNavOrder || defaultSettings.sidebarNavOrder,
                 };
-                setSettings(mergedSettings);
+                setUserDocument({ ...data, settings: mergedSettings });
+                setUserRole(data.settings.permissions?.[user.uid]?.role || null);
             } else {
-                // New user, create default doc
-                await setDoc(userDocRef, defaultUserDocument);
-                setSettings(defaultSettings);
+                // This is a new user who wasn't invited, create their own document
+                const newUserDoc = defaultUserDocument(user.uid, user.email!);
+                await setDoc(dataDocRef, newUserDoc);
+                setUserDocument(newUserDoc);
+                setUserRole('owner');
             }
             setIsLoaded(true);
         }
         loadSettings();
-    }, [user]);
+    }, [user, processInvites]);
+
+    const saveUserDocument = useCallback(async (newDocument: Partial<UserDocument>) => {
+        if (!user || !db || !dataOwnerId) return;
+
+        const updatedDocument = { ...userDocument, ...newDocument } as UserDocument;
+        setUserDocument(updatedDocument);
+
+        const userDocRef = doc(db, 'users', dataOwnerId);
+        try {
+            await setDoc(userDocRef, newDocument, { merge: true });
+        } catch (error) {
+            console.error("Failed to save user document to Firestore", error);
+        }
+    }, [user, userDocument, dataOwnerId]);
+    
+    const settings = userDocument?.settings;
+    const allYearsData = userDocument?.trainingYears || {};
 
     const saveSettings = useCallback(async (newSettings: Partial<Settings>) => {
-        if (!user || !db) return;
-        
+        if (!settings) return;
         const updatedSettings = { ...settings, ...newSettings };
-        setSettings(updatedSettings); // Optimistic update
+        await saveUserDocument({ settings: updatedSettings });
+    }, [settings, saveUserDocument]);
 
-        const userDocRef = doc(db, 'users', user.uid);
-        try {
-            await setDoc(userDocRef, { settings: updatedSettings }, { merge: true });
-        } catch (error) {
-            console.error("Failed to save global settings to Firestore", error);
-            // Optionally revert optimistic update
-        }
-    }, [user, settings]);
-    
-    return { settings, saveSettings, isLoaded };
+    return { 
+        settings: settings || defaultSettings, 
+        allYearsData,
+        saveSettings, 
+        isLoaded,
+        userRole,
+        dataOwnerId
+    };
 }

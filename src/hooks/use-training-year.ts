@@ -1,14 +1,15 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, addDoc } from 'firebase/firestore';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { UserDocument, TrainingYearData, DutySchedule, AdaPlannerData, EO } from '@/lib/types';
-import { defaultUserDocument } from './use-settings';
+import type { UserDocument, TrainingYearData, DutySchedule, AdaPlannerData, EO, Invite } from '@/lib/types';
+import { useSettings } from './use-settings';
 
 const defaultYearData: TrainingYearData = {
     firstTrainingNight: '',
@@ -46,92 +47,64 @@ const defaultYearData: TrainingYearData = {
 
 export function useTrainingYear() {
     const { user } = useAuth();
+    const { settings, allYearsData, saveSettings, isLoaded: settingsLoaded, userRole, dataOwnerId } = useSettings();
     const { toast } = useToast();
-    const [allYearsData, setAllYearsData] = useState<{ [year: string]: TrainingYearData }>({});
+    
     const [trainingYears, setTrainingYears] = useState<string[]>([]);
     const [currentYear, setCurrentYearState] = useState<string | null>(null);
-    const [isLoaded, setIsLoaded] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
     
-    // Effect to load data from Firestore when user changes
     useEffect(() => {
-        const loadData = async () => {
-            if (!user || !db) {
-                setTrainingYears([]);
-                setAllYearsData({});
-                setCurrentYearState(null);
-                setIsLoaded(true);
-                return;
-            }
-
-            setIsLoaded(false);
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-
-            let data: UserDocument;
-            if (userDocSnap.exists()) {
-                data = userDocSnap.data() as UserDocument;
-            } else {
-                await setDoc(userDocRef, defaultUserDocument);
-                data = defaultUserDocument;
-            }
-
-            const years = Object.keys(data.trainingYears || {}).sort().reverse();
+        if(settingsLoaded) {
+            const years = Object.keys(allYearsData).sort().reverse();
             setTrainingYears(years);
-            setAllYearsData(data.trainingYears || {});
 
-            const storedCurrentYear = localStorage.getItem('currentTrainingYear');
+            const storedCurrentYear = localStorage.getItem(`currentTrainingYear_${dataOwnerId}`);
             if (storedCurrentYear && years.includes(storedCurrentYear)) {
                 setCurrentYearState(storedCurrentYear);
             } else if (years.length > 0) {
                 setCurrentYearState(years[0]);
-                localStorage.setItem('currentTrainingYear', years[0]);
+                if (dataOwnerId) {
+                    localStorage.setItem(`currentTrainingYear_${dataOwnerId}`, years[0]);
+                }
             } else {
                 setCurrentYearState(null);
             }
-            setIsLoaded(true);
-        };
-        loadData();
-    }, [user]);
+        }
+    }, [allYearsData, settingsLoaded, dataOwnerId]);
 
     const currentYearData = currentYear ? allYearsData[currentYear] : null;
 
     const setCurrentYear = useCallback((year: string) => {
         if (trainingYears.includes(year)) {
-            localStorage.setItem('currentTrainingYear', year);
+            if (dataOwnerId) {
+                localStorage.setItem(`currentTrainingYear_${dataOwnerId}`, year);
+            }
             setCurrentYearState(year);
             toast({ title: "Switched Year", description: `Now viewing training year ${year}.` });
         }
-    }, [trainingYears, toast]);
+    }, [trainingYears, toast, dataOwnerId]);
 
     const updateCurrentYearData = useCallback(async (
         dataUpdate: Partial<TrainingYearData> | ((prevData: TrainingYearData) => TrainingYearData)
     ) => {
-        if (!user || !db || !currentYear) return;
+        if (!currentYear) return;
 
-        setAllYearsData(prevAllYears => {
-            const currentData = prevAllYears[currentYear] || defaultYearData;
-            const updatedData = typeof dataUpdate === 'function' 
-                ? dataUpdate(currentData) 
-                : { ...currentData, ...dataUpdate };
-            
-            const userDocRef = doc(db, 'users', user.uid);
-            setDoc(userDocRef, {
-                trainingYears: {
-                    [currentYear]: updatedData
-                }
-            }, { merge: true }).catch(error => {
-                console.error("Failed to update year data in Firestore", error);
-                toast({ variant: "destructive", title: "Save Failed", description: "Could not save changes to the cloud." });
-            });
+        const currentData = allYearsData[currentYear] || defaultYearData;
+        const updatedData = typeof dataUpdate === 'function' 
+            ? dataUpdate(currentData) 
+            : { ...currentData, ...dataUpdate };
+        
+        const newAllYearsData = { ...allYearsData, [currentYear]: updatedData };
+        
+        if (!dataOwnerId || !db) return;
+        const userDocRef = doc(db, 'users', dataOwnerId);
+        await setDoc(userDocRef, { trainingYears: newAllYearsData }, { merge: true });
 
-            return { ...prevAllYears, [currentYear]: updatedData };
-        });
-    }, [user, currentYear, db, toast]);
+    }, [currentYear, allYearsData, dataOwnerId, db]);
 
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean }) => {
-        if (!user || !db) return;
         if (trainingYears.includes(year)) {
             toast({ variant: "destructive", title: "Error", description: `Training year ${year} already exists.` });
             return;
@@ -150,13 +123,11 @@ export function useTrainingYear() {
                     : sourceData.cadets;
                 
                 if (useAiForCopy) {
-                    const settingsDoc = await getDoc(doc(db, 'users', user.uid));
-                    const globalSettings = settingsDoc.data()?.settings;
                     const result = await copyTrainingSchedule({
                         sourceScheduleJson: JSON.stringify(sourceData.schedule),
                         sourceTrainingYearStart: sourceData.firstTrainingNight,
                         targetTrainingYearStart: startDate,
-                        trainingDayOfWeek: globalSettings?.trainingDay ?? 2,
+                        trainingDayOfWeek: settings?.trainingDay ?? 2,
                     });
                     newYearData.schedule = JSON.parse(result.newScheduleJson);
                 } else {
@@ -164,15 +135,13 @@ export function useTrainingYear() {
                 }
             }
             
-            const userDocRef = doc(db, 'users', user.uid);
-            await setDoc(userDocRef, {
-                trainingYears: {
-                    [year]: newYearData
-                }
-            }, { merge: true });
+            const newAllYearsData = { ...allYearsData, [year]: newYearData };
             
-            // Manually update local state to avoid a full re-fetch
-            setAllYearsData(prev => ({ ...prev, [year]: newYearData }));
+            if (!dataOwnerId || !db) throw new Error("Data owner not found");
+
+            const userDocRef = doc(db, 'users', dataOwnerId);
+            await setDoc(userDocRef, { trainingYears: newAllYearsData }, { merge: true });
+            
             const updatedYears = [...trainingYears, year].sort().reverse();
             setTrainingYears(updatedYears);
             setCurrentYear(year);
@@ -184,7 +153,7 @@ export function useTrainingYear() {
         } finally {
             setIsCreating(false);
         }
-    }, [user, db, trainingYears, allYearsData, toast, setCurrentYear]);
+    }, [user, db, trainingYears, allYearsData, toast, setCurrentYear, settings, dataOwnerId]);
     
     const updateDutySchedule = useCallback((date: string, scheduleUpdate: Partial<DutySchedule[string]>) => {
         if (!currentYearData) return;
@@ -266,12 +235,33 @@ export function useTrainingYear() {
         });
     }, [updateCurrentYearData]);
 
+    const inviteUser = useCallback(async (email: string, role: 'editor' | 'viewer') => {
+        if (!db || !user?.email || !dataOwnerId) return;
+
+        // Check if user is already in permissions
+        if (Object.values(settings.permissions || {}).some(p => p.email === email)) {
+            toast({ variant: "destructive", title: "User Already Has Access" });
+            return;
+        }
+
+        const invitesRef = collection(db, "invites");
+        const newInvite: Omit<Invite, 'id'> = {
+            corpsDataOwnerId: dataOwnerId,
+            ownerEmail: user.email,
+            inviteeEmail: email,
+            role: role,
+            status: 'pending',
+        };
+        await addDoc(invitesRef, newInvite);
+        toast({ title: "Invitation Sent", description: `An invitation has been sent to ${email}.` });
+    }, [db, user?.email, dataOwnerId, settings.permissions, toast]);
+
     return { 
         trainingYears, 
         currentYear, 
         setCurrentYear, 
         createNewYear, 
-        isLoaded, 
+        isLoaded: settingsLoaded,
         isCreating, 
         currentYearData,
         updateCurrentYearData,
@@ -282,6 +272,8 @@ export function useTrainingYear() {
         removeAdaPlanner,
         updateAdaPlannerName,
         addEoToAda,
-        removeEoFromAda
+        removeEoFromAda,
+        userRole,
+        inviteUser
     };
 }

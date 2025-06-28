@@ -1,5 +1,6 @@
 
 
+
 export interface EO {
   id: string;
   title: string;
@@ -95,6 +96,13 @@ export interface Asset {
   notes?: string;
 }
 
+export type UserRole = 'owner' | 'editor' | 'viewer';
+
+export interface Permission {
+    email: string;
+    role: UserRole;
+}
+
 export interface Settings {
   trainingDay: number;
   corpsName: string;
@@ -120,6 +128,7 @@ export interface Settings {
   planningResourcesCardOrder?: string[];
   cadetSettingsCardOrder?: string[];
   sidebarNavOrder?: Record<string, string[]>;
+  permissions: { [userId: string]: Permission };
 }
 
 export interface Cadet {
@@ -271,5 +280,16 @@ export interface UserDocument {
     settings: Settings;
     trainingYears: {
         [year: string]: TrainingYearData;
-    }
+    };
+    pointerToCorpsData?: string;
+    displayName?: string;
+}
+
+export interface Invite {
+    id: string;
+    corpsDataOwnerId: string;
+    ownerEmail: string;
+    inviteeEmail: string;
+    role: 'editor' | 'viewer';
+    status: 'pending' | 'accepted';
 }
