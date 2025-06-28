@@ -255,7 +255,9 @@ export function AppSidebar() {
   }, [saveSettings]);
 
 
-  if (!isMounted) {
+  const isReady = isMounted && settingsLoaded;
+
+  if (!isReady) {
     return (
         <Sidebar>
             <SidebarHeader className="p-4">

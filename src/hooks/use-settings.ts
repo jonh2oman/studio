@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Settings, UserDocument, Invite, UserRole } from '@/lib/types';
 import { useAuth } from './use-auth';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch, deleteField } from 'firebase/firestore';
@@ -195,26 +195,36 @@ export function useSettings() {
 
     const settings = userDocument?.settings;
     const allYearsData = userDocument?.trainingYears || {};
+    
+    const dataOwnerIdRef = useRef(dataOwnerId);
+    useEffect(() => {
+        dataOwnerIdRef.current = dataOwnerId;
+    }, [dataOwnerId]);
 
     const saveSettings = useCallback((settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
-        if (!user || !db || !dataOwnerId) return;
+        if (!user || !db) return;
+        
+        const ownerId = dataOwnerIdRef.current;
+        if (!ownerId) return;
 
         setUserDocument(prevDoc => {
             if (!prevDoc) return null;
+            
             const currentSettings = prevDoc.settings || defaultSettings;
             const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
             const updatedSettings = { ...currentSettings, ...update };
 
-            const userDocRef = doc(db, 'users', dataOwnerId);
+            const userDocRef = doc(db, 'users', ownerId);
             setDoc(userDocRef, { settings: updatedSettings }, { merge: true }).catch(
               (error) => {
                 console.error('Failed to save settings to Firestore', error);
+                toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save settings.' });
               }
             );
 
             return { ...prevDoc, settings: updatedSettings };
         });
-    }, [user, db, dataOwnerId]);
+    }, [user, toast]);
 
     const resetUserDocument = useCallback(async () => {
         if (!user || !db || !dataOwnerId) {
