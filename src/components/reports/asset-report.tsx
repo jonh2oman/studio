@@ -60,6 +60,7 @@ export function AssetReport() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Asset ID</TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Category</TableHead>
                                     <TableHead>S/N</TableHead>
@@ -71,6 +72,7 @@ export function AssetReport() {
                             <TableBody>
                                 {assets.sort((a,b) => a.name.localeCompare(b.name)).map(asset => (
                                     <TableRow key={asset.id}>
+                                        <TableCell className="font-mono text-xs">{asset.assetId}</TableCell>
                                         <TableCell>{asset.name}</TableCell>
                                         <TableCell>{asset.category}</TableCell>
                                         <TableCell>{asset.serialNumber || 'N/A'}</TableCell>
