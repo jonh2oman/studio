@@ -9,28 +9,26 @@ import { useSettings } from './use-settings';
 
 export function useAwards() {
     const { currentYear, currentYearData, updateCurrentYearData } = useTrainingYear();
-    const { settings, isLoaded: settingsLoaded } = useSettings();
+    const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
     const [isLoaded, setIsLoaded] = useState(false);
 
-    const awards = settings.awards || defaultAwards;
+    const awards = settings.awards || [];
     const winners = currentYearData?.awardWinners || {};
     
     useEffect(() => {
         if (settingsLoaded && currentYearData) {
+            if (!settings.awards) {
+                 saveSettings({ awards: defaultAwards });
+            }
             setIsLoaded(true);
         } else {
             setIsLoaded(false);
         }
-    }, [settingsLoaded, currentYearData]);
+    }, [settingsLoaded, currentYearData, settings.awards, saveSettings]);
 
     const saveAwards = useCallback((updatedAwards: Award[]) => {
-        if ('awards' in settings) {
-            const newSettings = { ...settings, awards: updatedAwards };
-            // This needs to be implemented in useSettings hook
-            // saveSettings(newSettings) 
-            // For now, let's assume useSettings hook has a way to save itself.
-        }
-    }, [settings]);
+        saveSettings({ awards: updatedAwards });
+    }, [saveSettings]);
 
     const saveWinners = useCallback((updatedWinners: AwardWinner) => {
         if (!currentYear) return;

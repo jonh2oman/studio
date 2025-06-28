@@ -7,6 +7,7 @@ import type { Settings, CustomEO, UserDocument } from '@/lib/types';
 import { useAuth } from './use-auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { awardsData } from '@/lib/awards-data';
 
 const permanentRoles = [
     'Commanding Officer',
@@ -64,7 +65,7 @@ const defaultSettings: Settings = {
     },
     customEOs: defaultCustomEOs,
     firstTrainingNight: '', // This is now a dummy value, real value is per-year
-    awards: [],
+    awards: awardsData,
     assets: [],
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
     settingsCardOrder: ['general', 'resources', 'data', 'danger'],
