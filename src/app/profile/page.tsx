@@ -30,7 +30,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
     const { user, loading: authLoading } = useAuth();
-    const { settings, saveSettings, isLoaded: settingsLoaded, forceSetOwner, userRole, dataOwnerId } = useSettings();
+    const { settings, saveSettings, isLoaded: settingsLoaded, forceSetOwner, dataOwnerId } = useSettings();
     const { toast } = useToast();
     const [isOwnerAlertOpen, setIsOwnerAlertOpen] = useState(false);
 
@@ -178,50 +178,56 @@ export default function ProfilePage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Profile Not Found</AlertTitle>
                     <AlertDescription>
-                        Your user account ({user?.email}) does not have a corresponding staff profile in the system. Please contact your Training Officer to have your profile created on the Settings page under Personnel Management.
+                        Your user account ({user?.email}) does not have a corresponding staff profile in the system. Please contact your Training Officer to have your profile created on the Staff Management page.
                     </AlertDescription>
                 </Alert>
             )}
             
-            {!isDataOwner && (
-                <div className="mt-8">
-                    <Card className="border-amber-500/50">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-amber-600">
-                                <ShieldAlert className="h-6 w-6" />
-                                Ownership Actions
-                            </CardTitle>
-                            <CardDescription>
-                               If you are viewing shared data and want to switch back to your own personal data set, use this tool.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             <AlertDialog open={isOwnerAlertOpen} onOpenChange={setIsOwnerAlertOpen}>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline">Become Owner of My Data</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will disconnect you from any shared data and create a new, personal data set where you are the owner. This action is intended for development and testing.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            className="bg-destructive hover:bg-destructive/90"
-                                            onClick={forceSetOwner}
-                                        >
-                                            Yes, take ownership
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+            <div className="mt-8">
+                <Card className="border-amber-500/50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-amber-600">
+                            <ShieldAlert className="h-6 w-6" />
+                            Ownership Actions
+                        </CardTitle>
+                        <CardDescription>
+                            {isDataOwner 
+                                ? "If you are having permission issues (e.g., cannot invite users), use this tool to re-sync your ownership status and fix your data."
+                                : "If you are viewing shared data and want to switch back to your own personal data set, use this tool."
+                            }
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                            <AlertDialog open={isOwnerAlertOpen} onOpenChange={setIsOwnerAlertOpen}>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline">
+                                    {isDataOwner ? "Re-sync Ownership" : "Become Owner of My Data"}
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        {isDataOwner
+                                            ? "This action will reset your user permissions to fix any inconsistencies, ensuring you are correctly set as the data owner. This should resolve issues like being unable to invite users."
+                                            : "This will disconnect you from any shared data and create a new, personal data set where you are the owner. This action is intended for development and testing."
+                                        }
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        className="bg-destructive hover:bg-destructive/90"
+                                        onClick={forceSetOwner}
+                                    >
+                                        {isDataOwner ? "Yes, re-sync" : "Yes, take ownership"}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </CardContent>
+                </Card>
+            </div>
         </>
     );
 }
