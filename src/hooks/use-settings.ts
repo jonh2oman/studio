@@ -1,6 +1,7 @@
 
 
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -219,12 +220,39 @@ export function useSettings() {
         await saveUserDocument({ settings: updatedSettings });
     }, [settings, saveUserDocument]);
 
+    const resetUserDocument = useCallback(async () => {
+        if (!user || !db || !dataOwnerId) {
+            toast({ variant: "destructive", title: "Error", description: "Cannot reset data. User not authenticated or data owner not found." });
+            return;
+        }
+
+        if (dataOwnerId !== user.uid) {
+            toast({ variant: "destructive", title: "Action Not Allowed", description: "Only the data owner can reset the application." });
+            return;
+        }
+
+        try {
+            const newUserDoc = defaultUserDocument(user.uid, user.email!);
+            const userDocRef = doc(db, 'users', dataOwnerId);
+            await setDoc(userDocRef, newUserDoc);
+            
+            localStorage.removeItem(`currentTrainingYear_${dataOwnerId}`);
+
+            toast({ title: "Application Reset", description: "Your data has been successfully reset. The page will now reload." });
+            setTimeout(() => window.location.reload(), 2000);
+        } catch (error) {
+            console.error("Failed to reset application:", error);
+            toast({ variant: "destructive", title: "Reset Failed", description: "Could not reset your data." });
+        }
+    }, [user, db, dataOwnerId, toast]);
+
     return { 
         settings: settings || defaultSettings, 
         allYearsData,
         saveSettings, 
         isLoaded,
         userRole,
-        dataOwnerId
+        dataOwnerId,
+        resetUserDocument
     };
 }

@@ -493,8 +493,20 @@ const DataManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any 
 
 const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { toast } = useToast();
+    const { resetUserDocument, userRole } = useSettings();
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
     const [resetConfirmation, setResetConfirmation] = useState("");
+    const [isResetting, setIsResetting] = useState(false);
+
+    const handleReset = async () => {
+        if (userRole !== 'owner') {
+            toast({ variant: "destructive", title: "Action Not Allowed", description: "Only the data owner can perform this action."});
+            return;
+        }
+        setIsResetting(true);
+        await resetUserDocument();
+        // The page will reload via the hook, so we don't need to set states back to false.
+    };
   
     return (
         <Card className="border-destructive">
@@ -506,13 +518,24 @@ const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) =
                 </div>
             </CardHeader>
             <CardContent>
-                <Button variant="destructive" onClick={() => setIsResetDialogOpen(true)}>Reset Application</Button>
+                <Button variant="destructive" onClick={() => setIsResetDialogOpen(true)} disabled={userRole !== 'owner'}>
+                    Reset Application
+                </Button>
+                {userRole !== 'owner' && (
+                    <p className="text-xs text-muted-foreground mt-2">Only the data owner can perform this action.</p>
+                )}
             </CardContent>
             <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader><AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle><AlertDialogDescription>This action is permanent and cannot be undone. It will delete all your corps data from the cloud, including schedules, cadets, staff, and settings, and reset the application to its default state.<br /><br />To confirm, please type <strong>reset</strong> into the box below.</AlertDialogDescription></AlertDialogHeader>
                     <div className="py-2"><Input id="reset-confirm" value={resetConfirmation} onChange={(e) => setResetConfirmation(e.target.value)} placeholder='Type "reset" to confirm' /></div>
-                    <AlertDialogFooter><AlertDialogCancel onClick={() => setResetConfirmation("")}>Cancel</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={resetConfirmation !== "reset"} onClick={() => { toast({ variant: "destructive", title: "Action Not Implemented" }); setResetConfirmation(""); setIsResetDialogOpen(false); }}>Reset Application</AlertDialogAction></AlertDialogFooter>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setResetConfirmation("")}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction variant="destructive" disabled={resetConfirmation !== "reset" || isResetting} onClick={handleReset}>
+                            {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Reset Application
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </Card>
