@@ -109,25 +109,25 @@ export function useTrainingYear() {
     ) => {
         if (!user || !db || !currentYear) return;
         
-        const currentData = allYearsData[currentYear] || defaultYearData;
-        const updatedData = typeof dataUpdate === 'function' ? dataUpdate(currentData) : { ...currentData, ...dataUpdate };
+        setAllYearsData(prevAllYears => {
+            const currentData = prevAllYears[currentYear] || defaultYearData;
+            const updatedData = typeof dataUpdate === 'function' 
+                ? dataUpdate(currentData) 
+                : { ...currentData, ...dataUpdate };
 
-        // Optimistic update for UI responsiveness
-        setAllYearsData(prev => ({ ...prev, [currentYear]: updatedData }));
-
-        const userDocRef = doc(db, 'users', user.uid);
-        try {
-            await setDoc(userDocRef, {
+            const userDocRef = doc(db, 'users', user.uid);
+            setDoc(userDocRef, {
                 trainingYears: {
                     [currentYear]: updatedData
                 }
-            }, { merge: true });
-        } catch (error) {
-            console.error("Failed to update year data in Firestore", error);
-            // Optionally revert optimistic update
-            toast({ variant: "destructive", title: "Save Failed", description: "Could not save changes to the cloud." });
-        }
-    }, [user, currentYear, allYearsData, toast]);
+            }, { merge: true }).catch(error => {
+                console.error("Failed to update year data in Firestore", error);
+                toast({ variant: "destructive", title: "Save Failed", description: "Could not save changes to the cloud." });
+            });
+
+            return { ...prevAllYears, [currentYear]: updatedData };
+        });
+    }, [user, currentYear, db, toast]);
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean }) => {
         if (!user || !db) return;
