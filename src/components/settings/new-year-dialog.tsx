@@ -65,15 +65,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
 
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent onPointerDownOutside={(e) => {
-        const target = e.target as HTMLElement;
-        // When clicking on a date in the calendar, the dialog would close.
-        // This is because the calendar is rendered in a Portal, outside the dialog.
-        // We prevent the default behavior of the dialog closing if the click is inside the calendar popover.
-        if (target.closest('[data-radix-popper-content-wrapper]')) {
-          e.preventDefault();
-        }
-      }}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Training Year</DialogTitle>
           <DialogDescription>
@@ -103,7 +95,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="w-auto p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                       <Calendar
                         mode="single"
                         selected={field.value}
