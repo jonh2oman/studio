@@ -1,36 +1,43 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    match /users/{userId} {
-      // A user can read their own document.
-      // A user can also read another user's document (the "owner's" document) 
-      // if their own UID is listed in that document's permissions map.
-      allow read: if request.auth.uid == userId || 
-                   request.auth.uid in resource.data.settings.permissions;
 
-      // A user can only create their own document.
+    match /users/{userId} {
+      // A user can always create their own user document.
       allow create: if request.auth.uid == userId;
 
-      // A user can update their own document (e.g., to add a pointer to shared data).
-      // A user can also update an owner's document if they are listed in the permissions
-      // map with the role of 'owner' or 'editor'.
-      allow update: if request.auth.uid == userId || 
-                     (request.auth.uid in resource.data.settings.permissions && 
-                      resource.data.settings.permissions[request.auth.uid].role in ['owner', 'editor']);
+      // A user can read a document if they are the owner OR if their UID is in the permissions list.
+      allow read: if request.auth.uid == userId ||
+                     (resource.data.settings.permissions[request.auth.uid] != null);
+
+      // A user can write to a document if:
+      // 1. They are updating their own "pointer" document (one that doesn't contain settings).
+      // 2. They have "editor" or "owner" role on a "data" document.
+      allow write: if (request.auth.uid == userId && !('settings' in resource.data)) ||
+                      (resource.data.settings.permissions[request.auth.uid] != null &&
+                       resource.data.settings.permissions[request.auth.uid].role in ['editor', 'owner']);
     }
-    
+
     match /invites/{inviteId} {
-      // Any authenticated user can create an invite. 
-      // The app's own logic should restrict this action to data owners.
-      allow create: if request.auth.uid != null;
-      
-      // An invite can be read or updated by the owner who sent it, or the person it was sent to.
-      // This rule structure is compatible with the client-side queries being made.
-      allow read, update: if request.auth.uid == resource.data.corpsDataOwnerId || 
-                           (request.auth.token.email != null && request.auth.token.email == resource.data.inviteeEmail);
+      // Allow owner to create an invite for their corps.
+      allow create: if request.auth.uid == request.resource.data.corpsDataOwnerId;
+
+      // An invitee or the owner can read a specific invite.
+      allow read: if request.auth.uid == resource.data.corpsDataOwnerId ||
+                     request.auth.token.email == resource.data.inviteeEmail;
+
+      // Authenticated users can query the invites collection.
+      // The query itself must be secured on the client-side to only ask for invites
+      // where the user is the owner or invitee, which is then enforced by the `read` rule.
+      allow list: if request.auth != null;
+
+      // Invitee can update an invite's status to 'accepted'.
+      // Owner can update an invite's status to 'processed'.
+      allow update: if (request.auth.token.email == resource.data.inviteeEmail &&
+                        request.resource.data.status == 'accepted') ||
+                       (request.auth.uid == resource.data.corpsDataOwnerId &&
+                        request.resource.data.status == 'processed');
     }
   }
 }
