@@ -5,22 +5,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import { useSettings } from "@/hooks/use-settings";
 
 const newYearSchema = z.object({
-  firstTrainingNight: z.date({ required_error: "First training night is required" }),
+  firstTrainingNight: z.coerce.date({ required_error: "First training night is required" }),
   shouldCopy: z.boolean().default(false),
   sourceYear: z.string().optional(),
   promoteCadets: z.boolean().default(false),
@@ -34,7 +31,6 @@ interface NewYearDialogProps {
 
 export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
   const { trainingYears, createNewYear, isCreating } = useTrainingYear();
-  const { settings } = useSettings();
   const [useAi, setUseAi] = useState(false);
 
   const form = useForm<NewYearFormData>({
@@ -80,31 +76,13 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>First Training Night of New Year</FormLabel>
-                   <Popover modal={false}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date.getDay() !== settings.trainingDay}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                   <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      value={field.value instanceof Date ? format(field.value, 'yyyy-MM-dd') : field.value || ''}
+                    />
+                  </FormControl>
                   <FormDescription>
                     The training year (e.g., 2024-2025) will be determined by this date.
                   </FormDescription>
