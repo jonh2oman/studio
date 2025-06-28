@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -63,6 +62,16 @@ export function useSettings() {
     const [userRole, setUserRole] = useState<UserRole | null>(null);
     const [dataOwnerId, setDataOwnerId] = useState<string | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
+
+    const userRef = useRef(user);
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
+
+    const dataOwnerIdRef = useRef(dataOwnerId);
+    useEffect(() => {
+        dataOwnerIdRef.current = dataOwnerId;
+    }, [dataOwnerId]);
 
     const processInvites = useCallback(async (userId: string, userEmail: string) => {
         if (!db) return null;
@@ -196,16 +205,10 @@ export function useSettings() {
     const settings = userDocument?.settings;
     const allYearsData = userDocument?.trainingYears || {};
     
-    const dataOwnerIdRef = useRef(dataOwnerId);
-    useEffect(() => {
-        dataOwnerIdRef.current = dataOwnerId;
-    }, [dataOwnerId]);
-
     const saveSettings = useCallback((settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
-        if (!user || !db) return;
-        
+        const currentUser = userRef.current;
         const ownerId = dataOwnerIdRef.current;
-        if (!ownerId) return;
+        if (!currentUser || !db || !ownerId) return;
 
         setUserDocument(prevDoc => {
             if (!prevDoc) return null;
@@ -224,25 +227,27 @@ export function useSettings() {
 
             return { ...prevDoc, settings: updatedSettings };
         });
-    }, [user, toast]);
+    }, [db, toast]);
 
     const resetUserDocument = useCallback(async () => {
-        if (!user || !db || !dataOwnerId) {
+        const currentUser = userRef.current;
+        const ownerId = dataOwnerIdRef.current;
+        if (!currentUser || !db || !ownerId) {
             toast({ variant: "destructive", title: "Error", description: "Cannot reset data. User not authenticated or data owner not found." });
             return;
         }
 
-        if (dataOwnerId !== user.uid) {
+        if (ownerId !== currentUser.uid) {
             toast({ variant: "destructive", title: "Action Not Allowed", description: "Only the data owner can reset the application." });
             return;
         }
 
         try {
-            const newUserDoc = defaultUserDocument(user.uid, user.email!);
-            const userDocRef = doc(db, 'users', dataOwnerId);
+            const newUserDoc = defaultUserDocument(currentUser.uid, currentUser.email!);
+            const userDocRef = doc(db, 'users', ownerId);
             await setDoc(userDocRef, newUserDoc);
             
-            localStorage.removeItem(`currentTrainingYear_${dataOwnerId}`);
+            localStorage.removeItem(`currentTrainingYear_${ownerId}`);
 
             toast({ title: "Application Reset", description: "Your data has been successfully reset. The page will now reload." });
             setTimeout(() => window.location.reload(), 2000);
@@ -250,17 +255,18 @@ export function useSettings() {
             console.error("Failed to reset application:", error);
             toast({ variant: "destructive", title: "Reset Failed", description: "Could not reset your data." });
         }
-    }, [user, db, dataOwnerId, toast]);
+    }, [db, toast]);
 
     const forceSetOwner = useCallback(async () => {
-        if (!user || !db) {
+        const currentUser = userRef.current;
+        if (!currentUser || !db) {
             toast({ variant: "destructive", title: "Error", description: "User not authenticated." });
             return;
         }
 
         try {
-            const newDocument = defaultUserDocument(user.uid, user.email!);
-            const userDocRef = doc(db, 'users', user.uid);
+            const newDocument = defaultUserDocument(currentUser.uid, currentUser.email!);
+            const userDocRef = doc(db, 'users', currentUser.uid);
             
             await setDoc(userDocRef, newDocument);
 
@@ -271,7 +277,7 @@ export function useSettings() {
             console.error("Failed to force set owner:", error);
             toast({ variant: "destructive", title: "Failed to set owner", description: "Could not update ownership." });
         }
-    }, [user, db, toast]);
+    }, [db, toast]);
 
     return { 
         settings: settings || defaultSettings, 
