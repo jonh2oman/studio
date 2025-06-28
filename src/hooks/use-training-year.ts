@@ -104,12 +104,14 @@ export function useTrainingYear() {
         }
     }, [trainingYears, toast]);
 
-    const updateCurrentYearData = useCallback(async (dataUpdate: Partial<TrainingYearData>) => {
+    const updateCurrentYearData = useCallback(async (
+        dataUpdate: Partial<TrainingYearData> | ((prevData: TrainingYearData) => TrainingYearData)
+    ) => {
         if (!user || !db || !currentYear) return;
-
-        const currentData = allYearsData[currentYear] || {};
-        const updatedData = { ...currentData, ...dataUpdate };
         
+        const currentData = allYearsData[currentYear] || defaultYearData;
+        const updatedData = typeof dataUpdate === 'function' ? dataUpdate(currentData) : { ...currentData, ...dataUpdate };
+
         // Optimistic update for UI responsiveness
         setAllYearsData(prev => ({ ...prev, [currentYear]: updatedData }));
 
@@ -197,58 +199,67 @@ export function useTrainingYear() {
 
     const adaPlanners = currentYearData?.adaPlanners || [];
 
-    const updateAdaPlanners = useCallback((newAdaPlanners: AdaPlannerData[]) => {
-        if (!currentYear) return;
-        updateCurrentYearData({ adaPlanners: newAdaPlanners });
-    }, [currentYear, updateCurrentYearData]);
-
-    const addAdaPlanner = useCallback(() => {
+    const addAdaPlanner = useCallback((name: string) => {
+        if (!name.trim()) {
+            toast({ variant: "destructive", title: "Invalid Name", description: "ADA planner name cannot be empty." });
+            return;
+        }
         const newPlanner: AdaPlannerData = {
             id: crypto.randomUUID(),
-            name: `New ADA - ${new Date().toLocaleDateString()}`,
+            name,
             eos: []
         };
-        const updatedPlanners = [...adaPlanners, newPlanner];
-        updateAdaPlanners(updatedPlanners);
+        updateCurrentYearData(prev => ({
+            ...prev,
+            adaPlanners: [...(prev.adaPlanners || []), newPlanner]
+        }));
         toast({ title: "ADA Planner Added" });
-    }, [adaPlanners, updateAdaPlanners, toast]);
+    }, [updateCurrentYearData, toast]);
 
     const removeAdaPlanner = useCallback((id: string) => {
-        const updatedPlanners = adaPlanners.filter(p => p.id !== id);
-        updateAdaPlanners(updatedPlanners);
+        updateCurrentYearData(prev => ({
+            ...prev,
+            adaPlanners: (prev.adaPlanners || []).filter(p => p.id !== id)
+        }));
         toast({ title: "ADA Planner Removed", variant: "destructive" });
-    }, [adaPlanners, updateAdaPlanners, toast]);
+    }, [updateCurrentYearData, toast]);
 
     const updateAdaPlannerName = useCallback((id: string, name: string) => {
-        const updatedPlanners = adaPlanners.map(p => p.id === id ? { ...p, name } : p);
-        updateAdaPlanners(updatedPlanners);
-    }, [adaPlanners, updateAdaPlanners]);
+        updateCurrentYearData(prev => ({
+            ...prev,
+            adaPlanners: (prev.adaPlanners || []).map(p => p.id === id ? { ...p, name } : p)
+        }));
+    }, [updateCurrentYearData]);
 
     const addEoToAda = useCallback((plannerId: string, eo: EO) => {
-        const updatedPlanners = adaPlanners.map(p => {
-            if (p.id === plannerId) {
-                if (p.eos.length >= 60) {
-                    toast({ title: "Planner Full", description: "An ADA planner cannot exceed 60 EOs.", variant: "destructive" });
-                    return p;
+        updateCurrentYearData(prev => ({
+            ...prev,
+            adaPlanners: (prev.adaPlanners || []).map(p => {
+                if (p.id === plannerId) {
+                    if (p.eos.length >= 60) {
+                        toast({ title: "Planner Full", description: "An ADA planner cannot exceed 60 EOs.", variant: "destructive" });
+                        return p;
+                    }
+                    return { ...p, eos: [...p.eos, eo] };
                 }
-                return { ...p, eos: [...p.eos, eo] };
-            }
-            return p;
-        });
-        updateAdaPlanners(updatedPlanners);
-    }, [adaPlanners, updateAdaPlanners, toast]);
+                return p;
+            })
+        }));
+    }, [updateCurrentYearData, toast]);
 
     const removeEoFromAda = useCallback((plannerId: string, eoIndex: number) => {
-        const updatedPlanners = adaPlanners.map(p => {
-            if (p.id === plannerId) {
-                const newEos = [...p.eos];
-                newEos.splice(eoIndex, 1);
-                return { ...p, eos: newEos };
-            }
-            return p;
-        });
-        updateAdaPlanners(updatedPlanners);
-    }, [adaPlanners, updateAdaPlanners]);
+        updateCurrentYearData(prev => ({
+            ...prev,
+            adaPlanners: (prev.adaPlanners || []).map(p => {
+                if (p.id === plannerId) {
+                    const newEos = [...p.eos];
+                    newEos.splice(eoIndex, 1);
+                    return { ...p, eos: newEos };
+                }
+                return p;
+            })
+        }));
+    }, [updateCurrentYearData]);
 
     return { 
         trainingYears, 

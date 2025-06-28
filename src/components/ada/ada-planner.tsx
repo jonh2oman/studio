@@ -24,6 +24,8 @@ export function AdaPlanner() {
     } = useTrainingYear();
     
     const [dragOverPlanner, setDragOverPlanner] = useState<string | null>(null);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [newAdaName, setNewAdaName] = useState('');
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>, plannerId: string) => {
         e.preventDefault();
@@ -41,6 +43,14 @@ export function AdaPlanner() {
         setDragOverPlanner(null);
     };
 
+    const handleAddPlanner = () => {
+        if (newAdaName.trim()) {
+            addAdaPlanner(newAdaName.trim());
+            setIsAddDialogOpen(false);
+            setNewAdaName('');
+        }
+    }
+
     if (!isLoaded) {
         return <p>Loading...</p>;
     }
@@ -48,7 +58,7 @@ export function AdaPlanner() {
     return (
         <div className="space-y-8">
             <div className="flex justify-end">
-                <Button onClick={addAdaPlanner}>
+                <Button onClick={() => setIsAddDialogOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add New ADA Planner
                 </Button>
@@ -126,6 +136,29 @@ export function AdaPlanner() {
                     </CardContent>
                 </Card>
             ))}
+             <AlertDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Add New ADA Planner</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Enter a descriptive name for this Area Directed Activity (e.g., "Fall FTX 2024").
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="py-2">
+                        <Input 
+                            value={newAdaName}
+                            onChange={(e) => setNewAdaName(e.target.value)}
+                            placeholder="ADA Name"
+                            autoFocus
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddPlanner()}
+                        />
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleAddPlanner}>Add</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
