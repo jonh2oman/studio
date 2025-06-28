@@ -1,6 +1,6 @@
 
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCadets } from "@/hooks/use-cadets";
 import { useSettings } from "@/hooks/use-settings";
 import { format } from "date-fns";
@@ -11,17 +11,43 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, Printer, Loader2, Check, X, CircleSlash } from "lucide-react";
+import { Calendar as CalendarIcon, FileDown, Loader2, Check, X } from "lucide-react";
 import type { AttendanceRecord } from "@/lib/types";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export function DailyAttendanceReport() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const { cadets, getAttendanceForDate, isLoaded: cadetsLoaded } = useCadets();
     const { settings, isLoaded: settingsLoaded } = useSettings();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const pdfRef = useRef<HTMLDivElement>(null);
 
     const attendanceRecords: AttendanceRecord[] = selectedDate ? getAttendanceForDate(format(selectedDate, "yyyy-MM-dd")) : [];
 
-    const handlePrint = () => window.print();
+    const handleGeneratePdf = async () => {
+        const input = pdfRef.current;
+        if (!input || !selectedDate) return;
+
+        setIsGenerating(true);
+        try {
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProperties = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Daily-Attendance-${format(selectedDate, 'yyyy-MM-dd')}.pdf`);
+
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const trainingDaysFilter = (date: Date) => {
         return date.getDay() === settings.trainingDay;
@@ -30,12 +56,12 @@ export function DailyAttendanceReport() {
     const isLoading = !cadetsLoaded || !settingsLoaded;
 
     return (
-        <Card>
+        <Card ref={pdfRef}>
             <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <CardTitle>Daily Attendance Report</CardTitle>
-                        <CardDescription>View and print attendance for a specific training night.</CardDescription>
+                        <CardDescription>View and generate a PDF of attendance for a specific training night.</CardDescription>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
                         <Popover>
@@ -62,7 +88,10 @@ export function DailyAttendanceReport() {
                                 />
                             </PopoverContent>
                         </Popover>
-                         <Button onClick={handlePrint} variant="outline" size="sm" className="print:hidden"><Printer className="mr-2 h-4 w-4" />Print</Button>
+                         <Button onClick={handleGeneratePdf} variant="outline" size="sm" className="print:hidden" disabled={isGenerating}>
+                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                            Generate PDF
+                        </Button>
                     </div>
                 </div>
             </CardHeader>

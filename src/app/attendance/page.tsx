@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useCadets } from "@/hooks/use-cadets";
 import { useSettings } from "@/hooks/use-settings";
 import { PageHeader } from "@/components/page-header";
@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2, Save, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, Save, Trash2, FileDown } from "lucide-react";
 import type { AttendanceRecord, AttendanceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,9 @@ import {
     AlertDialogHeader, 
     AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
+import { PrintableAttendanceSheet } from "@/components/attendance/printable-attendance-sheet";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -35,6 +38,9 @@ export default function AttendancePage() {
   const [initialRecords, setInitialRecords] = useState<string>("[]");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [isGeneratingSheet, setIsGeneratingSheet] = useState(false);
+  
+  const pdfRef = useRef<HTMLDivElement>(null);
   const { cadets, isLoaded: cadetsLoaded, getAttendanceForDate, saveAttendanceForDate, deleteAttendanceForDate, attendance } = useCadets();
   const { settings, isLoaded: settingsLoaded } = useSettings();
   const { toast } = useToast();
@@ -44,13 +50,12 @@ export default function AttendancePage() {
       const dateString = format(selectedDate, "yyyy-MM-dd");
       const records = getAttendanceForDate(dateString);
       setAttendanceRecords(records);
-      setInitialRecords(JSON.stringify(records)); // Set initial state for comparison
+      setInitialRecords(JSON.stringify(records));
     }
   }, [cadetsLoaded, selectedDate, getAttendanceForDate, cadets, attendance]);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-        // TODO: Warn user about unsaved changes before switching dates
         setSelectedDate(date);
     }
   };
@@ -89,6 +94,31 @@ export default function AttendancePage() {
     }
     setIsDeleteAlertOpen(false);
   }, [selectedDate, deleteAttendanceForDate, toast]);
+
+  const handleGenerateSheet = async () => {
+    const input = pdfRef.current;
+    if (!input || !selectedDate) return;
+
+    setIsGeneratingSheet(true);
+    try {
+      const canvas = await html2canvas(input, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProperties = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`AttendanceSheet-${format(selectedDate, 'yyyy-MM-dd')}.pdf`);
+
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        toast({ variant: 'destructive', title: "PDF Generation Failed", description: "There was an error creating the attendance sheet."});
+    } finally {
+        setIsGeneratingSheet(false);
+    }
+  };
   
   const hasUnsavedChanges = JSON.stringify(attendanceRecords) !== initialRecords;
 
@@ -110,32 +140,38 @@ export default function AttendancePage() {
       <div className="mt-6">
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <CardTitle>Select a Training Night</CardTitle>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                        variant={"outline"}
-                        className={cn(
-                            "w-[280px] justify-start text-left font-normal mt-4 sm:mt-0",
-                            !selectedDate && "text-muted-foreground"
-                        )}
-                        >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={handleDateSelect}
-                        modifiers={{ trainingDays: trainingDaysFilter }}
-                        modifiersClassNames={{ trainingDays: "bg-primary/20" }}
-                        initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Popover>
+                      <PopoverTrigger asChild>
+                          <Button
+                          variant={"outline"}
+                          className={cn(
+                              "w-full sm:w-[240px] justify-start text-left font-normal",
+                              !selectedDate && "text-muted-foreground"
+                          )}
+                          >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                          </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                          <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={handleDateSelect}
+                          modifiers={{ trainingDays: trainingDaysFilter }}
+                          modifiersClassNames={{ trainingDays: "bg-primary/20" }}
+                          initialFocus
+                          />
+                      </PopoverContent>
+                  </Popover>
+                  <Button onClick={handleGenerateSheet} variant="outline" disabled={isGeneratingSheet || !selectedDate || cadets.length === 0}>
+                    {isGeneratingSheet ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                    Generate Sheet
+                  </Button>
+                </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -250,6 +286,10 @@ export default function AttendancePage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
+
+    <div className="absolute -left-full top-0">
+        {selectedDate && <PrintableAttendanceSheet ref={pdfRef} cadets={cadets} date={selectedDate} />}
+    </div>
     </>
   );
 }

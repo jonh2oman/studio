@@ -1,17 +1,21 @@
 
 "use client";
 import { useCadets } from "@/hooks/use-cadets";
-import { useMemo } from "react";
+import { useMemo, useState, useRef } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Printer, Loader2, AlertTriangle } from "lucide-react";
+import { FileDown, Loader2, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const AT_RISK_THRESHOLD = 75;
 
 export function AtRiskAttendanceReport() {
     const { cadets, attendance, isLoaded: cadetsLoaded } = useCadets();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const pdfRef = useRef<HTMLDivElement>(null);
 
     const atRiskCadets = useMemo(() => {
         if (!cadetsLoaded) return [];
@@ -43,20 +47,44 @@ export function AtRiskAttendanceReport() {
 
     }, [cadets, attendance, cadetsLoaded]);
 
+    const handleGeneratePdf = async () => {
+        const input = pdfRef.current;
+        if (!input) return;
 
-    const handlePrint = () => window.print();
+        setIsGenerating(true);
+        try {
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProperties = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`At-Risk-Attendance-Report.pdf`);
+
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const isLoading = !cadetsLoaded;
 
     return (
-        <Card>
+        <Card ref={pdfRef}>
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>At-Risk Attendance Report</CardTitle>
                         <CardDescription>Cadets with attendance below {AT_RISK_THRESHOLD}%, which may affect promotions or awards.</CardDescription>
                     </div>
-                    <Button onClick={handlePrint} variant="outline" size="sm" className="print:hidden"><Printer className="mr-2 h-4 w-4" />Print</Button>
+                    <Button onClick={handleGeneratePdf} variant="outline" size="sm" className="print:hidden" disabled={isGenerating}>
+                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                        Generate PDF
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>

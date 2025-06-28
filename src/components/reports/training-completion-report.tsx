@@ -1,17 +1,21 @@
 
 "use client";
-import { useMemo } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from "@/components/ui/button";
-import { Printer, Loader2 } from "lucide-react";
+import { FileDown, Loader2 } from "lucide-react";
 import { useTrainingYear } from '@/hooks/use-training-year';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export function TrainingCompletionReport() {
     const { schedule, isLoaded } = useSchedule();
     const { adaPlanners, isLoaded: yearsLoaded } = useTrainingYear();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const pdfRef = useRef<HTMLDivElement>(null);
 
     const phaseProgress = useMemo(() => {
         if (!isLoaded || !yearsLoaded) return [];
@@ -59,17 +63,42 @@ export function TrainingCompletionReport() {
         });
     }, [schedule, isLoaded, adaPlanners, yearsLoaded]);
 
-    const handlePrint = () => window.print();
+    const handleGeneratePdf = async () => {
+        const input = pdfRef.current;
+        if (!input) return;
+
+        setIsGenerating(true);
+        try {
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProperties = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Training-Completion-Report.pdf`);
+
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     return (
-        <Card>
+        <Card ref={pdfRef}>
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div>
                         <CardTitle>Mandatory Training Completion</CardTitle>
                         <CardDescription>Progress of scheduled mandatory training periods for each phase.</CardDescription>
                     </div>
-                    <Button onClick={handlePrint} variant="outline" size="sm" className="print:hidden"><Printer className="mr-2 h-4 w-4" />Print</Button>
+                    <Button onClick={handleGeneratePdf} variant="outline" size="sm" className="print:hidden" disabled={isGenerating}>
+                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                        Generate PDF
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>
