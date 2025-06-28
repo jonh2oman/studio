@@ -17,10 +17,10 @@ export function DataRefreshButton() {
                 <Button
                     size="icon"
                     variant="outline"
-                    className="rounded-full w-14 h-14 shadow-lg bg-background"
+                    className="shadow-lg bg-background"
                     onClick={handleRefresh}
                 >
-                    <RefreshCw className="h-7 w-7" />
+                    <RefreshCw className="h-6 w-6" />
                     <span className="sr-only">Refresh Data</span>
                 </Button>
             </TooltipTrigger>

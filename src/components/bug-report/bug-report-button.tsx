@@ -17,10 +17,10 @@ export function BugReportButton() {
                     <Button
                         size="icon"
                         variant="outline"
-                        className="rounded-full w-14 h-14 shadow-lg bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
+                        className="shadow-lg bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
                         onClick={() => setIsDialogOpen(true)}
                     >
-                        <Bug className="h-7 w-7" />
+                        <Bug className="h-6 w-6" />
                         <span className="sr-only">Report a Bug</span>
                     </Button>
                 </TooltipTrigger>
