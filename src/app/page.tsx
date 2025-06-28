@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -21,6 +21,7 @@ const dashboardCategories = [
             { href: "/planner", title: "Corps/Squadron Training Plan - Annual", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
             { href: "/weekends", title: "Weekend Planner", icon: CalendarDays, description: "Plan training weekends with a detailed 9-period schedule." },
             { href: "/lda", title: "LDA Day Planner", icon: CalendarPlus, description: "Plan single ad-hoc training days with a 9-period schedule." },
+            { href: "/ada", title: "ADA Planner", icon: ClipboardList, description: "Account for EOs completed at Area Directed Activities." },
         ]
     },
     {
@@ -50,14 +51,17 @@ const dashboardCategories = [
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const { schedule, isLoaded } = useSchedule();
-  const { currentYear, isLoaded: yearsLoaded } = useTrainingYear();
+  const { currentYear, isLoaded: yearsLoaded, adaPlanners } = useTrainingYear();
   
   const phaseProgress = useMemo(() => {
-    if (!isLoaded) return [];
+    if (!isLoaded || !yearsLoaded) return [];
 
-    const scheduledEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
+    const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
+    const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
+    const allScheduledEOs = [...scheduleEOs, ...adaEOs];
+
     const scheduledMandatoryIds = new Set(
-        scheduledEOs
+        allScheduledEOs
             .filter(eo => eo.type === 'mandatory')
             .map(eo => eo.id)
     );
@@ -87,7 +91,7 @@ export default function DashboardPage() {
             progress: Math.min(100, progress),
         };
     });
-  }, [schedule, isLoaded]);
+  }, [schedule, isLoaded, adaPlanners, yearsLoaded]);
 
   if (loading) {
     return (

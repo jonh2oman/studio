@@ -227,6 +227,12 @@ export interface AwardWinner {
     [awardId: string]: string[]; // awardId: array of cadetIds
 }
 
+export interface AdaPlannerData {
+    id: string;
+    name: string;
+    eos: EO[];
+}
+
 export interface TrainingYearData {
     firstTrainingNight: string;
     dutySchedule: DutySchedule;
@@ -236,6 +242,7 @@ export interface TrainingYearData {
     attendance: AttendanceState;
     awardWinners: AwardWinner;
     csarDetails: CsarDetails;
+    adaPlanners?: AdaPlannerData[];
 }
 
 export interface UserDocument {

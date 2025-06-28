@@ -4,7 +4,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList } from "lucide-react";
 
 export default function InstructionsPage() {
   return (
@@ -39,6 +39,7 @@ export default function InstructionsPage() {
             <ul className="space-y-2 text-primary underline">
               <li><a href="#dashboard"><p className="flex items-center gap-2"><List className="h-4 w-4" />Dashboard</p></a></li>
               <li><a href="#planners"><p className="flex items-center gap-2"><Calendar className="h-4 w-4" />The Planners</p></a></li>
+              <li><a href="#ada"><p className="flex items-center gap-2"><ClipboardList className="h-4 w-4" />ADA Planner</p></a></li>
               <li><a href="#reports"><p className="flex items-center gap-2"><FileText className="h-4 w-4" />Reports</p></a></li>
               <li><a href="#cadets"><p className="flex items-center gap-2"><Users className="h-4 w-4" />Cadet Management</p></a></li>
               <li><a href="#attendance"><p className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Attendance</p></a></li>
@@ -59,7 +60,7 @@ export default function InstructionsPage() {
               <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">The dashboard provides an at-a-glance overview of your training year and quick access to all modules.</p>
                 <h4 className="font-semibold">Mandatory Training Planning Progress</h4>
-                <p>This section displays progress bars for each Phase, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Weekend, and LDA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
+                <p>This section displays progress bars for each Phase, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Weekend, LDA, and ADA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
                 <h4 className="font-semibold">Navigation Cards</h4>
                 <p>Each card on the dashboard links to a major module of the application. The categories can be expanded or collapsed to keep the view tidy. Simply click on a card to navigate to the respective page.</p>
               </AccordionContent>
@@ -93,6 +94,26 @@ export default function InstructionsPage() {
                     <li>Fill out the form. The data is saved automatically as you fill it out.</li>
                     <li>Track the submission and approval status using the toggles on the main planner page.</li>
                 </ul>
+              </AccordionContent>
+            </AccordionItem>
+          </Card>
+          
+           <Card id="ada">
+            <AccordionItem value="ada" className="border-b-0">
+              <AccordionTrigger className="p-6 text-xl">
+                  <div className="flex items-center gap-3"><ClipboardList className="h-6 w-6" />ADA Planner</div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">The Area Directed Activity (ADA) Planner is a special module designed to account for Enabling Objectives (EOs) that are completed outside of your regular corps/squadron training nights, such as at regional or area-level events.</p>
+                <h4 className="font-semibold">Core Purpose</h4>
+                <p>The primary function of this planner is to ensure that EOs completed at ADAs are correctly reflected in your overall training completion statistics on the Dashboard. There are no dates, instructors, or locations to manage here—it is purely for record-keeping.</p>
+                <h4 className="font-semibold">How to Use It</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                    <li>Click the "Add New ADA Planner" button to create a container for an activity. Give it a descriptive name (e.g., "Fall FTX 2024").</li>
+                    <li>From the floating "Training Objectives" panel, find the EOs that were covered during the ADA.</li>
+                    <li>Drag and drop each completed EO into the grid for the corresponding ADA planner.</li>
+                    <li>Each planner can hold up to 60 EOs. Any mandatory EOs you add here will immediately update the progress bars on your Dashboard.</li>
+                </ol>
               </AccordionContent>
             </AccordionItem>
           </Card>

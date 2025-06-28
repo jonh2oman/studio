@@ -15,6 +15,7 @@ export function HelpButton() {
         if (pathname.startsWith('/planner')) return '/instructions#planner';
         if (pathname.startsWith('/weekends')) return '/instructions#weekend-planner';
         if (pathname.startsWith('/lda')) return '/instructions#lda-planner';
+        if (pathname.startsWith('/ada')) return '/instructions#ada';
         if (pathname.startsWith('/reports')) return '/instructions#reports';
         if (pathname.startsWith('/cadets')) return '/instructions#cadets';
         if (pathname.startsWith('/attendance')) return '/instructions#attendance';

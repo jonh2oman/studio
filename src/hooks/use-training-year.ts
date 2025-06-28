@@ -7,7 +7,7 @@ import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { UserDocument, TrainingYearData, DutySchedule } from '@/lib/types';
+import type { UserDocument, TrainingYearData, DutySchedule, AdaPlannerData, EO } from '@/lib/types';
 import { defaultUserDocument } from './use-settings';
 
 const defaultYearData: TrainingYearData = {
@@ -18,6 +18,7 @@ const defaultYearData: TrainingYearData = {
     dayMetadata: {},
     attendance: {},
     awardWinners: {},
+    adaPlanners: [],
     csarDetails: {
         activityName: '',
         activityType: '',
@@ -194,6 +195,61 @@ export function useTrainingYear() {
         updateCurrentYearData({ dutySchedule: newDutySchedule });
     }, [currentYearData, updateCurrentYearData]);
 
+    const adaPlanners = currentYearData?.adaPlanners || [];
+
+    const updateAdaPlanners = useCallback((newAdaPlanners: AdaPlannerData[]) => {
+        if (!currentYear) return;
+        updateCurrentYearData({ adaPlanners: newAdaPlanners });
+    }, [currentYear, updateCurrentYearData]);
+
+    const addAdaPlanner = useCallback(() => {
+        const newPlanner: AdaPlannerData = {
+            id: crypto.randomUUID(),
+            name: `New ADA - ${new Date().toLocaleDateString()}`,
+            eos: []
+        };
+        const updatedPlanners = [...adaPlanners, newPlanner];
+        updateAdaPlanners(updatedPlanners);
+        toast({ title: "ADA Planner Added" });
+    }, [adaPlanners, updateAdaPlanners, toast]);
+
+    const removeAdaPlanner = useCallback((id: string) => {
+        const updatedPlanners = adaPlanners.filter(p => p.id !== id);
+        updateAdaPlanners(updatedPlanners);
+        toast({ title: "ADA Planner Removed", variant: "destructive" });
+    }, [adaPlanners, updateAdaPlanners, toast]);
+
+    const updateAdaPlannerName = useCallback((id: string, name: string) => {
+        const updatedPlanners = adaPlanners.map(p => p.id === id ? { ...p, name } : p);
+        updateAdaPlanners(updatedPlanners);
+    }, [adaPlanners, updateAdaPlanners]);
+
+    const addEoToAda = useCallback((plannerId: string, eo: EO) => {
+        const updatedPlanners = adaPlanners.map(p => {
+            if (p.id === plannerId) {
+                if (p.eos.length >= 60) {
+                    toast({ title: "Planner Full", description: "An ADA planner cannot exceed 60 EOs.", variant: "destructive" });
+                    return p;
+                }
+                return { ...p, eos: [...p.eos, eo] };
+            }
+            return p;
+        });
+        updateAdaPlanners(updatedPlanners);
+    }, [adaPlanners, updateAdaPlanners, toast]);
+
+    const removeEoFromAda = useCallback((plannerId: string, eoIndex: number) => {
+        const updatedPlanners = adaPlanners.map(p => {
+            if (p.id === plannerId) {
+                const newEos = [...p.eos];
+                newEos.splice(eoIndex, 1);
+                return { ...p, eos: newEos };
+            }
+            return p;
+        });
+        updateAdaPlanners(updatedPlanners);
+    }, [adaPlanners, updateAdaPlanners]);
+
     return { 
         trainingYears, 
         currentYear, 
@@ -204,6 +260,12 @@ export function useTrainingYear() {
         currentYearData,
         updateCurrentYearData,
         dutySchedule: currentYearData?.dutySchedule || {},
-        updateDutySchedule
+        updateDutySchedule,
+        adaPlanners,
+        addAdaPlanner,
+        removeAdaPlanner,
+        updateAdaPlannerName,
+        addEoToAda,
+        removeEoFromAda
     };
 }
