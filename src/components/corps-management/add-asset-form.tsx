@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Asset } from "@/lib/types";
+import { useSettings } from "@/hooks/use-settings";
 
 const assetSchema = z.object({
   name: z.string().min(1, "Asset name is required"),
@@ -25,10 +26,11 @@ const assetSchema = z.object({
 });
 
 interface AddAssetFormProps {
-  onAddAsset: (asset: Omit<Asset, 'id'>) => void;
+  onAddAsset: (asset: Omit<Asset, 'id' | 'assetId'>) => void;
 }
 
 export function AddAssetForm({ onAddAsset }: AddAssetFormProps) {
+  const { settings } = useSettings();
   const form = useForm<z.infer<typeof assetSchema>>({
     resolver: zodResolver(assetSchema),
     defaultValues: {
@@ -60,7 +62,18 @@ export function AddAssetForm({ onAddAsset }: AddAssetFormProps) {
                         <FormItem><FormLabel>Asset Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                      <FormField control={form.control} name="category" render={({ field }) => (
-                        <FormItem><FormLabel>Category</FormLabel><FormControl><Input {...field} placeholder="e.g., Electronics, Uniforms" /></FormControl><FormMessage /></FormItem>
+                        <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {(settings.assetCategories || []).map(category => (
+                                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
                     )} />
                      <FormField control={form.control} name="serialNumber" render={({ field }) => (
                         <FormItem><FormLabel>Serial Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>

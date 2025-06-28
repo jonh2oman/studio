@@ -65,6 +65,7 @@ const defaultSettings: Settings = {
     firstTrainingNight: '', // This is now a dummy value, real value is per-year
     awards: [],
     assets: [],
+    assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
 };
 
 export const defaultUserDocument: UserDocument = {

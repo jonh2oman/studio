@@ -56,6 +56,7 @@ export function AssetTracker({ assets, isLoaded, onEditAsset, onRemoveAsset }: A
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>Asset ID</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Category</TableHead>
                                 <TableHead>Status</TableHead>
@@ -67,6 +68,7 @@ export function AssetTracker({ assets, isLoaded, onEditAsset, onRemoveAsset }: A
                         <TableBody>
                             {assets.sort((a,b) => a.name.localeCompare(b.name)).map((asset) => (
                             <TableRow key={asset.id}>
+                                <TableCell className="font-mono text-xs">{asset.assetId}</TableCell>
                                 <TableCell className="font-medium">{asset.name}</TableCell>
                                 <TableCell>{asset.category}</TableCell>
                                 <TableCell><Badge variant={getStatusBadgeVariant(asset.status)}>{asset.status}</Badge></TableCell>

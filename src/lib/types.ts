@@ -82,6 +82,7 @@ export interface CustomEO {
 
 export interface Asset {
   id: string;
+  assetId: string;
   name: string;
   category: string;
   serialNumber?: string;
@@ -112,6 +113,7 @@ export interface Settings {
   firstTrainingNight: string; // Dummy property for compatibility
   awards: Award[];
   assets: Asset[];
+  assetCategories: string[];
 }
 
 export interface Cadet {

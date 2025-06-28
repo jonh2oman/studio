@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import type { Asset } from "@/lib/types";
 import { ScrollArea } from "../ui/scroll-area";
+import { useSettings } from "@/hooks/use-settings";
 
 const assetSchema = z.object({
   id: z.string(),
+  assetId: z.string(),
   name: z.string().min(1, "Asset name is required"),
   category: z.string().min(1, "Category is required"),
   serialNumber: z.string().optional(),
@@ -33,6 +35,7 @@ interface EditAssetDialogProps {
 }
 
 export function EditAssetDialog({ asset, onUpdateAsset, onOpenChange }: EditAssetDialogProps) {
+  const { settings } = useSettings();
   const form = useForm<z.infer<typeof assetSchema>>({
     resolver: zodResolver(assetSchema),
     defaultValues: asset,
@@ -53,8 +56,28 @@ export function EditAssetDialog({ asset, onUpdateAsset, onOpenChange }: EditAsse
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <ScrollArea className="h-[60vh] p-1">
                         <div className="space-y-4 px-4">
+                            <FormField control={form.control} name="assetId" render={({ field }) => ( 
+                                <FormItem>
+                                    <FormLabel>Asset ID</FormLabel>
+                                    <FormControl><Input {...field} readOnly className="bg-muted/50 font-mono text-xs" /></FormControl>
+                                    <FormMessage />
+                                </FormItem> 
+                            )} />
                             <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Asset Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="category" render={({ field }) => ( <FormItem><FormLabel>Category</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                            <FormField control={form.control} name="category" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Category</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            {(settings.assetCategories || []).map(category => (
+                                                <SelectItem key={category} value={category}>{category}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
                             <FormField control={form.control} name="serialNumber" render={({ field }) => ( <FormItem><FormLabel>Serial Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField control={form.control} name="status" render={({ field }) => ( <FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="In Stock">In Stock</SelectItem><SelectItem value="Deployed">Deployed</SelectItem><SelectItem value="In Repair">In Repair</SelectItem><SelectItem value="Decommissioned">Decommissioned</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
