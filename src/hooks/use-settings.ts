@@ -66,6 +66,7 @@ const defaultSettings: Settings = {
     awards: [],
     assets: [],
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
+    settingsCardOrder: ['general', 'resources', 'data', 'danger'],
 };
 
 export const defaultUserDocument: UserDocument = {

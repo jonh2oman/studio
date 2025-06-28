@@ -114,6 +114,7 @@ export interface Settings {
   awards: Award[];
   assets: Asset[];
   assetCategories: string[];
+  settingsCardOrder?: string[];
 }
 
 export interface Cadet {
