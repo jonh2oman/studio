@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2 } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -20,6 +20,7 @@ import { useSettings } from "@/hooks/use-settings";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "./ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const navGroups = [
   {
@@ -85,15 +86,33 @@ function AuthStatus() {
     }
 
     return user ? (
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 px-2 text-sm truncate">
-                <UserCircle className="h-5 w-5 flex-shrink-0"/>
-                <span className="truncate" title={user.email || 'User'}>{user.email}</span>
-            </div>
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-7 w-7">
-                <LogOut />
-            </Button>
-        </div>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start items-center p-2 h-auto text-left">
+                    <div className="flex items-center gap-2 truncate">
+                        <UserCircle className="h-7 w-7 flex-shrink-0 text-sidebar-foreground/80"/>
+                        <div className="flex flex-col items-start truncate">
+                            <span className="truncate font-semibold text-sm text-sidebar-foreground">My Account</span>
+                            <span className="truncate text-xs text-sidebar-foreground/70">{user.email}</span>
+                        </div>
+                    </div>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] mb-2" side="top" align="start">
+                <DropdownMenuLabel>Account Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log Out</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     ) : (
         <Link href="/login" className="w-full">
             <Button variant="outline" className="w-full">
@@ -195,7 +214,6 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="items-center p-2 space-y-2">
          <AuthStatus />
-         <SidebarSeparator />
       </SidebarFooter>
     </Sidebar>
   );
