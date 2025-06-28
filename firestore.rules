@@ -1,0 +1,30 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /users/{userId} {
+      // A user can read a document if they are the owner OR if they are listed in that document's permissions map.
+      allow read: if request.auth.uid == userId || (resource.data.permissions != null && resource.data.permissions[request.auth.uid] != null);
+      
+      // A user can only write to their own document (or the document they own).
+      allow write: if request.auth.uid == userId;
+    }
+
+    match /invites/{inviteId} {
+      // An invite can only be created by the user who owns the data.
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.corpsDataOwnerId;
+      
+      // An invite can be read by the owner who sent it or the person who received it.
+      allow read: if request.auth.uid == resource.data.corpsDataOwnerId || request.auth.token.email == resource.data.inviteeEmail;
+      
+      // An invite can be updated by the invitee (to accept it) or the owner (to mark it as processed).
+      allow update: if (request.auth.token.email == resource.data.inviteeEmail && request.resource.data.status == 'accepted') || 
+                       (request.auth.uid == resource.data.corpsDataOwnerId && request.resource.data.status == 'processed');
+      
+      // Invites cannot be deleted to maintain an audit trail.
+      allow delete: if false;
+    }
+  }
+}

@@ -73,30 +73,56 @@ export function useSettings() {
         const inviteData = inviteDoc.data() as Invite;
         const ownerId = inviteData.corpsDataOwnerId;
 
-        const ownerDocRef = doc(db, 'users', ownerId);
-        const userDocRef = doc(db, 'users', userId);
-
         const batch = writeBatch(db);
 
-        // Update owner's doc with new user's permission
-        batch.set(ownerDocRef, {
-            settings: {
-                permissions: {
-                    [userId]: { email: userEmail, role: inviteData.role }
-                }
-            }
-        }, { merge: true });
-
-        // Update invitee's doc with a pointer
+        // Invitee updates their own document to point to the owner's data
+        const userDocRef = doc(db, 'users', userId);
         batch.set(userDocRef, { pointerToCorpsData: ownerId }, { merge: true });
         
-        // Update invite status
+        // Invitee updates the invite status to 'accepted'
         batch.update(inviteDoc.ref, { status: "accepted", acceptedBy: userId, acceptedAt: new Date() });
 
         await batch.commit();
-
+        
+        // The owner's client will handle adding the user to permissions.
         return ownerId;
     }, []);
+
+    const syncPermissions = useCallback(async (currentDataOwnerId: string, currentSettings: Settings) => {
+        if (!user || !db || currentSettings.permissions?.[user.uid]?.role !== 'owner') return;
+        
+        const invitesRef = collection(db, "invites");
+        // Look for invites that this user sent and have been accepted but not yet processed
+        const q = query(invitesRef, where("corpsDataOwnerId", "==", currentDataOwnerId), where("status", "==", "accepted"));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) return;
+
+        const batch = writeBatch(db);
+        const newPermissions = { ...currentSettings.permissions };
+        let permissionsChanged = false;
+
+        querySnapshot.forEach(inviteDoc => {
+            const inviteData = inviteDoc.data() as Invite;
+            const inviteeId = inviteData.acceptedBy;
+            
+            // If the accepted invitee is not already in permissions, add them
+            if (inviteeId && !newPermissions[inviteeId]) {
+                newPermissions[inviteeId] = { email: inviteData.inviteeEmail, role: inviteData.role };
+                permissionsChanged = true;
+                
+                // Mark the invite as processed so we don't handle it again
+                batch.update(inviteDoc.ref, { status: "processed" });
+            }
+        });
+
+        if (permissionsChanged) {
+            const userDocRef = doc(db, 'users', currentDataOwnerId);
+            batch.set(userDocRef, { settings: { permissions: newPermissions } }, { merge: true });
+            await batch.commit();
+            // The main useEffect will re-read the data and update the state
+        }
+    }, [user, db]);
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -108,10 +134,8 @@ export function useSettings() {
 
             setIsLoaded(false);
 
-            // 1. Check for and process any pending invites
             const ownerIdFromInvite = await processInvites(user.uid, user.email!);
 
-            // 2. Determine where the data lives
             let effectiveOwnerId = ownerIdFromInvite;
             if (!effectiveOwnerId) {
                 const userDocRef = doc(db, 'users', user.uid);
@@ -119,26 +143,32 @@ export function useSettings() {
                 if (userDocSnap.exists() && userDocSnap.data()?.pointerToCorpsData) {
                     effectiveOwnerId = userDocSnap.data()?.pointerToCorpsData;
                 } else {
-                    effectiveOwnerId = user.uid; // User is the owner
+                    effectiveOwnerId = user.uid;
                 }
             }
             setDataOwnerId(effectiveOwnerId);
 
-            // 3. Load the data from the owner's document
             const dataDocRef = doc(db, 'users', effectiveOwnerId);
             const dataDocSnap = await getDoc(dataDocRef);
 
             if (dataDocSnap.exists()) {
                 const data = dataDocSnap.data() as UserDocument;
-                const mergedSettings: Settings = {
-                    ...defaultSettings,
-                    ...data.settings,
-                    staffRoles: Array.from(new Set([...permanentRoles, ...(data.settings.staffRoles || [])])),
-                };
-                setUserDocument({ ...data, settings: mergedSettings });
-                setUserRole(data.settings.permissions?.[user.uid]?.role || null);
+                const role = data.settings.permissions?.[user.uid]?.role || null;
+                
+                if (role === 'owner') {
+                    await syncPermissions(effectiveOwnerId, data.settings);
+                    // Re-fetch data after syncing permissions to get the latest state
+                    const updatedDataDocSnap = await getDoc(dataDocRef);
+                    if (updatedDataDocSnap.exists()) {
+                         const updatedData = updatedDataDocSnap.data() as UserDocument;
+                         setUserDocument(updatedData);
+                         setUserRole(updatedData.settings.permissions?.[user.uid]?.role || null);
+                    }
+                } else {
+                    setUserDocument(data);
+                    setUserRole(role);
+                }
             } else {
-                // This is a new user who wasn't invited, create their own document
                 const newUserDoc = defaultUserDocument(user.uid, user.email!);
                 await setDoc(dataDocRef, newUserDoc);
                 setUserDocument(newUserDoc);
@@ -147,7 +177,7 @@ export function useSettings() {
             setIsLoaded(true);
         }
         loadSettings();
-    }, [user, processInvites]);
+    }, [user, processInvites, syncPermissions]);
 
     const saveUserDocument = useCallback(async (newDocument: Partial<UserDocument>) => {
         if (!user || !db || !dataOwnerId) return;
