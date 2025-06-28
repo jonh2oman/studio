@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,13 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserCog, Loader2, AlertTriangle, ShieldAlert } from "lucide-react";
+import { UserCog, Loader2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const profileSchema = z.object({
   rank: z.string().min(1, "Rank is required"),
@@ -30,9 +29,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
     const { user, loading: authLoading } = useAuth();
-    const { settings, saveSettings, isLoaded: settingsLoaded, forceSetOwner, dataOwnerId } = useSettings();
+    const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
     const { toast } = useToast();
-    const [isOwnerAlertOpen, setIsOwnerAlertOpen] = useState(false);
 
     const form = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
@@ -77,7 +75,6 @@ export default function ProfilePage() {
     }
     
     const availableRanks = staffProfile?.type === 'Officer' ? settings.officerRanks : settings.cadetRanks;
-    const isDataOwner = user && dataOwnerId === user.uid;
 
     return (
         <>
@@ -182,52 +179,6 @@ export default function ProfilePage() {
                     </AlertDescription>
                 </Alert>
             )}
-            
-            <div className="mt-8">
-                <Card className="border-amber-500/50">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-amber-600">
-                            <ShieldAlert className="h-6 w-6" />
-                            Ownership Actions
-                        </CardTitle>
-                        <CardDescription>
-                            {isDataOwner 
-                                ? "If you are having permission issues (e.g., cannot invite users), use this tool to re-sync your ownership status and fix your data."
-                                : "If you are viewing shared data and want to switch back to your own personal data set, use this tool."
-                            }
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                            <AlertDialog open={isOwnerAlertOpen} onOpenChange={setIsOwnerAlertOpen}>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="outline">
-                                    {isDataOwner ? "Re-sync Ownership" : "Become Owner of My Data"}
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        {isDataOwner
-                                            ? "This action will reset your user permissions to fix any inconsistencies, ensuring you are correctly set as the data owner. This should resolve issues like being unable to invite users."
-                                            : "This will disconnect you from any shared data and create a new, personal data set where you are the owner. This action is intended for development and testing."
-                                        }
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        className="bg-destructive hover:bg-destructive/90"
-                                        onClick={forceSetOwner}
-                                    >
-                                        {isDataOwner ? "Yes, re-sync" : "Yes, take ownership"}
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </CardContent>
-                </Card>
-            </div>
         </>
     );
 }

@@ -11,11 +11,10 @@ import { useState, useMemo, useCallback } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { X, Users } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddStaffForm } from "@/components/corps-management/add-staff-form";
 import { StaffList } from "@/components/corps-management/staff-list";
-import { UserAccessManager } from "@/components/corps-management/user-access-manager";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function StaffManagementPage() {
@@ -28,8 +27,6 @@ export default function StaffManagementPage() {
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newStaffRole, setNewStaffRole] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
-
-  const isOwner = user && settings.permissions?.[user.uid]?.role === 'owner';
 
   const permanentRoles = useMemo(() => [
     'Commanding Officer',
@@ -123,7 +120,7 @@ export default function StaffManagementPage() {
     <>
       <PageHeader
         title="Staff Management"
-        description="Manage staff roster, duties, and user access."
+        description="Manage staff roster and duties."
       />
       <div className="mt-6 space-y-8">
           <div className="grid gap-8 md:grid-cols-3">
@@ -156,22 +153,7 @@ export default function StaffManagementPage() {
                   <DutyRoster />
               </CardContent>
           </Card>
-           {isOwner && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Users className="h-6 w-6" />
-                            Manage User Access
-                        </CardTitle>
-                        <CardDescription>
-                            Invite other users to view or edit this corps' data. They will receive an invitation via email.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UserAccessManager />
-                    </CardContent>
-                </Card>
-           )}
+        
           <Accordion type="single" collapsible className="w-full">
             <Card>
                 <AccordionItem value="staff-settings" className="border-b-0">

@@ -1,14 +1,13 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { UserDocument, TrainingYearData, DutySchedule, AdaPlannerData, EO, Invite } from '@/lib/types';
+import type { TrainingYearData, DutySchedule, AdaPlannerData, EO } from '@/lib/types';
 import { useSettings } from './use-settings';
 
 const defaultYearData: TrainingYearData = {
@@ -47,7 +46,7 @@ const defaultYearData: TrainingYearData = {
 
 export function useTrainingYear() {
     const { user } = useAuth();
-    const { settings, allYearsData, saveSettings, isLoaded: settingsLoaded, userRole, dataOwnerId } = useSettings();
+    const { settings, allYearsData, isLoaded: settingsLoaded } = useSettings();
     const { toast } = useToast();
     
     const [trainingYears, setTrainingYears] = useState<string[]>([]);
@@ -55,40 +54,36 @@ export function useTrainingYear() {
     const [isCreating, setIsCreating] = useState(false);
     
     useEffect(() => {
-        if(settingsLoaded) {
+        if(settingsLoaded && user) {
             const years = Object.keys(allYearsData).sort().reverse();
             setTrainingYears(years);
 
-            const storedCurrentYear = localStorage.getItem(`currentTrainingYear_${dataOwnerId}`);
+            const storedCurrentYear = localStorage.getItem(`currentTrainingYear_${user.uid}`);
             if (storedCurrentYear && years.includes(storedCurrentYear)) {
                 setCurrentYearState(storedCurrentYear);
             } else if (years.length > 0) {
                 setCurrentYearState(years[0]);
-                if (dataOwnerId) {
-                    localStorage.setItem(`currentTrainingYear_${dataOwnerId}`, years[0]);
-                }
+                localStorage.setItem(`currentTrainingYear_${user.uid}`, years[0]);
             } else {
                 setCurrentYearState(null);
             }
         }
-    }, [allYearsData, settingsLoaded, dataOwnerId]);
+    }, [allYearsData, settingsLoaded, user]);
 
     const currentYearData = currentYear ? allYearsData[currentYear] : null;
 
     const setCurrentYear = useCallback((year: string) => {
-        if (trainingYears.includes(year)) {
-            if (dataOwnerId) {
-                localStorage.setItem(`currentTrainingYear_${dataOwnerId}`, year);
-            }
+        if (trainingYears.includes(year) && user) {
+            localStorage.setItem(`currentTrainingYear_${user.uid}`, year);
             setCurrentYearState(year);
             toast({ title: "Switched Year", description: `Now viewing training year ${year}.` });
         }
-    }, [trainingYears, toast, dataOwnerId]);
+    }, [trainingYears, toast, user]);
 
     const updateCurrentYearData = useCallback(async (
         dataUpdate: Partial<TrainingYearData> | ((prevData: TrainingYearData) => TrainingYearData)
     ) => {
-        if (!currentYear) return;
+        if (!currentYear || !user || !db) return;
 
         const currentData = allYearsData[currentYear] || defaultYearData;
         const updatedData = typeof dataUpdate === 'function' 
@@ -97,16 +92,20 @@ export function useTrainingYear() {
         
         const newAllYearsData = { ...allYearsData, [currentYear]: updatedData };
         
-        if (!dataOwnerId || !db) return;
-        const userDocRef = doc(db, 'users', dataOwnerId);
+        const userDocRef = doc(db, 'users', user.uid);
         await setDoc(userDocRef, { trainingYears: newAllYearsData }, { merge: true });
 
-    }, [currentYear, allYearsData, dataOwnerId, db]);
+    }, [currentYear, allYearsData, user, db]);
 
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean }) => {
         if (trainingYears.includes(year)) {
             toast({ variant: "destructive", title: "Error", description: `Training year ${year} already exists.` });
+            return;
+        }
+        
+        if (!user || !db) {
+            toast({ variant: "destructive", title: "Error", description: `User not authenticated.` });
             return;
         }
 
@@ -137,9 +136,7 @@ export function useTrainingYear() {
             
             const newAllYearsData = { ...allYearsData, [year]: newYearData };
             
-            if (!dataOwnerId || !db) throw new Error("Data owner not found");
-
-            const userDocRef = doc(db, 'users', dataOwnerId);
+            const userDocRef = doc(db, 'users', user.uid);
             await setDoc(userDocRef, { trainingYears: newAllYearsData }, { merge: true });
             
             const updatedYears = [...trainingYears, year].sort().reverse();
@@ -153,7 +150,7 @@ export function useTrainingYear() {
         } finally {
             setIsCreating(false);
         }
-    }, [user, db, trainingYears, allYearsData, toast, setCurrentYear, settings, dataOwnerId]);
+    }, [user, db, trainingYears, allYearsData, toast, setCurrentYear, settings]);
     
     const updateDutySchedule = useCallback((date: string, scheduleUpdate: Partial<DutySchedule[string]>) => {
         if (!currentYearData) return;
@@ -235,27 +232,6 @@ export function useTrainingYear() {
         });
     }, [updateCurrentYearData]);
 
-    const inviteUser = useCallback(async (email: string, role: 'editor' | 'viewer') => {
-        if (!db || !user?.email || !dataOwnerId) return;
-
-        // Check if user is already in permissions
-        if (Object.values(settings.permissions || {}).some(p => p.email === email)) {
-            toast({ variant: "destructive", title: "User Already Has Access" });
-            return;
-        }
-
-        const invitesRef = collection(db, "invites");
-        const newInvite: Omit<Invite, 'id'> = {
-            corpsDataOwnerId: dataOwnerId,
-            ownerEmail: user.email,
-            inviteeEmail: email,
-            role: role,
-            status: 'pending',
-        };
-        await addDoc(invitesRef, newInvite);
-        toast({ title: "Invitation Sent", description: `An invitation has been sent to ${email}.` });
-    }, [db, user?.email, dataOwnerId, settings.permissions, toast]);
-
     return { 
         trainingYears, 
         currentYear, 
@@ -273,7 +249,5 @@ export function useTrainingYear() {
         updateAdaPlannerName,
         addEoToAda,
         removeEoFromAda,
-        userRole,
-        inviteUser
     };
 }

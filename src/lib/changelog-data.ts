@@ -6,12 +6,15 @@ export const changelogData: ChangelogEntry[] = [
     version: "1.2.0",
     date: "Current Version",
     changes: [
+      "Removed all multi-user collaboration features to improve application stability and simplify the data model.",
+      "Re-architected the data layer to be single-user, with all data securely tied to the logged-in user's account.",
+      "Fixed a critical bug that caused application crashes ('Maximum update depth exceeded') when reordering items in the sidebar.",
+      "Resolved a data hydration error that could occur when loading the dashboard with a custom layout.",
       "Rebranded application to 'Corps/Sqn Manager' and updated all relevant text and titles.",
       "Implemented a dynamic logo in the sidebar that displays the user's uploaded corps logo.",
       "Added drag-and-drop reordering for all settings cards on the Settings page, including nested cards.",
       "Added drag-and-drop reordering for navigation items within the sidebar.",
       "Relocated Cadet settings (Ranks, Roles, Dress) to the Cadet Management page for better organization.",
-      "Fixed a CSS issue causing the printable attendance sheet to appear incorrectly on the page."
     ],
   },
   {
@@ -22,52 +25,11 @@ export const changelogData: ChangelogEntry[] = [
       "Automatic Saving: All changes are now saved automatically to the user's account in the cloud.",
       "Added 'ADA Planner' module to account for EOs completed at Area Directed Activities.",
       "Cross-Device Sync: User data is now available on any device after logging in.",
-      "Production-Ready Authentication: Removed mock authentication mode. The application now exclusively uses Firebase for login and signup.",
+      "Added full user authentication (Email/Password).",
       "Improved UI Consistency: Standardized the layout across all planner pages.",
-      "Fixed multiple bugs related to component state and initialization."
     ],
   },
-  {
-    version: "1.0.3 Beta",
-    date: "July 31, 2024",
-    changes: [
-        "Reworked Staff Management system, adding role creation, primary/additional roles, permanent roles, and dynamic fields based on staff type.",
-        "Enhanced Cadet Management with a new system for creating and assigning custom Cadet Roles.",
-        "Overhauled the planner UI with a draggable, resizable, and searchable floating objectives panel and sticky headers.",
-        "Added a system for creating and managing custom, corps-specific Enabling Objectives (EOs) in the Settings page.",
-        "Integrated full Firebase Authentication (Email/Password and Google) which activates when API keys are provided.",
-        "Removed the experimental theme switcher to simplify the UI and set a new default accent color.",
-        "Various minor bug fixes and usability improvements across the application.",
-    ],
-  },
-  {
-    version: "1.0.2 Beta",
-    date: "July 30, 2024",
-    changes: [
-        "Implemented a robust user authentication system with sign-up, login, and logout functionality.",
-        "Added a mock authentication mode to allow for testing and development without requiring Firebase credentials.",
-        "Fixed a critical bug causing 'maximum update depth exceeded' errors on the Settings page.",
-        "Resolved a crash related to missing Firebase API keys by implementing a graceful fallback.",
-        "Fixed an import error for `usePathname` in the sidebar component.",
-    ],
-  },
-  {
-    version: "1.0.1 Beta",
-    date: "July 29, 2024",
-    changes: [
-        "Added a comprehensive changelog to track application updates.",
-        "Updated application version to 1.0.1 Beta.",
-        "Corrected HTML nesting issues causing hydration errors in the sidebar menu.",
-        "Added a prominent disclaimer to the About page regarding official CCO use.",
-        "Updated the Instructions page with detailed, current information and highlighted automatic logic.",
-        "Personalized author and contact information on the About page.",
-        "Set the Dashboard as the default highlighted page on application start.",
-        "Applied consistent border styling to cards on the Dashboard and Settings pages.",
-        "Removed the experimental Guided Setup feature to improve stability.",
-        "Resolved a server startup conflict related to port assignment.",
-    ],
-  },
-  {
+    {
     version: "1.0.0",
     date: "July 28, 2024",
     changes: [

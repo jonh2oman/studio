@@ -1,7 +1,4 @@
 
-
-
-
 export interface EO {
   id: string;
   title: string;
@@ -97,13 +94,6 @@ export interface Asset {
   notes?: string;
 }
 
-export type UserRole = 'owner' | 'editor' | 'viewer';
-
-export interface Permission {
-    email: string;
-    role: UserRole;
-}
-
 export interface Settings {
   trainingDay: number;
   corpsName: string;
@@ -133,7 +123,6 @@ export interface Settings {
     categoryOrder: string[];
     itemOrder: Record<string, string[]>;
   };
-  permissions: { [userId: string]: Permission };
 }
 
 export interface Cadet {
@@ -286,17 +275,11 @@ export interface UserDocument {
     trainingYears: {
         [year: string]: TrainingYearData;
     };
-    pointerToCorpsData?: string;
     displayName?: string;
 }
 
-export interface Invite {
-    id: string;
-    corpsDataOwnerId: string;
-    ownerEmail: string;
-    inviteeEmail: string;
-    role: 'editor' | 'viewer';
-    status: 'pending' | 'accepted' | 'processed';
-    acceptedBy?: string;
-    acceptedAt?: Date;
+export interface ChangelogEntry {
+  version: string;
+  date: string;
+  changes: string[];
 }

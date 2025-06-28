@@ -190,22 +190,9 @@ export default function InstructionsPage() {
                  <div className="flex items-center gap-3"><Contact className="h-6 w-6" />Staff Management</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">This is where you manage your staff roster, duty assignments, and user access. This data persists across all training years.</p>
+                <p className="text-muted-foreground">This is where you manage your staff roster and duty assignments. This data persists across all training years.</p>
                 <h4 className="font-semibold">Staff Roster & Duties</h4>
                  <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
-                 <h4 className="font-semibold">User Access Management (Collaboration)</h4>
-                 <p>You can invite other staff members to access and collaborate on your corps data. The user who created the data is the "Owner" and is the only one who can manage permissions.</p>
-                 <ol className="list-decimal list-inside space-y-2">
-                    <li><strong>To Invite a User:</strong> As the Owner, go to the "Manage User Access" section on this page. Enter the user's email, select a role (Editor or Viewer), and send the invitation.</li>
-                    <li><strong>For Invited Users:</strong> The invited person must sign up for an account using the exact email address the invitation was sent to. Upon their first login, they will automatically be granted access to the shared data.</li>
-                    <li><strong>Roles:</strong>
-                        <ul className="list-disc list-inside ml-6 my-2 bg-muted/50 p-3 rounded-md">
-                            <li><strong>Owner:</strong> Can do everything, including manage user permissions.</li>
-                            <li><strong>Editor:</strong> Can view and modify all corps data.</li>
-                            <li><strong>Viewer:</strong> Can only view corps data (read-only access).</li>
-                        </ul>
-                    </li>
-                 </ol>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -273,7 +260,7 @@ export default function InstructionsPage() {
                 </ul>
                 
                 <h4 className="font-semibold">Data Management</h4>
-                <p>Your data is automatically and securely saved to the cloud, tied to your user account. There is no need for manual backups. Your changes are available instantly across any device you log in from.</p>
+                <p>Your data is automatically and securely saved to the cloud, tied to your user account. There is no need for manual backups.</p>
                 
                 <h4 className="font-semibold flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive"/>Danger Zone</h4>
                 <p>The "Reset Application" button will permanently delete <strong>all</strong> of your data from the cloud, including all training years, schedules, cadets, and settings associated with your account. This action is irreversible and cannot be undone. Use this with extreme caution.</p>
