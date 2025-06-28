@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Settings, UserDocument } from '@/lib/types';
+import type { Settings, UserDocument, LsaWishListItem } from '@/lib/types';
 import { useAuth } from './use-auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -36,6 +36,7 @@ const defaultSettings: Settings = {
     awards: awardsData,
     assets: [],
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
+    lsaWishList: [],
     settingsCardOrder: ['general', 'resources', 'data', 'danger'],
     generalSettingsCardOrder: ['trainingYear', 'corpsInfo'],
     planningResourcesCardOrder: ['classrooms', 'customEos', 'weeklyActivities'],

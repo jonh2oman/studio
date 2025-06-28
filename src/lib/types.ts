@@ -94,6 +94,16 @@ export interface Asset {
   notes?: string;
 }
 
+export interface LsaWishListItem {
+  id: string;
+  name: string;
+  description?: string;
+  quantity: number;
+  unitPrice: number;
+  link?: string;
+  priceScreenshot?: string; // base64 data URI
+}
+
 export interface Settings {
   trainingDay: number;
   corpsName: string;
@@ -114,6 +124,7 @@ export interface Settings {
   awards: Award[];
   assets: Asset[];
   assetCategories: string[];
+  lsaWishList: LsaWishListItem[];
   settingsCardOrder?: string[];
   generalSettingsCardOrder?: string[];
   planningResourcesCardOrder?: string[];

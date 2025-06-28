@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { trainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -43,6 +43,7 @@ const dashboardCategories = [
         items: [
             { href: "/corps-management/assets", title: "Asset Management", icon: Building2, description: "Track and manage all corps-owned assets." },
             { href: "/corps-management/staff", title: "Staff Management", icon: Contact, description: "Manage staff roster, duties, and user access." },
+            { href: "/corps-management/lsa-wish-list", title: "LSA Wish List", icon: ShoppingCart, description: "Create and manage your annual LSA request list." },
         ]
     },
     {
