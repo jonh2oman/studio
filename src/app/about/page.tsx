@@ -15,7 +15,7 @@ export default function AboutPage() {
   return (
     <>
       <PageHeader
-        title="About The Training Officer's Planning Tool"
+        title="About Corps/Sqn Manager"
         description="Information, credits, and licensing for the application."
       />
       <div className="mt-6 space-y-8">
@@ -38,14 +38,14 @@ export default function AboutPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              This Training Officer's Planning Tool is a comprehensive web application designed to assist Canadian Cadet Organization (CCO) Training Officers in planning, managing, and reporting on their corps/squadron's annual training schedule.
+              Corps/Sqn Manager is a comprehensive web application designed to assist Canadian Cadet Organization (CCO) Training Officers in planning, managing, and reporting on their corps/squadron's annual training schedule.
             </p>
             <p className="text-muted-foreground">
               The goal is to provide an intuitive, all-in-one solution to streamline administrative tasks, track progress against the Cadet Program curriculum, and facilitate efficient communication through automated report generation.
             </p>
             <div className="flex items-center gap-4">
                 <p>
-                    <strong>Version:</strong> 1.0.3 Beta
+                    <strong>Version:</strong> 1.2.0
                 </p>
                 <ChangelogDialog isOpen={isChangelogOpen} onOpenChange={setIsChangelogOpen}>
                     <Button variant="outline" size="sm" onClick={() => setIsChangelogOpen(true)}>

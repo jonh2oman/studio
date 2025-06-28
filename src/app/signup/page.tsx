@@ -72,7 +72,7 @@ export default function SignupPage() {
             </div>
             <CardTitle className="text-2xl">Create an Account</CardTitle>
             <CardDescription className="px-4 text-center pt-2">
-                Create an account to securely save your training plans and access them from any device.
+                Create an account to securely save your corps/squadron data and access it from any device.
             </CardDescription>
         </CardHeader>
         <CardContent>

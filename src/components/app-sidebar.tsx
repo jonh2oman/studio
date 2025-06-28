@@ -283,12 +283,16 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="bg-primary/20 p-2 rounded-lg">
-            <Ship className="w-7 h-7 text-primary" />
-          </div>
+          {settings.corpsLogo ? (
+            <img src={settings.corpsLogo} alt={settings.corpsName || "Corps Logo"} className="w-10 h-10 object-contain rounded-md" />
+          ) : (
+            <div className="bg-primary/20 p-2 rounded-lg">
+              <Ship className="w-7 h-7 text-primary" />
+            </div>
+          )}
           <div className="flex flex-col min-h-[2.5rem] justify-center">
-            <h1 className="text-lg font-semibold text-primary">
-              {settingsLoaded ? (settings.corpsName || 'Training Planner') : <>&nbsp;</>}
+            <h1 className="text-base font-semibold text-primary">
+              {settingsLoaded ? (settings.corpsName || 'Corps/Sqn Manager') : <>&nbsp;</>}
             </h1>
             <p className="text-xs text-muted-foreground">
               {yearsLoaded ? (currentYear ? `TY: ${currentYear}` : 'No Year Selected') : <>&nbsp;</>}

@@ -6,11 +6,12 @@ export const changelogData: ChangelogEntry[] = [
     version: "1.2.0",
     date: "Current Version",
     changes: [
-      "Added new 'Corps Management' module for tracking corps-owned assets.",
-      "Implemented a comprehensive Asset Tracker with add, edit, and remove functionality.",
-      "Added a 'Corps Assets' report to the Reports module.",
-      "Updated application instructions and changelog.",
-      "Fixed a persistent bug with the date picker in the 'New Training Year' dialog by replacing it with a standard date input field."
+      "Rebranded application to 'Corps/Sqn Manager' and updated all relevant text and titles.",
+      "Implemented a dynamic logo in the sidebar that displays the user's uploaded corps logo.",
+      "Added drag-and-drop reordering for all settings cards on the Settings page, including nested cards.",
+      "Added drag-and-drop reordering for navigation items within the sidebar.",
+      "Relocated Cadet settings (Ranks, Roles, Dress) to the Cadet Management page for better organization.",
+      "Fixed a CSS issue causing the printable attendance sheet to appear incorrectly on the page."
     ],
   },
   {

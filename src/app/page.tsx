@@ -117,7 +117,7 @@ export default function DashboardPage() {
     return (
       <>
         <PageHeader
-          title="Welcome to the Training Officer's Planning Tool"
+          title="Welcome to Corps/Sqn Manager"
           description="Please log in or sign up to continue."
         />
         <div className="mt-12 flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-12 text-center">
@@ -143,7 +143,7 @@ export default function DashboardPage() {
     return (
       <>
         <PageHeader
-          title="Welcome to the Training Planner!"
+          title="Welcome to Corps/Sqn Manager!"
           description="The first step is to create a new training year."
         />
         <div className="mt-12 flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 p-12 text-center">

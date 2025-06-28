@@ -70,9 +70,9 @@ export default function LoginPage() {
                     <Ship className="w-8 h-8 text-primary" />
                 </div>
             </div>
-            <CardTitle className="text-2xl">Training Officer's Planning Tool</CardTitle>
+            <CardTitle className="text-2xl">Corps/Sqn Manager</CardTitle>
             <CardDescription className="px-4 text-center pt-2">
-                An unofficial tool to help you plan, manage, and report on your training year. This app is actively in development, with new features added all the time. Enter your credentials to continue.
+                An unofficial tool to help you plan, manage, and report on your training year. Enter your credentials to continue.
             </CardDescription>
         </CardHeader>
         <CardContent>

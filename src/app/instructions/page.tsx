@@ -11,7 +11,7 @@ export default function InstructionsPage() {
     <>
       <PageHeader
         title="Application Instructions"
-        description="A comprehensive guide to using the Training Officer Planning Tool."
+        description="A comprehensive guide to using Corps/Sqn Manager."
       />
       <div className="mt-6 space-y-6">
 
@@ -103,7 +103,7 @@ export default function InstructionsPage() {
            <Card id="ada">
             <AccordionItem value="ada" className="border-b-0">
               <AccordionTrigger className="p-6 text-xl">
-                  <div className="flex items-center gap-3"><ClipboardList className="h-6 w-6" />ADA Planner</div>
+                  <div className="flex items-center gap-3"><ClipboardList className="h-4 w-4" />ADA Planner</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">The Area Directed Activity (ADA) Planner is a special module designed to account for Enabling Objectives (EOs) that are completed outside of your regular corps/squadron training nights, such as at regional or area-level events.</p>

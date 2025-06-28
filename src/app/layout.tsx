@@ -11,8 +11,8 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { BugReportButton } from '@/components/bug-report/bug-report-button';
 
 export const metadata: Metadata = {
-  title: 'RCSCC 288 Ardent Training Officer Planning Tool',
-  description: 'Interactive web app for planning Sea Cadet Corps training.',
+  title: 'Corps/Sqn Manager',
+  description: 'An interactive web app for managing your Cadet Corps or Squadron.',
 };
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
