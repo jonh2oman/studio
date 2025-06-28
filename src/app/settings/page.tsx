@@ -17,7 +17,7 @@ import type { WeeklyActivity, Settings, CustomEO } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format as formatDate } from 'date-fns';
+import { format as formatDate, isValid } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -28,6 +28,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -39,8 +40,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 
-// Sortable Item Wrapper
-function SortableCard({ id, children, dragHandleListeners, dragHandleAttributes }: { id: string, children: React.ReactNode, dragHandleListeners: any, dragHandleAttributes: any }) {
+// Component for top-level draggable cards (General, Resources, etc.)
+function SortableCard({ id, children }: { id: string, children: React.ReactNode }) {
   const {
     attributes,
     listeners,
@@ -53,69 +54,290 @@ function SortableCard({ id, children, dragHandleListeners, dragHandleAttributes 
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  
+  // Pass listeners to the child to attach to the drag handle
+  const childWithDragHandle = React.cloneElement(children as React.ReactElement, {
+    dragHandleListeners: listeners
+  });
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-        {React.cloneElement(children as React.ReactElement, { dragHandleListeners, dragHandleAttributes })}
+        {childWithDragHandle}
     </div>
   );
 }
 
+// Component for nested draggable cards (e.g., Classrooms, Ranks)
+function SortableSubCard({ id, children, className }: { id: string, children: React.ReactNode, className?: string }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({ id });
 
-// General Settings Card Component
-const GeneralSettingsCard = ({ dragHandleListeners }: { dragHandleListeners?: any }) => {
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+    
+    const childWithDragHandle = React.cloneElement(children as React.ReactElement, {
+      dragHandleListeners: listeners
+    });
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes} className={className}>
+            {childWithDragHandle}
+        </div>
+    );
+}
+
+// Sub-components for individual settings cards
+const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
+    const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
+
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                <div>
+                    <CardTitle>Training Year Management</CardTitle>
+                    <CardDescription>Select the active training year or create a new one.</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex-1">
+                    <Label htmlFor="training-year-select">Active Training Year</Label>
+                    <Select value={currentYear || ''} onValueChange={setCurrentYear}>
+                        <SelectTrigger id="training-year-select"><SelectValue placeholder="Select a year..." /></SelectTrigger>
+                        <SelectContent>
+                            {trainingYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <Button onClick={() => setIsNewYearDialogOpen(true)} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
+                    <PlusCircle className="mr-2" />
+                    Create New Year
+                </Button>
+            </CardContent>
+            {isNewYearDialogOpen && <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />}
+        </Card>
+    );
+};
+
+const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
     const [localSettings, setLocalSettings] = useState<Settings>(settings);
     const { toast } = useToast();
-    const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
-    const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
     const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   
-    useEffect(() => {
-        if (settingsLoaded) {
-          setLocalSettings(settings);
-        }
-    }, [settings, settingsLoaded]);
+    useEffect(() => { if (settingsLoaded) { setLocalSettings(settings); } }, [settings, settingsLoaded]);
     
-     const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
+    const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
         const newSettings = { ...localSettings, [key]: value };
         setLocalSettings(newSettings);
         saveSettings(newSettings);
-        toast({
-          title: "Settings Saved",
-          description: "Your changes have been automatically saved.",
-        });
-      }, [localSettings, saveSettings, toast]);
+        toast({ title: "Settings Saved" });
+    }, [localSettings, saveSettings, toast]);
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        if (file.size > 500 * 1024) { // 500KB limit
-            toast({ variant: "destructive", title: "Image too large", description: "Please upload an image smaller than 500KB." });
-            return;
-        }
-
+        if (file.size > 500 * 1024) { toast({ variant: "destructive", title: "Image too large" }); return; }
         const reader = new FileReader();
-        reader.onload = (event) => {
-            const result = event.target?.result as string;
-            handleSettingChange('corpsLogo', result);
-        };
+        reader.onload = (event) => { handleSettingChange('corpsLogo', event.target?.result as string); };
         reader.readAsDataURL(file);
     };
 
-    const handleRemoveLogo = () => {
-        handleSettingChange('corpsLogo', "");
+    const commandingOfficer = useMemo(() => localSettings.staff.find(s => s.primaryRole === 'Commanding Officer'), [localSettings.staff]);
+    const trainingOfficer = useMemo(() => localSettings.staff.find(s => s.primaryRole === 'Training Officer'), [localSettings.staff]);
+  
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                 <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                 <div>
+                    <CardTitle>Corps Information</CardTitle>
+                    <CardDescription>Global settings for your corps.</CardDescription>
+                 </div>
+            </CardHeader>
+            <CardContent className="space-y-8">
+                <div className="space-y-2"><Label htmlFor="corpsName">Corps Name</Label><Input id="corpsName" placeholder="e.g., RCSCC 288 ARDENT" defaultValue={localSettings.corpsName} onBlur={(e) => handleSettingChange('corpsName', e.target.value)} /></div>
+                <div className="space-y-2"><Label>Weekly Training Night</Label><Select value={String(localSettings.trainingDay)} onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}><SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={index} value={String(index)}>{day}</SelectItem>)}</SelectContent></Select></div>
+                <div className="space-y-2"><Label htmlFor="coDisplay">Commanding Officer</Label><Input id="coDisplay" readOnly value={commandingOfficer ? `${commandingOfficer.rank} ${commandingOfficer.firstName} ${commandingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
+                <div className="space-y-2"><Label htmlFor="toDisplay">Training Officer</Label><Input id="toDisplay" readOnly value={trainingOfficer ? `${trainingOfficer.rank} ${trainingOfficer.firstName} ${trainingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
+                <div className="space-y-2"><Label>Corps Logo</Label><div className="flex items-center gap-4">{localSettings.corpsLogo ? <img src={localSettings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" /> : <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50"><span className="text-xs text-muted-foreground">No Logo</span></div>}<div className="space-y-2"><Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" /><p className="text-sm text-muted-foreground">Max 500KB.</p>{localSettings.corpsLogo && <Button variant="outline" size="sm" onClick={() => handleSettingChange('corpsLogo', '')}>Remove Logo</Button>}</div></div></div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const ClassroomsCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { settings, saveSettings } = useSettings();
+    const [newClassroom, setNewClassroom] = useState("");
+    const handleAdd = () => { if (newClassroom.trim() && !settings.classrooms.includes(newClassroom.trim())) { saveSettings({ classrooms: [...settings.classrooms, newClassroom.trim()] }); setNewClassroom(""); } };
+    const handleRemove = (item: string) => { saveSettings({ classrooms: settings.classrooms.filter(c => c !== item) }); };
+
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                <div><CardTitle>Manage Classrooms</CardTitle><CardDescription>Add or remove locations.</CardDescription></div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex gap-2"><Input value={newClassroom} onChange={(e) => setNewClassroom(e.target.value)} placeholder="New classroom name" /><Button onClick={handleAdd}>Add</Button></div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">{(settings.classrooms || []).map(item => <div key={item} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{item}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(item)}><X className="h-4 w-4"/></Button></div>)}</div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const CadetRolesCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { settings, saveSettings } = useSettings();
+    const [newItem, setNewItem] = useState("");
+    const handleAdd = () => { if (newItem.trim() && !settings.cadetRoles.includes(newItem.trim())) { saveSettings({ cadetRoles: [...settings.cadetRoles, newItem.trim()] }); setNewItem(""); } };
+    const handleRemove = (item: string) => { saveSettings({ cadetRoles: settings.cadetRoles.filter(r => r !== item) }); };
+
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                <div><CardTitle>Manage Cadet Roles</CardTitle><CardDescription>Add or remove optional cadet roles.</CardDescription></div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex gap-2"><Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="New role name" /><Button onClick={handleAdd}>Add</Button></div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">{(settings.cadetRoles || []).map(item => <div key={item} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{item}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(item)}><X className="h-4 w-4"/></Button></div>)}</div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const CadetRanksCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { settings, saveSettings } = useSettings();
+    const [newItem, setNewItem] = useState("");
+    const handleAdd = () => { if (newItem.trim() && !settings.cadetRanks.includes(newItem.trim())) { saveSettings({ cadetRanks: [...settings.cadetRanks, newItem.trim()] }); setNewItem(""); } };
+    const handleRemove = (item: string) => { saveSettings({ cadetRanks: settings.cadetRanks.filter(r => r !== item) }); };
+
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                <div><CardTitle>Manage Cadet Ranks</CardTitle><CardDescription>Add or remove cadet ranks.</CardDescription></div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex gap-2"><Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="New rank name" /><Button onClick={handleAdd}>Add</Button></div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">{(settings.cadetRanks || []).map(item => <div key={item} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{item}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(item)}><X className="h-4 w-4"/></Button></div>)}</div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const CadetDressCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { settings, saveSettings } = useSettings();
+    const [newItem, setNewItem] = useState("");
+    const ordersOfDress = settings.ordersOfDress || { caf: [], cadets: [] };
+    const handleAdd = () => { if (newItem.trim() && !ordersOfDress.cadets.includes(newItem.trim())) { saveSettings({ ordersOfDress: { ...ordersOfDress, cadets: [...ordersOfDress.cadets, newItem.trim()] } }); setNewItem(""); } };
+    const handleRemove = (item: string) => { saveSettings({ ordersOfDress: { ...ordersOfDress, cadets: ordersOfDress.cadets.filter(d => d !== item) } }); };
+
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                <div><CardTitle>Manage Cadet Dress</CardTitle><CardDescription>Add or remove orders of dress.</CardDescription></div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex gap-2"><Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="New dress name" /><Button onClick={handleAdd}>Add</Button></div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">{(ordersOfDress.cadets || []).map(item => <div key={item} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{item}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(item)}><X className="h-4 w-4"/></Button></div>)}</div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const CustomEOsCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { settings, saveSettings } = useSettings();
+    const { toast } = useToast();
+    const [newCustomEo, setNewCustomEo] = useState({ id: "", title: "", periods: 1 });
+    const handleAdd = () => {
+        const customEOs = settings.customEOs || [];
+        if (newCustomEo.id.trim() && newCustomEo.title.trim() && !customEOs.some(eo => eo.id === newCustomEo.id.trim())) {
+            saveSettings({ customEOs: [...customEOs, { ...newCustomEo, id: newCustomEo.id.trim(), title: newCustomEo.title.trim() }] });
+            setNewCustomEo({ id: "", title: "", periods: 1 });
+        } else {
+            toast({ variant: "destructive", title: "Invalid Input", description: "EO ID and Title are required, and the ID must be unique." });
+        }
+    };
+    const handleRemove = (id: string) => { saveSettings({ customEOs: (settings.customEOs || []).filter(eo => eo.id !== id) }); };
+    
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                <div><CardTitle>Manage Custom EOs</CardTitle><CardDescription>Add corps-specific activities.</CardDescription></div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border p-3 rounded-md"><Input value={newCustomEo.id} onChange={(e) => setNewCustomEo(prev => ({ ...prev, id: e.target.value }))} placeholder="EO ID (e.g., CS032)" /><Input value={newCustomEo.title} onChange={(e) => setNewCustomEo(prev => ({ ...prev, title: e.target.value }))} placeholder="EO Title" /><Input value={newCustomEo.periods} onChange={(e) => setNewCustomEo(prev => ({ ...prev, periods: Number(e.target.value) }))} type="number" min="1" placeholder="Periods" /></div><Button onClick={handleAdd} className="w-full">Add Custom EO</Button><div className="space-y-2 max-h-48 overflow-y-auto">{(settings.customEOs || []).map(eo => <div key={eo.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><div><span className="font-semibold">{eo.id}</span> - <span>{eo.title}</span></div><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(eo.id)}><X className="h-4 w-4"/></Button></div>)}</div>
+            </CardContent>
+        </Card>
+    );
+};
+
+const WeeklyActivitiesCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { settings, saveSettings } = useSettings();
+    const { toast } = useToast();
+    const [newItem, setNewItem] = useState<{ activity: string; dayOfWeek?: number; startDate?: Date; endDate?: Date; startTime: string; endTime: string; location: string; dress: string; opi: string; }>({ activity: '', startTime: '', endTime: '', location: '', dress: '', opi: '' });
+    const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const handleAdd = () => {
+        if (!newItem.activity || newItem.dayOfWeek === undefined || !newItem.startDate || !newItem.endDate) { toast({ variant: "destructive", title: "Missing Information" }); return; }
+        if (newItem.endDate < newItem.startDate) { toast({ variant: "destructive", title: "Invalid Dates" }); return; }
+        const newActivityToAdd: WeeklyActivity = { id: crypto.randomUUID(), activity: newItem.activity, dayOfWeek: newItem.dayOfWeek, startDate: formatDate(newItem.startDate, 'yyyy-MM-dd'), endDate: formatDate(newItem.endDate, 'yyyy-MM-dd'), startTime: newItem.startTime, endTime: newItem.endTime, location: newItem.location, dress: newItem.dress, opi: newItem.opi };
+        saveSettings({ weeklyActivities: [...(settings.weeklyActivities || []), newActivityToAdd] });
+        setNewItem({ activity: '', startTime: '', endTime: '', location: '', dress: '', opi: '' });
+    };
+    const handleRemove = (id: string) => { saveSettings({ weeklyActivities: (settings.weeklyActivities || []).filter(a => a.id !== id) }); };
+    
+    return (
+        <Card className="border">
+            <CardHeader className="flex-row items-center gap-2">
+                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                <div><CardTitle>Manage Weekly Activities</CardTitle><CardDescription>Define recurring events.</CardDescription></div>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4 p-4 border rounded-md"><h4 className="font-semibold">Add New Recurring Activity</h4><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="md:col-span-2"><Label>Activity</Label><Input value={newItem.activity} onChange={e => setNewItem(prev => ({...prev, activity: e.target.value}))} /></div><div className="flex flex-col space-y-1.5"><Label>Day of Week</Label><Select value={newItem.dayOfWeek?.toString()} onValueChange={val => setNewItem(prev => ({ ...prev, dayOfWeek: parseInt(val)}))}><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={day} value={index.toString()}>{day}</SelectItem>)}</SelectContent></Select></div><div/><div className="flex flex-col space-y-1.5"><Label>Start Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newItem.startDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newItem.startDate ? formatDate(newItem.startDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newItem.startDate} onSelect={(d) => setNewItem(prev => ({...prev, startDate: d}))} initialFocus /></PopoverContent></Popover></div><div className="flex flex-col space-y-1.5"><Label>End Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newItem.endDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newItem.endDate ? formatDate(newItem.endDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newItem.endDate} onSelect={(d) => setNewItem(prev => ({...prev, endDate: d}))} initialFocus /></PopoverContent></Popover></div><div><Label>Start Time</Label><Input type="time" value={newItem.startTime} onChange={e => setNewItem(prev => ({...prev, startTime: e.target.value}))} /></div><div><Label>End Time</Label><Input type="time" value={newItem.endTime} onChange={e => setNewItem(prev => ({...prev, endTime: e.target.value}))} /></div><div><Label>Location</Label><Input value={newItem.location} onChange={e => setNewItem(prev => ({...prev, location: e.target.value}))} /></div><div><Label>Dress</Label><Input value={newItem.dress} onChange={e => setNewItem(prev => ({...prev, dress: e.target.value}))} /></div><div className="md:col-span-2"><Label>OPI</Label><Input value={newItem.opi} onChange={e => setNewItem(prev => ({...prev, opi: e.target.value}))} /></div></div><Button onClick={handleAdd} className="mt-4">Add Recurring Activity</Button></div><div className="mt-6"><h4 className="font-semibold mb-2">Scheduled Recurring Activities</h4><div className="border rounded-lg"><Table><TableHeader><TableRow><TableHead>Activity</TableHead><TableHead>Recurs On</TableHead><TableHead>OPI</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{(settings.weeklyActivities || []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}{(settings.weeklyActivities || []).map(act => (<TableRow key={act.id}><TableCell><p className="font-medium">{act.activity}</p><p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p></TableCell><TableCell><p className="font-medium">{weekDays[act.dayOfWeek]}</p>{isValid(new Date(act.startDate)) && isValid(new Date(act.endDate)) ? (<p className="text-xs text-muted-foreground">{formatDate(new Date(act.startDate.replace(/-/g, '/')), "MMM d, yyyy")} - {formatDate(new Date(act.endDate.replace(/-/g, '/')), "MMM d, yyyy")}</p>) : null}</TableCell><TableCell>{act.opi}</TableCell><TableCell className="text-right"><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemove(act.id)}><X className="h-4 w-4"/></Button></TableCell></TableRow>))}</TableBody></Table></div></div>
+            </CardContent>
+        </Card>
+    );
+};
+
+
+// Category components that act as containers for draggable sub-cards
+const GeneralSettingsCard = ({ dragHandleListeners }: { dragHandleListeners?: any }) => {
+    const { settings, saveSettings } = useSettings();
+    const [cardOrder, setCardOrder] = useState<string[]>([]);
+    
+    useEffect(() => { setCardOrder(settings.generalSettingsCardOrder || ['trainingYear', 'corpsInfo']); }, [settings.generalSettingsCardOrder]);
+    
+    const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            setCardOrder((items) => {
+                const oldIndex = items.indexOf(active.id as string);
+                const newIndex = items.indexOf(over.id as string);
+                const newOrder = arrayMove(items, oldIndex, newIndex);
+                saveSettings({ generalSettingsCardOrder: newOrder });
+                return newOrder;
+            });
+        }
+    };
+    
+    const cardComponents: { [key: string]: React.FC<{ dragHandleListeners: any }> } = {
+        trainingYear: TrainingYearManagementCard,
+        corpsInfo: CorpsInformationCard
     };
 
-    const commandingOfficer = useMemo(() => {
-        return localSettings.staff.find(s => s.primaryRole === 'Commanding Officer');
-    }, [localSettings.staff]);
-
-    const trainingOfficer = useMemo(() => {
-        return localSettings.staff.find(s => s.primaryRole === 'Training Officer');
-    }, [localSettings.staff]);
-  
     return (
         <Card className="border">
             <AccordionItem value="general" className="border-b-0">
@@ -127,129 +349,81 @@ const GeneralSettingsCard = ({ dragHandleListeners }: { dragHandleListeners?: an
                 </AccordionTrigger>
                 <AccordionContent className="p-6 pt-0">
                     <p className="text-muted-foreground mb-6">High-level settings for the application and training year.</p>
-                    <div className="grid gap-8">
-                        <Card className="border">
-                            <CardHeader>
-                                <CardTitle>Training Year Management</CardTitle>
-                                <CardDescription>Select the active training year or create a new one to begin planning.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
-                                <div className="flex-1">
-                                    <Label htmlFor="training-year-select">Active Training Year</Label>
-                                    <Select value={currentYear || ''} onValueChange={setCurrentYear}>
-                                        <SelectTrigger id="training-year-select"><SelectValue placeholder="Select a year..." /></SelectTrigger>
-                                        <SelectContent>
-                                            {trainingYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <Button onClick={() => setIsNewYearDialogOpen(true)} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
-                                    <PlusCircle className="mr-2" />
-                                    Create New Year
-                                </Button>
-                            </CardContent>
-                        </Card>
-                        <Card className="border">
-                            <CardHeader><CardTitle>Corps Information</CardTitle><CardDescription>Set the primary training night and corps information. These settings are global across all training years.</CardDescription></CardHeader>
-                            <CardContent>
-                                {!settingsLoaded || !yearsLoaded ? <p>Loading settings...</p> : (
-                                <div className="space-y-8">
-                                    <div className="space-y-2"><Label htmlFor="corpsName">Corps Name</Label><Input id="corpsName" placeholder="e.g., RCSCC 288 ARDENT" defaultValue={localSettings.corpsName} onBlur={(e) => handleSettingChange('corpsName', e.target.value)} /></div>
-                                    <div className="space-y-2"><Label>Weekly Training Night</Label><Select value={String(localSettings.trainingDay)} onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}><SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={index} value={String(index)}>{day}</SelectItem>)}</SelectContent></Select></div>
-                                    <div className="space-y-2"><Label htmlFor="coDisplay">Commanding Officer</Label><Input id="coDisplay" readOnly value={commandingOfficer ? `${commandingOfficer.rank} ${commandingOfficer.firstName} ${commandingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
-                                    <div className="space-y-2"><Label htmlFor="toDisplay">Training Officer</Label><Input id="toDisplay" readOnly value={trainingOfficer ? `${trainingOfficer.rank} ${trainingOfficer.firstName} ${trainingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
-                                    <div className="space-y-2"><Label>Corps Logo</Label><div className="flex items-center gap-4">{localSettings.corpsLogo ? <img src={localSettings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" /> : <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50"><span className="text-xs text-muted-foreground">No Logo</span></div>}<div className="space-y-2"><Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" /><p className="text-sm text-muted-foreground">Upload a PNG or JPG file. Max 500KB.</p>{localSettings.corpsLogo && <Button variant="outline" size="sm" onClick={handleRemoveLogo}>Remove Logo</Button>}</div></div></div>
-                                </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={cardOrder} strategy={verticalListSortingStrategy}>
+                            <div className="space-y-6">
+                                {cardOrder.map(id => {
+                                    const Component = cardComponents[id];
+                                    return <SortableSubCard key={id} id={id}><Component dragHandleListeners={{}} /></SortableSubCard>;
+                                })}
+                            </div>
+                        </SortableContext>
+                    </DndContext>
                 </AccordionContent>
-                {isNewYearDialogOpen && <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />}
             </AccordionItem>
         </Card>
     );
 };
 
-// Planning Resources Card Component
-const PlanningResourcesCard = ({ dragHandleListeners }: { dragHandleListeners?: any }) => {
+const PlanningResourcesCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { settings, saveSettings } = useSettings();
-    const { toast } = useToast();
-    const [localSettings, setLocalSettings] = useState<Settings>(settings);
-    const [newClassroom, setNewClassroom] = useState("");
-    const [newCadetRank, setNewCadetRank] = useState("");
-    const [newCadetRole, setNewCadetRole] = useState("");
-    const [newCadetDress, setNewCadetDress] = useState("");
-    const [newCustomEo, setNewCustomEo] = useState({ id: "", title: "", periods: 1 });
-    const [newActivity, setNewActivity] = useState<{ activity: string; dayOfWeek?: number; startDate?: Date; endDate?: Date; startTime: string; endTime: string; location: string; dress: string; opi: string; }>({ activity: '', startTime: '', endTime: '', location: '', dress: '', opi: '' });
-    const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  
-    useEffect(() => { setLocalSettings(settings); }, [settings]);
-  
-    const handleListChange = useCallback((key: keyof Settings, newList: any[]) => {
-      const newSettings = { ...localSettings, [key]: newList };
-      setLocalSettings(newSettings);
-      saveSettings(newSettings);
-      toast({ title: "Settings Saved", description: "Your changes have been automatically saved." });
-    }, [localSettings, saveSettings, toast]);
+    const [cardOrder, setCardOrder] = useState<string[]>([]);
 
-    const handleAddClassroom = () => { const c = localSettings.classrooms || []; if (newClassroom.trim() && !c.includes(newClassroom.trim())) { handleListChange('classrooms', [...c, newClassroom.trim()]); setNewClassroom(""); } };
-    const handleRemoveClassroom = (classroom: string) => { handleListChange('classrooms', (localSettings.classrooms || []).filter(c => c !== classroom)); };
-    const handleAddCadetRank = () => { const r = localSettings.cadetRanks || []; if (newCadetRank.trim() && !r.includes(newCadetRank.trim())) { handleListChange('cadetRanks', [...r, newCadetRank.trim()]); setNewCadetRank(""); } };
-    const handleRemoveCadetRank = (rank: string) => { handleListChange('cadetRanks', (localSettings.cadetRanks || []).filter(r => r !== rank)); };
-    const handleAddCadetRole = () => { const r = localSettings.cadetRoles || []; if (newCadetRole.trim() && !r.includes(newCadetRole.trim())) { handleListChange('cadetRoles', [...r, newCadetRole.trim()]); setNewCadetRole(""); } };
-    const handleRemoveCadetRole = (role: string) => { handleListChange('cadetRoles', (localSettings.cadetRoles || []).filter(r => r !== role)); };
-    const handleAddCadetDress = () => { const d = localSettings.ordersOfDress || { caf: [], cadets: [] }; if (newCadetDress.trim() && !d.cadets.includes(newCadetDress.trim())) { saveSettings({ ...localSettings, ordersOfDress: { ...d, cadets: [...d.cadets, newCadetDress.trim()] } }); setNewCadetDress(""); } };
-    const handleRemoveCadetDress = (dress: string) => { const d = localSettings.ordersOfDress || { caf: [], cadets: [] }; saveSettings({ ...localSettings, ordersOfDress: { ...d, cadets: d.cadets.filter(dr => dr !== dress) } }); };
-    const handleAddActivity = () => {
-        if (!newActivity.activity || newActivity.dayOfWeek === undefined || !newActivity.startDate || !newActivity.endDate) {
-            toast({ variant: "destructive", title: "Missing Information", description: "Please provide an activity name, day of week, start date, and end date." }); return;
-        }
-        if (newActivity.endDate < newActivity.startDate) {
-            toast({ variant: "destructive", title: "Invalid Dates", description: "The end date cannot be before the start date." }); return;
-        }
-        const newActivityToAdd: WeeklyActivity = { id: crypto.randomUUID(), activity: newActivity.activity, dayOfWeek: newActivity.dayOfWeek, startDate: formatDate(newActivity.startDate, 'yyyy-MM-dd'), endDate: formatDate(newActivity.endDate, 'yyyy-MM-dd'), startTime: newActivity.startTime, endTime: newActivity.endTime, location: newActivity.location, dress: newActivity.dress, opi: newActivity.opi, };
-        handleListChange('weeklyActivities', [...(localSettings.weeklyActivities || []), newActivityToAdd]);
-        setNewActivity({ activity: '', startTime: '', endTime: '', location: '', dress: '', opi: '' });
-    };
-    const handleRemoveActivity = (id: string) => { handleListChange('weeklyActivities', (localSettings.weeklyActivities || []).filter(a => a.id !== id)); };
-    const handleAddCustomEo = () => {
-        const customEOs = localSettings.customEOs || [];
-        if (newCustomEo.id.trim() && newCustomEo.title.trim() && !customEOs.some(eo => eo.id === newCustomEo.id.trim())) {
-            handleListChange('customEOs', [...customEOs, { ...newCustomEo, id: newCustomEo.id.trim(), title: newCustomEo.title.trim() }]);
-            setNewCustomEo({ id: "", title: "", periods: 1 });
-        } else {
-            toast({ variant: "destructive", title: "Invalid Input", description: "EO ID and Title are required, and the ID must be unique." });
+    useEffect(() => { setCardOrder(settings.planningResourcesCardOrder || ['classrooms', 'cadetRoles', 'cadetRanks', 'cadetDress', 'customEos', 'weeklyActivities']); }, [settings.planningResourcesCardOrder]);
+
+    const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+    
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            setCardOrder((items) => {
+                const oldIndex = items.indexOf(active.id as string);
+                const newIndex = items.indexOf(over.id as string);
+                const newOrder = arrayMove(items, oldIndex, newIndex);
+                saveSettings({ planningResourcesCardOrder: newOrder });
+                return newOrder;
+            });
         }
     };
-    const handleRemoveCustomEo = (id: string) => { handleListChange('customEOs', (localSettings.customEOs || []).filter(eo => eo.id !== id)); };
+    
+    const cardComponents: { [key: string]: { component: React.FC<{ dragHandleListeners: any }>, className?: string } } = {
+        classrooms: { component: ClassroomsCard },
+        cadetRoles: { component: CadetRolesCard },
+        cadetRanks: { component: CadetRanksCard },
+        cadetDress: { component: CadetDressCard },
+        customEos: { component: CustomEOsCard },
+        weeklyActivities: { component: WeeklyActivitiesCard, className: "lg:col-span-2" },
+    };
 
     return (
         <Card className="border">
             <AccordionItem value="resources" className="border-b-0">
                 <AccordionTrigger className="p-6 hover:no-underline">
                     <div className="flex items-center gap-2">
-                         <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                        <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
                         <h2 className="text-2xl font-bold tracking-tight">Planning Resources</h2>
                     </div>
                 </AccordionTrigger>
                 <AccordionContent className="p-6 pt-0">
                     <p className="text-muted-foreground mb-6">Customize lists and recurring events used throughout the planners and reports.</p>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <Card className="border"><CardHeader><CardTitle>Manage Classrooms</CardTitle><CardDescription>Add or remove classrooms and locations.</CardDescription></CardHeader><CardContent className="space-y-4"><div className="flex gap-2"><Input value={newClassroom} onChange={(e) => setNewClassroom(e.target.value)} placeholder="New classroom name" /><Button onClick={handleAddClassroom}>Add</Button></div><div className="space-y-2">{(localSettings.classrooms || []).map(classroom => <div key={classroom} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{classroom}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveClassroom(classroom)}><X className="h-4 w-4"/></Button></div>)}</div></CardContent></Card>
-                        <Card className="border"><CardHeader><CardTitle>Manage Cadet Roles</CardTitle><CardDescription>Add or remove optional cadet roles.</CardDescription></CardHeader><CardContent className="space-y-4"><div className="flex gap-2"><Input value={newCadetRole} onChange={(e) => setNewCadetRole(e.target.value)} placeholder="New cadet role name" /><Button onClick={handleAddCadetRole}>Add</Button></div><div className="space-y-2">{(localSettings.cadetRoles || []).map(role => <div key={role} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{role}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetRole(role)}><X className="h-4 w-4"/></Button></div>)}</div></CardContent></Card>
-                        <Card className="border"><CardHeader><CardTitle>Manage Cadet Ranks</CardTitle><CardDescription>Add or remove cadet ranks from the list available in the app.</CardDescription></CardHeader><CardContent className="space-y-4"><div className="flex gap-2"><Input value={newCadetRank} onChange={(e) => setNewCadetRank(e.target.value)} placeholder="New cadet rank name" /><Button onClick={handleAddCadetRank}>Add</Button></div><div className="space-y-2">{(localSettings.cadetRanks || []).map(rank => <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{rank}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetRank(rank)}><X className="h-4 w-4"/></Button></div>)}</div></CardContent></Card>
-                        <Card className="border"><CardHeader><CardTitle>Manage Cadet Orders of Dress</CardTitle><CardDescription>Add or remove orders of dress for Cadets.</CardDescription></CardHeader><CardContent className="space-y-4"><div className="flex gap-2"><Input value={newCadetDress} onChange={(e) => setNewCadetDress(e.target.value)} placeholder="New cadet dress" /><Button onClick={handleAddCadetDress}>Add</Button></div><div className="space-y-2 max-h-48 overflow-y-auto">{(localSettings.ordersOfDress?.cadets || []).map(dress => <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{dress}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetDress(dress)}><X className="h-4 w-4"/></Button></div>)}</div></CardContent></Card>
-                        <Card className="border"><CardHeader><CardTitle>Manage Custom EOs</CardTitle><CardDescription>Add or remove corps-specific activities.</CardDescription></CardHeader><CardContent className="space-y-4"><div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border p-3 rounded-md"><Input value={newCustomEo.id} onChange={(e) => setNewCustomEo(prev => ({ ...prev, id: e.target.value }))} placeholder="EO ID (e.g., CS032)" /><Input value={newCustomEo.title} onChange={(e) => setNewCustomEo(prev => ({ ...prev, title: e.target.value }))} placeholder="EO Title" /><Input value={newCustomEo.periods} onChange={(e) => setNewCustomEo(prev => ({ ...prev, periods: Number(e.target.value) }))} type="number" min="1" placeholder="Periods" /></div><Button onClick={handleAddCustomEo} className="w-full">Add Custom EO</Button><div className="space-y-2 max-h-48 overflow-y-auto">{(localSettings.customEOs || []).map(eo => <div key={eo.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><div><span className="font-semibold">{eo.id}</span> - <span>{eo.title}</span></div><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCustomEo(eo.id)}><X className="h-4 w-4"/></Button></div>)}</div></CardContent></Card>
-                        <Card className="lg:col-span-2 border"><CardHeader><CardTitle>Manage Weekly Activities</CardTitle><CardDescription>Define recurring weekly activities with start and end dates.</CardDescription></CardHeader><CardContent><div className="space-y-4 p-4 border rounded-md"><h4 className="font-semibold">Add New Recurring Activity</h4><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="md:col-span-2"><Label>Activity</Label><Input value={newActivity.activity} onChange={e => setNewActivity(prev => ({...prev, activity: e.target.value}))} /></div><div className="flex flex-col space-y-1.5"><Label>Day of Week</Label><Select value={newActivity.dayOfWeek?.toString()} onValueChange={val => setNewActivity(prev => ({ ...prev, dayOfWeek: parseInt(val)}))}><SelectTrigger><SelectValue placeholder="Select a day..." /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={day} value={index.toString()}>{day}</SelectItem>)}</SelectContent></Select></div><div/><div className="flex flex-col space-y-1.5"><Label>Start Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.startDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newActivity.startDate ? formatDate(newActivity.startDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.startDate} onSelect={(d) => setNewActivity(prev => ({...prev, startDate: d}))} initialFocus /></PopoverContent></Popover></div><div className="flex flex-col space-y-1.5"><Label>End Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newActivity.endDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newActivity.endDate ? formatDate(newActivity.endDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newActivity.endDate} onSelect={(d) => setNewActivity(prev => ({...prev, endDate: d}))} initialFocus /></PopoverContent></Popover></div><div><Label>Start Time</Label><Input type="time" value={newActivity.startTime} onChange={e => setNewActivity(prev => ({...prev, startTime: e.target.value}))} /></div><div><Label>End Time</Label><Input type="time" value={newActivity.endTime} onChange={e => setNewActivity(prev => ({...prev, endTime: e.target.value}))} /></div><div><Label>Location</Label><Input value={newActivity.location} onChange={e => setNewActivity(prev => ({...prev, location: e.target.value}))} /></div><div><Label>Dress</Label><Input value={newActivity.dress} onChange={e => setNewActivity(prev => ({...prev, dress: e.target.value}))} /></div><div className="md:col-span-2"><Label>OPI</Label><Input value={newActivity.opi} onChange={e => setNewActivity(prev => ({...prev, opi: e.target.value}))} /></div></div><Button onClick={handleAddActivity} className="mt-4">Add Recurring Activity</Button></div><div className="mt-6"><h4 className="font-semibold mb-2">Scheduled Recurring Activities</h4><div className="border rounded-lg"><Table><TableHeader><TableRow><TableHead>Activity</TableHead><TableHead>Recurs On</TableHead><TableHead>OPI</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{(localSettings.weeklyActivities || []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}{(localSettings.weeklyActivities || []).map(act => (<TableRow key={act.id}><TableCell><p className="font-medium">{act.activity}</p><p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p></TableCell><TableCell><p className="font-medium">{weekDays[act.dayOfWeek]}</p><p className="text-xs text-muted-foreground">{formatDate(new Date(act.startDate.replace(/-/g, '/')), "MMM d, yyyy")} - {formatDate(new Date(act.endDate.replace(/-/g, '/')), "MMM d, yyyy")}</p></TableCell><TableCell>{act.opi}</TableCell><TableCell className="text-right"><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveActivity(act.id)}><X className="h-4 w-4"/></Button></TableCell></TableRow>))}</TableBody></Table></div></div></CardContent></Card>
-                    </div>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={cardOrder} strategy={verticalListSortingStrategy}>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {cardOrder.map(id => {
+                                    const CardData = cardComponents[id];
+                                    if (!CardData) return null;
+                                    return <SortableSubCard key={id} id={id} className={CardData.className}><CardData.component dragHandleListeners={{}} /></SortableSubCard>;
+                                })}
+                            </div>
+                        </SortableContext>
+                    </DndContext>
                 </AccordionContent>
             </AccordionItem>
         </Card>
     );
 };
 
-const DataStorageCard = ({ dragHandleListeners }: { dragHandleListeners?: any }) => (
+const DataStorageCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => (
     <Card className="border">
         <CardHeader className="flex-row items-center gap-2">
              <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
@@ -263,7 +437,7 @@ const DataStorageCard = ({ dragHandleListeners }: { dragHandleListeners?: any })
     </Card>
 );
 
-const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners?: any }) => {
+const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { toast } = useToast();
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
     const [resetConfirmation, setResetConfirmation] = useState("");
@@ -274,26 +448,23 @@ const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners?: any }) 
                  <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-destructive" /></div>
                 <div>
                     <CardTitle className="text-destructive">Danger Zone</CardTitle>
-                    <CardDescription>
-                        This action is irreversible. It will permanently delete all of your corps data from the cloud.
-                    </CardDescription>
+                    <CardDescription>This action is irreversible. It will permanently delete all of your corps data from the cloud.</CardDescription>
                 </div>
             </CardHeader>
             <CardContent>
-                <Button variant="destructive" onClick={() => setIsResetDialogOpen(true)}>
-                    Reset Application
-                </Button>
+                <Button variant="destructive" onClick={() => setIsResetDialogOpen(true)}>Reset Application</Button>
             </CardContent>
             <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader><AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle><AlertDialogDescription>This action is permanent and cannot be undone. It will delete all your corps data from the cloud, including schedules, cadets, staff, and settings, and reset the application to its default state.<br /><br />To confirm, please type <strong>reset</strong> into the box below.</AlertDialogDescription></AlertDialogHeader>
                     <div className="py-2"><Input id="reset-confirm" value={resetConfirmation} onChange={(e) => setResetConfirmation(e.target.value)} placeholder='Type "reset" to confirm' /></div>
-                    <AlertDialogFooter><AlertDialogCancel onClick={() => setResetConfirmation("")}>Cancel</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={resetConfirmation !== "reset"} onClick={() => { toast({ variant: "destructive", title: "Action Not Implemented", description: "This requires a secure backend function to prevent misuse."}); setResetConfirmation(""); setIsResetDialogOpen(false); }}>Reset Application</AlertDialogAction></AlertDialogFooter>
+                    <AlertDialogFooter><AlertDialogCancel onClick={() => setResetConfirmation("")}>Cancel</AlertDialogCancel><AlertDialogAction variant="destructive" disabled={resetConfirmation !== "reset"} onClick={() => { toast({ variant: "destructive", title: "Action Not Implemented" }); setResetConfirmation(""); setIsResetDialogOpen(false); }}>Reset Application</AlertDialogAction></AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </Card>
     );
 };
+
 
 // Main Page Component
 export default function SettingsPage() {
@@ -307,19 +478,14 @@ export default function SettingsPage() {
         }
     }, [isLoaded, settings.settingsCardOrder]);
     
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor, {
-          coordinateGetter: sortableKeyboardCoordinates,
-        })
-    );
+    const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   
-    const handleDragEnd = (event: any) => {
+    const handleDragEnd = (event: DragEndEvent) => {
       const { active, over } = event;
-      if (active.id !== over.id) {
+      if (over && active.id !== over.id) {
         setCardOrder((items) => {
-          const oldIndex = items.indexOf(active.id);
-          const newIndex = items.indexOf(over.id);
+          const oldIndex = items.indexOf(active.id as string);
+          const newIndex = items.indexOf(over.id as string);
           const newOrder = arrayMove(items, oldIndex, newIndex);
           saveSettings({ settingsCardOrder: newOrder });
           return newOrder;
@@ -327,11 +493,11 @@ export default function SettingsPage() {
       }
     };
 
-    const cardComponents: { [key: string]: React.ReactNode } = {
-        general: <GeneralSettingsCard />,
-        resources: <PlanningResourcesCard />,
-        data: <DataStorageCard />,
-        danger: <DangerZoneCard />
+    const cardComponents: { [key: string]: React.FC<{ dragHandleListeners: any }> } = {
+        general: GeneralSettingsCard,
+        resources: PlanningResourcesCard,
+        data: DataStorageCard,
+        danger: DangerZoneCard
     };
   
     if (!isLoaded) {
@@ -352,8 +518,8 @@ export default function SettingsPage() {
                 <SortableContext items={cardOrder} strategy={verticalListSortingStrategy}>
                     <Accordion type="multiple" defaultValue={["general", "resources"]} className="w-full space-y-6 mt-8">
                        {cardOrder.map(id => (
-                           <SortableCard key={id} id={id} dragHandleListeners={{}} dragHandleAttributes={{}}>
-                               {cardComponents[id]}
+                           <SortableCard key={id} id={id}>
+                               {cardComponents[id] ? React.createElement(cardComponents[id]) : null}
                            </SortableCard>
                        ))}
                     </Accordion>

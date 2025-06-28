@@ -67,6 +67,8 @@ const defaultSettings: Settings = {
     assets: [],
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
     settingsCardOrder: ['general', 'resources', 'data', 'danger'],
+    generalSettingsCardOrder: ['trainingYear', 'corpsInfo'],
+    planningResourcesCardOrder: ['classrooms', 'cadetRoles', 'cadetRanks', 'cadetDress', 'customEos', 'weeklyActivities'],
 };
 
 export const defaultUserDocument: UserDocument = {
@@ -93,10 +95,13 @@ export function useSettings() {
 
             if (userDocSnap.exists()) {
                 const data = userDocSnap.data() as UserDocument;
-                 const mergedSettings = {
+                 const mergedSettings: Settings = {
                     ...defaultSettings,
                     ...data.settings,
                     staffRoles: Array.from(new Set([...permanentRoles, ...(data.settings.staffRoles || [])])),
+                    settingsCardOrder: data.settings.settingsCardOrder || defaultSettings.settingsCardOrder,
+                    generalSettingsCardOrder: data.settings.generalSettingsCardOrder || defaultSettings.generalSettingsCardOrder,
+                    planningResourcesCardOrder: data.settings.planningResourcesCardOrder || defaultSettings.planningResourcesCardOrder,
                 };
                 setSettings(mergedSettings);
             } else {

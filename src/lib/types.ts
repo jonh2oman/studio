@@ -115,6 +115,8 @@ export interface Settings {
   assets: Asset[];
   assetCategories: string[];
   settingsCardOrder?: string[];
+  generalSettingsCardOrder?: string[];
+  planningResourcesCardOrder?: string[];
 }
 
 export interface Cadet {
