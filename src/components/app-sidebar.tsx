@@ -15,6 +15,7 @@ import {
   SidebarFooter,
   SidebarSeparator,
   SidebarGroupLabel,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useSettings } from "@/hooks/use-settings";
 import { useTrainingYear } from "@/hooks/use-training-year";
@@ -25,6 +26,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const navGroups = [
   {
@@ -73,7 +75,14 @@ const navGroups = [
   }
 ];
 
-const SortableSidebarMenuItem = ({ id, children }: { id: string; children: React.ReactNode }) => {
+const SortableSidebarMenuItem = ({ id, href, isActive, isDisabled, icon: Icon, label }: {
+    id: string;
+    href: string;
+    isActive: boolean;
+    isDisabled: boolean;
+    icon: React.ElementType;
+    label: string;
+}) => {
     const {
         attributes,
         listeners,
@@ -83,25 +92,58 @@ const SortableSidebarMenuItem = ({ id, children }: { id: string; children: React
         isDragging,
     } = useSortable({ id });
 
+    const { state, isMobile } = useSidebar();
+
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
         zIndex: isDragging ? 100 : 'auto',
     };
 
+    const content = (
+         <Link
+            href={href}
+            aria-disabled={isDisabled}
+            tabIndex={isDisabled ? -1 : undefined}
+            className={cn(
+                "flex h-8 flex-1 items-center gap-2 overflow-hidden rounded-r-md px-2 text-left text-sm outline-none ring-sidebar-ring transition-colors focus-visible:ring-2 active:text-sidebar-accent-foreground",
+                "group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:rounded-md",
+                !isDragging && !isActive && "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                 isDisabled && "pointer-events-none opacity-50"
+            )}
+        >
+            <Icon className="w-5 h-5 shrink-0" />
+            <span className="truncate group-data-[collapsible=icon]:hidden">{label}</span>
+        </Link>
+    );
+
     return (
         <li
             ref={setNodeRef}
             style={style}
             {...attributes}
-            {...listeners}
-            className="group/menu-item relative cursor-grab bg-sidebar"
+            className={cn(
+                "group/menu-item relative flex items-center rounded-md border text-sidebar-foreground",
+                isDragging
+                    ? "border-primary bg-sidebar-accent shadow-lg z-50 text-sidebar-accent-foreground"
+                    : "border-sidebar-border",
+                isActive && !isDragging && "bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-accent"
+            )}
         >
-            {children}
+            <span {...listeners} className={cn("cursor-grab p-2 text-sidebar-foreground/50 hover:text-sidebar-foreground", (isActive || isDragging) && "text-sidebar-accent-foreground")}>
+                <GripVertical className="h-5 w-5" />
+            </span>
+             <Tooltip>
+                <TooltipTrigger asChild>
+                    {content}
+                </TooltipTrigger>
+                <TooltipContent side="right" align="center" hidden={state !== "collapsed" || isMobile}>
+                    <p>{label}</p>
+                </TooltipContent>
+            </Tooltip>
         </li>
     );
 };
-
 
 function AuthStatus() {
     const { user, loading, logout } = useAuth();
@@ -256,7 +298,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SidebarMenu>
+            <SidebarMenu className="px-2">
             {navGroups.map((group, index) => {
                 const groupKey = group.title || 'Main';
                 const orderedHrefs = settings.sidebarNavOrder?.[groupKey] || group.items.map(item => item.href);
@@ -276,19 +318,15 @@ export function AppSidebar() {
                             : pathname.startsWith(item.href) && item.href !== "/";
                             
                         return (
-                            <SortableSidebarMenuItem key={item.href} id={item.href}>
-                                <Link href={item.href}>
-                                    <SidebarMenuButton
-                                        isActive={isActive}
-                                        className="w-full"
-                                        tooltip={item.label}
-                                        disabled={!user && !authLoading}
-                                    >
-                                        <item.icon className="w-5 h-5" />
-                                        <span>{item.label}</span>
-                                    </SidebarMenuButton>
-                                </Link>
-                            </SortableSidebarMenuItem>
+                            <SortableSidebarMenuItem 
+                                key={item.href} 
+                                id={item.href}
+                                href={item.href}
+                                isActive={isActive}
+                                isDisabled={!user && !authLoading}
+                                icon={item.icon}
+                                label={item.label}
+                            />
                         );
                     })}
                     </SortableContext>
