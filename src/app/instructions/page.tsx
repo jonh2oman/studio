@@ -4,7 +4,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2 } from "lucide-react";
 
 export default function InstructionsPage() {
   return (
@@ -42,6 +42,7 @@ export default function InstructionsPage() {
               <li><a href="#ada"><p className="flex items-center gap-2"><ClipboardList className="h-4 w-4" />ADA Planner</p></a></li>
               <li><a href="#reports"><p className="flex items-center gap-2"><FileText className="h-4 w-4" />Reports</p></a></li>
               <li><a href="#cadets"><p className="flex items-center gap-2"><Users className="h-4 w-4" />Cadet Management</p></a></li>
+              <li><a href="#corps-management"><p className="flex items-center gap-2"><Building2 className="h-4 w-4" />Corps Management</p></a></li>
               <li><a href="#attendance"><p className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Attendance</p></a></li>
               <li><a href="#awards"><p className="flex items-center gap-2"><Trophy className="h-4 w-4" />Awards Management</p></a></li>
               <li><a href="#settings"><p className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Settings</p></a></li>
@@ -148,6 +149,7 @@ export default function InstructionsPage() {
                     <li><strong>Attendance:</strong> Includes a Summary, Daily Report, Perfect Attendance list, and At-Risk Cadets list.</li>
                     <li><strong>Training Completion:</strong> Shows the progress of mandatory training for each phase.</li>
                     <li><strong>Award Winners:</strong> A list of all awards and their assigned winners.</li>
+                    <li><strong>Corps Assets:</strong> A full inventory of all corps-owned assets.</li>
                 </ul>
               </AccordionContent>
             </AccordionItem>
@@ -164,6 +166,19 @@ export default function InstructionsPage() {
                  <p>Use the "Add New Cadet" form. Fill in their details, including their current Phase and an optional role (if you've configured any in Settings). The list of available ranks is also managed on the Settings page.</p>
                 <h4 className="font-semibold">Editing or Removing a Cadet</h4>
                 <p>The "Cadet Roster" table lists all your cadets. Use the pencil icon to edit a cadet's details or the 'X' icon to remove them.</p>
+              </AccordionContent>
+            </AccordionItem>
+          </Card>
+          
+           <Card id="corps-management">
+            <AccordionItem value="corps-management" className="border-b-0">
+              <AccordionTrigger className="p-6 text-xl">
+                 <div className="flex items-center gap-3"><Building2 className="h-6 w-6" />Corps Management</div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This is where you manage global, non-training year specific corps data, such as your asset inventory. This data persists across all training years.</p>
+                 <h4 className="font-semibold">Asset Tracker</h4>
+                 <p>Use the "Add New Asset" form to add items to your corps' inventory. You can track details like category, serial number, status, condition, and location. This data is available in a printable report on the Reports page.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>

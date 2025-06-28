@@ -3,18 +3,27 @@ import type { ChangelogEntry } from './types';
 
 export const changelogData: ChangelogEntry[] = [
   {
-    version: "1.1.0",
+    version: "1.2.0",
     date: "Current Version",
     changes: [
+      "Added new 'Corps Management' module for tracking corps-owned assets.",
+      "Implemented a comprehensive Asset Tracker with add, edit, and remove functionality.",
+      "Added a 'Corps Assets' report to the Reports module.",
+      "Updated application instructions and changelog.",
+      "Fixed a persistent bug with the date picker in the 'New Training Year' dialog by replacing it with a standard date input field."
+    ],
+  },
+  {
+    version: "1.1.0",
+    date: "August 1, 2024",
+    changes: [
       "Major Architecture Upgrade: Migrated all application data from browser local storage to Firebase Firestore for real-time, secure cloud storage.",
-      "Automatic Saving: All changes are now saved automatically to the user's account in the cloud. The manual save button and backup/restore features have been removed.",
+      "Automatic Saving: All changes are now saved automatically to the user's account in the cloud.",
+      "Added 'ADA Planner' module to account for EOs completed at Area Directed Activities.",
       "Cross-Device Sync: User data is now available on any device after logging in.",
       "Production-Ready Authentication: Removed mock authentication mode. The application now exclusively uses Firebase for login and signup.",
-      "Improved UI Consistency: Standardized the layout across all three planner pages (Annual, Weekend, LDA) for a more intuitive experience.",
-      "Enhanced Planner UI: Implemented sticky headers that remain visible while scrolling. Moved the 'Print' and 'PO/EO' toggle buttons for easier access.",
-      "Static Navigation: The main sidebar is now permanently expanded on desktop to provide a stable navigation experience.",
-      "Layout Refinements: Added a thicker border and consistent padding between the navigation and content panels for better visual separation and spacing.",
-      "Bug Fixes: Corrected multiple bugs, including a critical initialization error and various text inconsistencies.",
+      "Improved UI Consistency: Standardized the layout across all planner pages.",
+      "Fixed multiple bugs related to component state and initialization."
     ],
   },
   {

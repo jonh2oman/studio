@@ -9,6 +9,7 @@ import { AttendanceReports } from "@/components/reports/attendance-reports";
 import { TrainingCompletionReport } from "@/components/reports/training-completion-report";
 import { AwardWinnersReport } from "@/components/reports/award-winners-report";
 import { Separator } from "@/components/ui/separator";
+import { AssetReport } from "@/components/reports/asset-report";
 
 export default function ReportsPage() {
     return (
@@ -33,11 +34,12 @@ export default function ReportsPage() {
                      <h2 className="text-2xl font-bold tracking-tight">Corps Reports</h2>
                      <p className="text-muted-foreground mt-1">Select a report to view.</p>
                     <Tabs defaultValue="roster" className="mt-6">
-                        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+                        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                             <TabsTrigger value="roster">Cadet Roster</TabsTrigger>
                             <TabsTrigger value="attendance">Attendance</TabsTrigger>
                             <TabsTrigger value="completion">Training Completion</TabsTrigger>
                             <TabsTrigger value="awards">Award Winners</TabsTrigger>
+                            <TabsTrigger value="assets">Corps Assets</TabsTrigger>
                         </TabsList>
                         <TabsContent value="roster" className="mt-6">
                             <CadetRosterReport />
@@ -50,6 +52,9 @@ export default function ReportsPage() {
                         </TabsContent>
                         <TabsContent value="awards" className="mt-6">
                             <AwardWinnersReport />
+                        </TabsContent>
+                        <TabsContent value="assets" className="mt-6">
+                            <AssetReport />
                         </TabsContent>
                     </Tabs>
                 </div>

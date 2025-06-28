@@ -80,6 +80,19 @@ export interface CustomEO {
   periods: number;
 }
 
+export interface Asset {
+  id: string;
+  name: string;
+  category: string;
+  serialNumber?: string;
+  purchaseDate?: string; // YYYY-MM-DD
+  purchasePrice?: number;
+  status: 'In Stock' | 'Deployed' | 'In Repair' | 'Decommissioned';
+  condition: 'New' | 'Good' | 'Fair' | 'Poor';
+  location: string;
+  notes?: string;
+}
+
 export interface Settings {
   trainingDay: number;
   corpsName: string;
@@ -98,6 +111,7 @@ export interface Settings {
   customEOs: CustomEO[];
   firstTrainingNight: string; // Dummy property for compatibility
   awards: Award[];
+  assets: Asset[];
 }
 
 export interface Cadet {

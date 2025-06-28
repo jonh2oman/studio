@@ -64,6 +64,7 @@ const defaultSettings: Settings = {
     customEOs: defaultCustomEOs,
     firstTrainingNight: '', // This is now a dummy value, real value is per-year
     awards: [],
+    assets: [],
 };
 
 export const defaultUserDocument: UserDocument = {
