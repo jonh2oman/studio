@@ -6,7 +6,7 @@ import { useTrainingYear } from '@/hooks/use-training-year';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Trash2, X } from 'lucide-react';
+import { PlusCircle, Trash2, X, Loader2 } from 'lucide-react';
 import type { EO } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ export function AdaPlanner() {
         addEoToAda,
         removeEoFromAda,
         isLoaded,
+        currentYear,
     } = useTrainingYear();
     
     const [dragOverPlanner, setDragOverPlanner] = useState<string | null>(null);
@@ -52,7 +53,24 @@ export function AdaPlanner() {
     }
 
     if (!isLoaded) {
-        return <p>Loading...</p>;
+        return (
+            <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+    
+    if (!currentYear) {
+         return (
+            <Card className="text-center">
+                <CardHeader>
+                    <CardTitle>No Training Year Selected</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">Please create or select a training year in Settings to use the ADA Planner.</p>
+                </CardContent>
+            </Card>
+        )
     }
 
     return (
