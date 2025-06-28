@@ -98,7 +98,7 @@ function SortableSubCard({ id, children, className }: { id: string, children: Re
 
 // Sub-components for individual settings cards
 const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
-    const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } => useTrainingYear();
+    const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
     const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
 
     return (
@@ -571,11 +571,15 @@ export default function SettingsPage() {
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={cardOrder} strategy={verticalListSortingStrategy}>
                     <Accordion type="multiple" defaultValue={["general", "resources"]} className="w-full space-y-6 mt-8">
-                       {cardOrder.map(id => (
-                           <SortableCard key={id} id={id}>
-                               {cardComponents[id] ? React.createElement(cardComponents[id]) : null}
-                           </SortableCard>
-                       ))}
+                       {cardOrder.map(id => {
+                           const Component = cardComponents[id];
+                           if (!Component) return null;
+                           return (
+                               <SortableCard key={id} id={id}>
+                                   <Component dragHandleListeners={{}} />
+                               </SortableCard>
+                           );
+                       })}
                     </Accordion>
                 </SortableContext>
             </DndContext>
