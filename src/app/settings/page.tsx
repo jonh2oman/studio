@@ -194,67 +194,6 @@ const ClassroomsCard = ({ dragHandleListeners }: { dragHandleListeners: any }) =
     );
 };
 
-const CadetRolesCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
-    const { settings, saveSettings } = useSettings();
-    const [newItem, setNewItem] = useState("");
-    const handleAdd = () => { if (newItem.trim() && !settings.cadetRoles.includes(newItem.trim())) { saveSettings({ cadetRoles: [...settings.cadetRoles, newItem.trim()] }); setNewItem(""); } };
-    const handleRemove = (item: string) => { saveSettings({ cadetRoles: settings.cadetRoles.filter(r => r !== item) }); };
-
-    return (
-        <Card className="border">
-            <CardHeader className="flex-row items-center gap-2">
-                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
-                <div><CardTitle>Manage Cadet Roles</CardTitle><CardDescription>Add or remove optional cadet roles.</CardDescription></div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex gap-2"><Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="New role name" /><Button onClick={handleAdd}>Add</Button></div>
-                <div className="space-y-2 max-h-48 overflow-y-auto">{(settings.cadetRoles || []).map(item => <div key={item} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{item}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(item)}><X className="h-4 w-4"/></Button></div>)}</div>
-            </CardContent>
-        </Card>
-    );
-};
-
-const CadetRanksCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
-    const { settings, saveSettings } = useSettings();
-    const [newItem, setNewItem] = useState("");
-    const handleAdd = () => { if (newItem.trim() && !settings.cadetRanks.includes(newItem.trim())) { saveSettings({ cadetRanks: [...settings.cadetRanks, newItem.trim()] }); setNewItem(""); } };
-    const handleRemove = (item: string) => { saveSettings({ cadetRanks: settings.cadetRanks.filter(r => r !== item) }); };
-
-    return (
-        <Card className="border">
-            <CardHeader className="flex-row items-center gap-2">
-                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
-                <div><CardTitle>Manage Cadet Ranks</CardTitle><CardDescription>Add or remove cadet ranks.</CardDescription></div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex gap-2"><Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="New rank name" /><Button onClick={handleAdd}>Add</Button></div>
-                <div className="space-y-2 max-h-48 overflow-y-auto">{(settings.cadetRanks || []).map(item => <div key={item} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{item}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(item)}><X className="h-4 w-4"/></Button></div>)}</div>
-            </CardContent>
-        </Card>
-    );
-};
-
-const CadetDressCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
-    const { settings, saveSettings } = useSettings();
-    const [newItem, setNewItem] = useState("");
-    const ordersOfDress = settings.ordersOfDress || { caf: [], cadets: [] };
-    const handleAdd = () => { if (newItem.trim() && !ordersOfDress.cadets.includes(newItem.trim())) { saveSettings({ ordersOfDress: { ...ordersOfDress, cadets: [...ordersOfDress.cadets, newItem.trim()] } }); setNewItem(""); } };
-    const handleRemove = (item: string) => { saveSettings({ ordersOfDress: { ...ordersOfDress, cadets: ordersOfDress.cadets.filter(d => d !== item) } }); };
-
-    return (
-        <Card className="border">
-            <CardHeader className="flex-row items-center gap-2">
-                <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
-                <div><CardTitle>Manage Cadet Dress</CardTitle><CardDescription>Add or remove orders of dress.</CardDescription></div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex gap-2"><Input value={newItem} onChange={(e) => setNewItem(e.target.value)} placeholder="New dress name" /><Button onClick={handleAdd}>Add</Button></div>
-                <div className="space-y-2 max-h-48 overflow-y-auto">{(ordersOfDress.cadets || []).map(item => <div key={item} className="flex items-center justify-between p-2 rounded-md bg-muted/50"><span>{item}</span><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemove(item)}><X className="h-4 w-4"/></Button></div>)}</div>
-            </CardContent>
-        </Card>
-    );
-};
-
 const CustomEOsCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { settings, saveSettings } = useSettings();
     const { toast } = useToast();
@@ -304,7 +243,7 @@ const WeeklyActivitiesCard = ({ dragHandleListeners }: { dragHandleListeners: an
                 <div><CardTitle>Manage Weekly Activities</CardTitle><CardDescription>Define recurring events.</CardDescription></div>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4 p-4 border rounded-md"><h4 className="font-semibold">Add New Recurring Activity</h4><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="md:col-span-2"><Label>Activity</Label><Input value={newItem.activity} onChange={e => setNewItem(prev => ({...prev, activity: e.target.value}))} /></div><div className="flex flex-col space-y-1.5"><Label>Day of Week</Label><Select value={newItem.dayOfWeek?.toString()} onValueChange={val => setNewItem(prev => ({ ...prev, dayOfWeek: parseInt(val)}))}><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={day} value={index.toString()}>{day}</SelectItem>)}</SelectContent></Select></div><div/><div className="flex flex-col space-y-1.5"><Label>Start Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newItem.startDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newItem.startDate ? formatDate(newItem.startDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newItem.startDate} onSelect={(d) => setNewItem(prev => ({...prev, startDate: d}))} initialFocus /></PopoverContent></Popover></div><div className="flex flex-col space-y-1.5"><Label>End Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newItem.endDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newItem.endDate ? formatDate(newItem.endDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newItem.endDate} onSelect={(d) => setNewItem(prev => ({...prev, endDate: d}))} initialFocus /></PopoverContent></Popover></div><div><Label>Start Time</Label><Input type="time" value={newItem.startTime} onChange={e => setNewItem(prev => ({...prev, startTime: e.target.value}))} /></div><div><Label>End Time</Label><Input type="time" value={newItem.endTime} onChange={e => setNewItem(prev => ({...prev, endTime: e.target.value}))} /></div><div><Label>Location</Label><Input value={newItem.location} onChange={e => setNewItem(prev => ({...prev, location: e.target.value}))} /></div><div><Label>Dress</Label><Input value={newItem.dress} onChange={e => setNewItem(prev => ({...prev, dress: e.target.value}))} /></div><div className="md:col-span-2"><Label>OPI</Label><Input value={newItem.opi} onChange={e => setNewItem(prev => ({...prev, opi: e.target.value}))} /></div></div><Button onClick={handleAdd} className="mt-4">Add Recurring Activity</Button></div><div className="mt-6"><h4 className="font-semibold mb-2">Scheduled Recurring Activities</h4><div className="border rounded-lg"><Table><TableHeader><TableRow><TableHead>Activity</TableHead><TableHead>Recurs On</TableHead><TableHead>OPI</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{(settings.weeklyActivities || []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}{(settings.weeklyActivities || []).map(act => (<TableRow key={act.id}><TableCell><p className="font-medium">{act.activity}</p><p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p></TableCell><TableCell><p className="font-medium">{weekDays[act.dayOfWeek]}</p>{isValid(new Date(act.startDate)) && isValid(new Date(act.endDate)) ? (<p className="text-xs text-muted-foreground">{formatDate(new Date(act.startDate.replace(/-/g, '/')), "MMM d, yyyy")} - {formatDate(new Date(act.endDate.replace(/-/g, '/')), "MMM d, yyyy")}</p>) : null}</TableCell><TableCell>{act.opi}</TableCell><TableCell className="text-right"><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemove(act.id)}><X className="h-4 w-4"/></Button></TableCell></TableRow>))}</TableBody></Table></div></div>
+                <div className="space-y-4 p-4 border rounded-md"><h4 className="font-semibold">Add New Recurring Activity</h4><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div className="md:col-span-2"><Label>Activity</Label><Input value={newItem.activity} onChange={e => setNewItem(prev => ({...prev, activity: e.target.value}))} /></div><div className="flex flex-col space-y-1.5"><Label>Day of Week</Label><Select value={newItem.dayOfWeek?.toString()} onValueChange={val => setNewItem(prev => ({ ...prev, dayOfWeek: parseInt(val)}))}><SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={day} value={index.toString()}>{day}</SelectItem>)}</SelectContent></Select></div><div/><div className="flex flex-col space-y-1.5"><Label>Start Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newItem.startDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newItem.startDate ? formatDate(newItem.startDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newItem.startDate} onSelect={(d) => setNewItem(prev => ({...prev, startDate: d}))} initialFocus /></PopoverContent></Popover></div><div className="flex flex-col space-y-1.5"><Label>End Date</Label><Popover><PopoverTrigger asChild><Button variant={"outline"} className={cn("justify-start text-left font-normal", !newItem.endDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{newItem.endDate ? formatDate(newItem.endDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={newItem.endDate} onSelect={(d) => setNewItem(prev => ({...prev, endDate: d}))} initialFocus /></PopoverContent></Popover></div><div><Label>Start Time</Label><Input type="time" value={newItem.startTime} onChange={e => setNewItem(prev => ({...prev, startTime: e.target.value}))} /></div><div><Label>End Time</Label><Input type="time" value={newItem.endTime} onChange={e => setNewItem(prev => ({...prev, endTime: e.target.value}))} /></div><div><Label>Location</Label><Input value={newItem.location} onChange={e => setNewItem(prev => ({...prev, location: e.target.value}))} /></div><div><Label>Dress</Label><Input value={newItem.dress} onChange={e => setNewItem(prev => ({...prev, dress: e.target.value}))} /></div><div className="md:col-span-2"><Label>OPI</Label><Input value={newItem.opi} onChange={e => setNewItem(prev => ({...prev, opi: e.target.value}))} /></div></div><Button onClick={handleAdd} className="mt-4">Add Recurring Activity</Button></div><div className="mt-6"><h4 className="font-semibold mb-2">Scheduled Recurring Activities</h4><div className="border rounded-lg"><Table><TableHeader><TableRow><TableHead>Activity</TableHead><TableHead>Recurs On</TableHead><TableHead>OPI</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{(settings.weeklyActivities || []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No weekly activities defined.</TableCell></TableRow>}{(settings.weeklyActivities || []).map(act => (<TableRow key={act.id}><TableCell><p className="font-medium">{act.activity}</p><p className="text-xs text-muted-foreground">{act.startTime} - {act.endTime} @ {act.location}</p></TableCell><TableCell><p className="font-medium">{weekDays[act.dayOfWeek]}</p>{isValid(new Date(act.startDate.replace(/-/g, '/'))) && isValid(new Date(act.endDate.replace(/-/g, '/'))) ? (<p className="text-xs text-muted-foreground">{formatDate(new Date(act.startDate.replace(/-/g, '/')), "MMM d, yyyy")} - {formatDate(new Date(act.endDate.replace(/-/g, '/')), "MMM d, yyyy")}</p>) : null}</TableCell><TableCell>{act.opi}</TableCell><TableCell className="text-right"><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemove(act.id)}><X className="h-4 w-4"/></Button></TableCell></TableRow>))}</TableBody></Table></div></div>
             </CardContent>
         </Card>
     );
@@ -369,7 +308,7 @@ const PlanningResourcesCard = ({ dragHandleListeners }: { dragHandleListeners: a
     const { settings, saveSettings } = useSettings();
     const [cardOrder, setCardOrder] = useState<string[]>([]);
 
-    useEffect(() => { setCardOrder(settings.planningResourcesCardOrder || ['classrooms', 'cadetRoles', 'cadetRanks', 'cadetDress', 'customEos', 'weeklyActivities']); }, [settings.planningResourcesCardOrder]);
+    useEffect(() => { setCardOrder(settings.planningResourcesCardOrder || ['classrooms', 'customEos', 'weeklyActivities']); }, [settings.planningResourcesCardOrder]);
 
     const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
     
@@ -388,9 +327,6 @@ const PlanningResourcesCard = ({ dragHandleListeners }: { dragHandleListeners: a
     
     const cardComponents: { [key: string]: { component: React.FC<{ dragHandleListeners: any }>, className?: string } } = {
         classrooms: { component: ClassroomsCard },
-        cadetRoles: { component: CadetRolesCard },
-        cadetRanks: { component: CadetRanksCard },
-        cadetDress: { component: CadetDressCard },
         customEos: { component: CustomEOsCard },
         weeklyActivities: { component: WeeklyActivitiesCard, className: "lg:col-span-2" },
     };
