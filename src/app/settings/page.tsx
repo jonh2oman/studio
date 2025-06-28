@@ -8,12 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2, Cloud, GripVertical } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
-import type { WeeklyActivity, Settings, CustomEO } from "@/lib/types";
+import type { WeeklyActivity, Settings, CustomEO, UserDocument } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,6 +21,9 @@ import { format as formatDate, isValid } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   DndContext,
   closestCenter,
@@ -95,7 +98,7 @@ function SortableSubCard({ id, children, className }: { id: string, children: Re
 
 // Sub-components for individual settings cards
 const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
-    const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
+    const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } => useTrainingYear();
     const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
 
     return (
@@ -359,19 +362,134 @@ const PlanningResourcesCard = ({ dragHandleListeners }: { dragHandleListeners: a
     );
 };
 
-const DataStorageCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => (
-    <Card className="border">
-        <CardHeader className="flex-row items-center gap-2">
-             <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
-            <div>
-                <CardTitle className="flex items-center gap-2"><Cloud className="h-5 w-5" /> Data Storage</CardTitle>
-                <CardDescription>
-                    All of your application data is now automatically and securely saved to the cloud, tied to your user account. Your changes are available instantly across any device you log in from. Manual backups are no longer necessary.
-                </CardDescription>
-            </div>
-        </CardHeader>
-    </Card>
-);
+const DataManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
+    const [restoreData, setRestoreData] = useState<UserDocument | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleDownload = async () => {
+        if (!user || !db) {
+            toast({ variant: "destructive", title: "Error", description: "Not logged in or database not available." });
+            return;
+        }
+        setIsDownloading(true);
+        try {
+            const userDocRef = doc(db, 'users', user.uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `corps-sqn-manager-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                toast({ title: "Success", description: "Your data has been downloaded." });
+            } else {
+                toast({ variant: "destructive", title: "Error", description: "No data found to download." });
+            }
+        } catch (error) {
+            console.error(error);
+            toast({ variant: "destructive", title: "Download Failed", description: "Could not download your data." });
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const result = event.target?.result as string;
+                const parsedData = JSON.parse(result) as UserDocument;
+                if (parsedData.settings && parsedData.trainingYears) {
+                    setRestoreData(parsedData);
+                    setIsRestoreDialogOpen(true);
+                } else {
+                    throw new Error("Invalid file format.");
+                }
+            } catch (error) {
+                toast({ variant: "destructive", title: "Upload Failed", description: "The selected file is not a valid data backup." });
+            }
+        };
+        reader.readAsText(file);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    const handleRestore = async () => {
+        if (!user || !db || !restoreData) return;
+        setIsUploading(true);
+        try {
+            const userDocRef = doc(db, 'users', user.uid);
+            await setDoc(userDocRef, restoreData);
+            toast({ title: "Restore Successful", description: "Your data has been restored. The page will now reload." });
+            setTimeout(() => window.location.reload(), 2000);
+        } catch (error) {
+            console.error(error);
+            toast({ variant: "destructive", title: "Restore Failed", description: "Could not restore your data." });
+            setIsUploading(false);
+        } finally {
+            setIsRestoreDialogOpen(false);
+        }
+    };
+
+    return (
+        <>
+            <Card className="border">
+                <CardHeader className="flex-row items-center gap-2">
+                     <div {...dragHandleListeners} className="cursor-grab p-1"><GripVertical className="h-5 w-5 text-muted-foreground" /></div>
+                    <div>
+                        <CardTitle className="flex items-center gap-2"><Cloud className="h-5 w-5" /> Data Management</CardTitle>
+                        <CardDescription>
+                            Download a backup of your data or restore from a previously saved file.
+                        </CardDescription>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex gap-4">
+                    <Button onClick={handleDownload} disabled={isDownloading}>
+                        {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                        Download Data
+                    </Button>
+                    <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                        <FileUp className="mr-2 h-4 w-4" />
+                        Restore From File...
+                    </Button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept=".json" className="hidden" />
+                </CardContent>
+            </Card>
+            <AlertDialog open={isRestoreDialogOpen} onOpenChange={setIsRestoreDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will completely overwrite all of your current corps data with the contents of the backup file. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleRestore}>
+                            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Yes, restore data
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
+    );
+};
 
 const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { toast } = useToast();
@@ -432,7 +550,7 @@ export default function SettingsPage() {
     const cardComponents: { [key: string]: React.FC<{ dragHandleListeners: any }> } = {
         general: GeneralSettingsCard,
         resources: PlanningResourcesCard,
-        data: DataStorageCard,
+        data: DataManagementCard,
         danger: DangerZoneCard
     };
   
