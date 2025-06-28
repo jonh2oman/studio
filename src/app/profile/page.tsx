@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserCog, Loader2, AlertTriangle } from "lucide-react";
+import { UserCog, Loader2, AlertTriangle, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const profileSchema = z.object({
   rank: z.string().min(1, "Rank is required"),
@@ -29,8 +29,9 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
     const { user, loading: authLoading } = useAuth();
-    const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
+    const { settings, saveSettings, isLoaded: settingsLoaded, forceSetOwner, userRole } = useSettings();
     const { toast } = useToast();
+    const [isOwnerAlertOpen, setIsOwnerAlertOpen] = useState(false);
 
     const form = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
@@ -186,6 +187,46 @@ export default function ProfilePage() {
                     </form>
                 </Form>
             </div>
+            {userRole !== 'owner' && (
+                <div className="mt-8">
+                    <Card className="border-amber-500/50">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-amber-600">
+                                <ShieldAlert className="h-6 w-6" />
+                                Ownership Actions
+                            </CardTitle>
+                            <CardDescription>
+                                If you need to become the owner of the currently loaded data set for testing, use this tool.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <AlertDialog open={isOwnerAlertOpen} onOpenChange={setIsOwnerAlertOpen}>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="outline">Become Owner of My Data</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will make you the sole owner of your personal corps data set and disconnect you from any shared data you are currently viewing.
+                                            This action is intended for development and testing.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            className="bg-destructive hover:bg-destructive/90"
+                                            onClick={forceSetOwner}
+                                        >
+                                            Yes, take ownership
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </>
     );
 }

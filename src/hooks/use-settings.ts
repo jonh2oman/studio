@@ -1,13 +1,11 @@
 
 
-
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Settings, UserDocument, Invite, UserRole } from '@/lib/types';
 import { useAuth } from './use-auth';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch, deleteField } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { awardsData } from '@/lib/awards-data';
 import { useToast } from './use-toast';
@@ -246,6 +244,33 @@ export function useSettings() {
         }
     }, [user, db, dataOwnerId, toast]);
 
+    const forceSetOwner = useCallback(async () => {
+        if (!user || !db) {
+            toast({ variant: "destructive", title: "Error", description: "User not authenticated." });
+            return;
+        }
+
+        try {
+            const newPermissions = {
+                [user.uid]: { email: user.email!, role: 'owner' }
+            };
+            
+            const userDocRef = doc(db, 'users', user.uid);
+            
+            await setDoc(userDocRef, { 
+                settings: { permissions: newPermissions },
+                pointerToCorpsData: deleteField() // Remove the pointer field
+            }, { merge: true });
+
+            toast({ title: "Ownership Claimed", description: "You are now the owner of your data. The page will reload." });
+            setTimeout(() => window.location.reload(), 2000);
+
+        } catch (error) {
+            console.error("Failed to force set owner:", error);
+            toast({ variant: "destructive", title: "Failed to set owner", description: "Could not update ownership." });
+        }
+    }, [user, db, toast]);
+
     return { 
         settings: settings || defaultSettings, 
         allYearsData,
@@ -253,6 +278,7 @@ export function useSettings() {
         isLoaded,
         userRole,
         dataOwnerId,
-        resetUserDocument
+        resetUserDocument,
+        forceSetOwner
     };
 }
