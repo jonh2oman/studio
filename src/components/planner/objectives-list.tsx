@@ -17,10 +17,12 @@ import type { EO, CustomEO } from "@/lib/types";
 import { CheckCircle2, Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
+import { useTrainingYear } from "@/hooks/use-training-year";
 
 export function ObjectivesList() {
   const { schedule } = useSchedule();
   const { settings } = useSettings();
+  const { adaPlanners } = useTrainingYear();
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, eo: EO) => {
@@ -41,14 +43,24 @@ export function ObjectivesList() {
 
   const scheduledEoCounts = useMemo(() => {
     const counts: { [key: string]: number } = {};
+    
+    // Count from main schedule
     Object.values(schedule).forEach(item => {
         if (item) {
             const eoId = item.eo.id;
             counts[eoId] = (counts[eoId] || 0) + 1;
         }
     });
+
+    // Count from ADA planners
+    (adaPlanners || []).forEach(planner => {
+      planner.eos.forEach(eo => {
+        counts[eo.id] = (counts[eo.id] || 0) + 1;
+      });
+    });
+
     return counts;
-  }, [schedule]);
+  }, [schedule, adaPlanners]);
 
   const filteredTrainingData = useMemo(() => {
     if (!searchTerm) return trainingData;
