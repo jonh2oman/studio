@@ -66,11 +66,12 @@ export default function DashboardPage() {
     const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
     const allScheduledEOs = [...scheduleEOs, ...adaEOs];
 
-    const scheduledMandatoryIds = new Set(
-        allScheduledEOs
-            .filter(eo => eo.type === 'mandatory')
-            .map(eo => eo.id)
-    );
+    const scheduledCounts: { [key: string]: number } = {};
+    allScheduledEOs.forEach(eo => {
+        if (eo.type === 'mandatory') {
+            scheduledCounts[eo.id] = (scheduledCounts[eo.id] || 0) + 1;
+        }
+    });
 
     return trainingData.map(phase => {
         const mandatoryEOs = phase.performanceObjectives.flatMap(po => 
@@ -83,18 +84,23 @@ export default function DashboardPage() {
             return {
                 phaseName: phase.name,
                 progress: 100,
+                completed: 0,
+                total: 0,
             };
         }
         
-        const completedPeriods = mandatoryEOs
-            .filter(eo => scheduledMandatoryIds.has(eo.id))
-            .reduce((sum, eo) => sum + eo.periods, 0);
+        let completedPeriods = 0;
+        mandatoryEOs.forEach(eo => {
+            completedPeriods += Math.min(scheduledCounts[eo.id] || 0, eo.periods);
+        });
 
         const progress = (completedPeriods / totalMandatoryPeriods) * 100;
 
         return {
             phaseName: phase.name,
             progress: Math.min(100, progress),
+            completed: completedPeriods,
+            total: totalMandatoryPeriods,
         };
     });
   }, [schedule, isLoaded, adaPlanners, yearsLoaded]);
@@ -183,12 +189,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             {isLoaded ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="space-y-6">
                 {phaseProgress.map((p) => (
                   <div key={p.phaseName}>
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium text-muted-foreground">{p.phaseName}</span>
-                      <span className="text-sm font-semibold">{p.progress.toFixed(0)}%</span>
+                      <span className="font-medium text-foreground">{p.phaseName}</span>
+                      <span className="text-sm font-semibold text-muted-foreground">{p.completed} / {p.total} Periods ({p.progress.toFixed(0)}%)</span>
                     </div>
                     <Progress value={p.progress} aria-label={`${p.phaseName} completion progress`} />
                   </div>

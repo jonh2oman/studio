@@ -7,14 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Button } from "@/components/ui/button";
 import { Printer, Loader2 } from "lucide-react";
+import { useTrainingYear } from '@/hooks/use-training-year';
 
 export function TrainingCompletionReport() {
     const { schedule, isLoaded } = useSchedule();
+    const { adaPlanners, isLoaded: yearsLoaded } = useTrainingYear();
 
     const phaseProgress = useMemo(() => {
-        if (!isLoaded) return [];
+        if (!isLoaded || !yearsLoaded) return [];
 
-        const scheduledEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
+        const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
+        const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
+        const allScheduledEOs = [...scheduleEOs, ...adaEOs];
        
         return trainingData.map(phase => {
             const mandatoryEOs = phase.performanceObjectives.flatMap(po => 
@@ -33,7 +37,7 @@ export function TrainingCompletionReport() {
             const totalMandatoryPeriods = mandatoryEOs.reduce((sum, eo) => sum + eo.periods, 0);
             
             const scheduledCounts: { [key: string]: number } = {};
-            scheduledEOs.forEach(eo => {
+            allScheduledEOs.forEach(eo => {
                 if (eo.type === 'mandatory') {
                     scheduledCounts[eo.id] = (scheduledCounts[eo.id] || 0) + 1;
                 }
@@ -53,7 +57,7 @@ export function TrainingCompletionReport() {
                 progress: Math.min(100, progress),
             };
         });
-    }, [schedule, isLoaded]);
+    }, [schedule, isLoaded, adaPlanners, yearsLoaded]);
 
     const handlePrint = () => window.print();
 
