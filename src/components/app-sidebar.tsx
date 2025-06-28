@@ -256,7 +256,7 @@ export function AppSidebar() {
   }, [saveSettings]);
 
 
-  const isReady = isMounted && settingsLoaded;
+  const isReady = isMounted && settingsLoaded && !authLoading;
 
   if (!isReady) {
     return (
