@@ -80,7 +80,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>First Training Night of New Year</FormLabel>
-                   <Popover>
+                   <Popover modal={false}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -95,7 +95,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                    <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={field.value}
