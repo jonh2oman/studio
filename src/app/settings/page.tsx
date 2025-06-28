@@ -13,14 +13,12 @@ import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2, Clo
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
-import type { WeeklyActivity, Settings, StaffMember, CustomEO } from "@/lib/types";
+import type { WeeklyActivity, Settings, CustomEO } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format as formatDate } from 'date-fns';
 import { cn } from "@/lib/utils";
-import { StaffManager } from "@/components/settings/staff-manager";
-import { DutyRoster } from "@/components/settings/duty-roster";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useGoogleLogin } from '@react-oauth/google';
@@ -245,10 +243,6 @@ export default function SettingsPage() {
       const customEOs = localSettings.customEOs || [];
       handleListChange('customEOs', customEOs.filter(eo => eo.id !== id));
   };
-  
-  const handleStaffChange = (newStaff: StaffMember[]) => {
-      handleListChange('staff', newStaff);
-  }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -296,7 +290,7 @@ export default function SettingsPage() {
       >
       </PageHeader>
       <div className="mt-8 space-y-6">
-        <Accordion type="multiple" defaultValue={["general", "personnel", "resources"]} className="w-full space-y-6">
+        <Accordion type="multiple" defaultValue={["general", "resources"]} className="w-full space-y-6">
             <Card className="border">
                 <AccordionItem value="general" className="border-b-0">
                     <AccordionTrigger className="p-6 hover:no-underline">
@@ -411,21 +405,6 @@ export default function SettingsPage() {
                                     )}
                                 </CardContent>
                             </Card>
-                        </div>
-                    </AccordionContent>
-                </AccordionItem>
-            </Card>
-            
-            <Card className="border">
-                <AccordionItem value="personnel" className="border-b-0">
-                    <AccordionTrigger className="p-6 hover:no-underline">
-                        <h2 className="text-2xl font-bold tracking-tight">Personnel Management</h2>
-                    </AccordionTrigger>
-                    <AccordionContent className="p-6 pt-0">
-                        <p className="text-muted-foreground mb-6">Manage staff members and assign their parade night duties.</p>
-                        <div className="grid gap-8">
-                            <StaffManager staff={localSettings.staff || []} onStaffChange={handleStaffChange} />
-                            <DutyRoster />
                         </div>
                     </AccordionContent>
                 </AccordionItem>

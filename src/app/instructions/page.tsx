@@ -133,7 +133,7 @@ export default function InstructionsPage() {
                     <li><strong>Automatic Logic:</strong> The following fields are auto-populated based on your settings and schedules:
                         <ul className="list-disc list-inside ml-6 my-2 bg-muted/50 p-3 rounded-md">
                             <li><strong>RO Number:</strong> Generated from the year and week number of the selected date.</li>
-                            <li><strong>Duty Personnel:</strong> Pulled from the Duty Roster you configure in Settings.</li>
+                            <li><strong>Duty Personnel:</strong> Pulled from the Duty Roster you configure in Corps Management.</li>
                             <li><strong>Dress of the Day:</strong> Pulled from the setting on the Annual Planner for that date.</li>
                             <li><strong>Upcoming Activities:</strong> Populated from the "Weekly Activities" you define in Settings.</li>
                         </ul>
@@ -143,7 +143,7 @@ export default function InstructionsPage() {
                     <li>Click "Generate WRO PDF". A PDF file will be created and downloaded.</li>
                 </ol>
                 <h4 className="font-semibold">Other Reports</h4>
-                <p>The reports page also includes several other useful reports that can be printed:</p>
+                <p>The reports page also includes several other useful reports that can be generated as PDFs:</p>
                 <ul className="list-disc list-inside">
                     <li><strong>Cadet Roster:</strong> A complete list of all cadets.</li>
                     <li><strong>Attendance:</strong> Includes a Summary, Daily Report, Perfect Attendance list, and At-Risk Cadets list.</li>
@@ -176,9 +176,11 @@ export default function InstructionsPage() {
                  <div className="flex items-center gap-3"><Building2 className="h-6 w-6" />Corps Management</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">This is where you manage global, non-training year specific corps data, such as your asset inventory. This data persists across all training years.</p>
-                 <h4 className="font-semibold">Asset Tracker</h4>
+                <p className="text-muted-foreground">This is where you manage global corps data and personnel. This data persists across all training years. This page has two tabs: Asset Management and Staff Management.</p>
+                 <h4 className="font-semibold">Asset Management</h4>
                  <p>Use the "Add New Asset" form to add items to your corps' inventory. You can track details like category, serial number, status, condition, and location. This data is available in a printable report on the Reports page.</p>
+                 <h4 className="font-semibold">Staff Management</h4>
+                 <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
               </AccordionContent>
             </AccordionItem>
           </Card>
@@ -233,9 +235,6 @@ export default function InstructionsPage() {
 
                 <h4 className="font-semibold">Training Year Management</h4>
                 <p>Create a new training year or switch between existing ones. When creating a new year, you have the option to copy all data from a previous year. This includes an AI-powered feature to intelligently map last year's schedule to the new calendar, automatically adjusting for different start dates and holidays.</p>
-                
-                <h4 className="font-semibold">Personnel Management</h4>
-                <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
                 
                 <h4 className="font-semibold">Planning Resources</h4>
                 <p>Customize the lists used throughout the planners. This includes creating and managing:</p>

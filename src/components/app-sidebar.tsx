@@ -49,7 +49,7 @@ const navGroups = [
   {
     title: "Corps Management",
     items: [
-        { href: "/corps-management", label: "Asset Tracker", icon: Building2 },
+        { href: "/corps-management", label: "Corps Management", icon: Building2 },
     ]
   },
   {
