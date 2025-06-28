@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { PageHeader } from '@/components/page-header';
 import type { Award, Cadet, CadetWithAttendance } from '@/lib/types';
 import { useCadets } from '@/hooks/use-cadets';
@@ -12,7 +12,7 @@ import { determineAwardEligibility } from '@/ai/flows/determine-award-eligibilit
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Crown, Trash2, Pencil, Loader2, Sparkles } from 'lucide-react';
+import { Crown, Trash2, Pencil, Loader2, Sparkles, Upload, Download } from 'lucide-react';
 import { AwardDialog } from '@/components/awards/award-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -20,12 +20,13 @@ import { useToast } from '@/hooks/use-toast';
 export default function AwardsPage() {
     const { cadets, isLoaded: cadetsLoaded } = useCadets();
     const { schedule, isLoaded: scheduleLoaded } = useSchedule();
-    const { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded: awardsLoaded } = useAwards();
+    const { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded: awardsLoaded, importAwards } = useAwards();
     const { toast } = useToast();
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingAward, setEditingAward] = useState<Award | null>(null);
     const [deletingAward, setDeletingAward] = useState<Award | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [aiEligibleCadets, setAiEligibleCadets] = useState<Record<string, string[] | null>>({});
     const [isCheckingEligibility, setIsCheckingEligibility] = useState<Record<string, boolean>>({});
@@ -80,6 +81,102 @@ export default function AwardsPage() {
         }
     }
 
+    const handleFileImportClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleDownloadTemplate = () => {
+        const headers = ['name', 'category', 'description', 'eligibility', 'criteria', 'deadline', 'approval'];
+        const exampleRow = [
+            '"Example Corps Award"',
+            '"Corps"',
+            '"An award for being an example."',
+            '"All cadets are eligible."',
+            '"Criterion 1|Criterion 2|Criterion 3"',
+            '""',
+            '""'
+        ];
+
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + headers.join(",") + "\n" 
+            + exampleRow.join(",");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "awards_template.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target?.result as string;
+            try {
+                const rows = text.split('\n').filter(row => row.trim() !== '');
+                if (rows.length < 2) {
+                    throw new Error("CSV file must have a header and at least one data row.");
+                }
+                const header = rows[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                const requiredHeaders = ['name', 'category', 'description', 'eligibility', 'criteria'];
+                if (!requiredHeaders.every(h => header.includes(h))) {
+                    throw new Error(`CSV must contain the following headers: ${requiredHeaders.join(', ')}`);
+                }
+
+                const newAwards: Omit<Award, 'id'>[] = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const values = rows[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)?.map(v => v.trim().replace(/"/g, '')) || [];
+                    if (values.length === 0) continue;
+                    
+                    const awardData: any = {};
+                    header.forEach((h, index) => {
+                        awardData[h] = values[index] || '';
+                    });
+                    
+                    if (!awardData.name || !awardData.category || !awardData.description || !awardData.eligibility || !awardData.criteria) {
+                        toast({ variant: 'destructive', title: `Import Error on row ${i + 1}`, description: "Skipping row due to missing required fields." });
+                        continue;
+                    }
+                    
+                    if (awardData.category !== 'National' && awardData.category !== 'Corps') {
+                        toast({ variant: 'destructive', title: `Import Error on row ${i + 1}`, description: `Invalid category: ${awardData.category}. Must be 'National' or 'Corps'.` });
+                        continue;
+                    }
+
+                    newAwards.push({
+                        name: awardData.name,
+                        category: awardData.category as 'National' | 'Corps',
+                        description: awardData.description,
+                        eligibility: awardData.eligibility,
+                        criteria: awardData.criteria.split('|').map((c: string) => c.trim()).filter(Boolean),
+                        deadline: awardData.deadline || '',
+                        approval: awardData.approval || '',
+                    });
+                }
+                
+                if (newAwards.length > 0) {
+                    const importedCount = importAwards(newAwards);
+                    toast({ title: "Import Complete", description: `${importedCount} new awards were added. ${newAwards.length - importedCount} duplicates were skipped.` });
+                } else {
+                     toast({ variant: "destructive", title: "Import Failed", description: "No valid awards were found in the file." });
+                }
+
+            } catch (error: any) {
+                 toast({ variant: "destructive", title: "Import Failed", description: error.message || "An unknown error occurred while parsing the file." });
+            } finally {
+                if (event.target) {
+                    event.target.value = '';
+                }
+            }
+        };
+        reader.readAsText(file);
+    };
+
 
     const groupedAwards = useMemo(() => {
         return awards.reduce((acc, award) => {
@@ -100,7 +197,24 @@ export default function AwardsPage() {
                 title="Awards Management"
                 description="Review award criteria, view eligible cadets, and assign winners."
             >
-                <Button onClick={() => setIsAddDialogOpen(true)}>Add New Award</Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleDownloadTemplate}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download Template
+                    </Button>
+                    <Button variant="outline" onClick={handleFileImportClick}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Import Awards
+                    </Button>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept=".csv"
+                        className="hidden"
+                    />
+                    <Button onClick={() => setIsAddDialogOpen(true)}>Add New Award</Button>
+                </div>
             </PageHeader>
             <div className="mt-6 space-y-8">
                  {isLoading ? (

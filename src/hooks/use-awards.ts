@@ -92,5 +92,24 @@ export function useAwards() {
         saveWinners(updatedWinners);
     }, [winners, saveWinners]);
 
-    return { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded: isLoaded && !!currentYear };
+    const importAwards = useCallback((newAwards: Omit<Award, 'id'>[]) => {
+        const existingAwardNames = new Set(awards.map(a => a.name.toLowerCase()));
+        
+        const uniqueNewAwards = newAwards.filter(
+            newAward => !existingAwardNames.has(newAward.name.toLowerCase())
+        );
+
+        if (uniqueNewAwards.length > 0) {
+            const awardsToSave = uniqueNewAwards.map(award => ({
+                ...award,
+                id: crypto.randomUUID(),
+            }));
+            const updatedAwards = [...awards, ...awardsToSave];
+            saveAwards(updatedAwards);
+        }
+        
+        return uniqueNewAwards.length;
+    }, [awards, saveAwards]);
+
+    return { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded: isLoaded && !!currentYear, importAwards };
 }
