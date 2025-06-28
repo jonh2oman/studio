@@ -8,6 +8,7 @@ import { useAuth } from './use-auth';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { awardsData } from '@/lib/awards-data';
+import { useToast } from './use-toast';
 
 const permanentRoles = [
     'Commanding Officer',
@@ -56,6 +57,7 @@ export const defaultUserDocument: (userId: string, email: string) => UserDocumen
 
 export function useSettings() {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [userDocument, setUserDocument] = useState<UserDocument | null>(null);
     const [userRole, setUserRole] = useState<UserRole | null>(null);
     const [dataOwnerId, setDataOwnerId] = useState<string | null>(null);
@@ -84,15 +86,13 @@ export function useSettings() {
 
         await batch.commit();
         
-        // The owner's client will handle adding the user to permissions.
         return ownerId;
-    }, []);
+    }, [db]);
 
     const syncPermissions = useCallback(async (currentDataOwnerId: string, currentSettings: Settings) => {
         if (!user || !db || currentSettings.permissions?.[user.uid]?.role !== 'owner') return;
         
         const invitesRef = collection(db, "invites");
-        // Look for invites that this user sent and have been accepted but not yet processed
         const q = query(invitesRef, where("corpsDataOwnerId", "==", currentDataOwnerId), where("status", "==", "accepted"));
         const querySnapshot = await getDocs(q);
 
@@ -106,12 +106,10 @@ export function useSettings() {
             const inviteData = inviteDoc.data() as Invite;
             const inviteeId = inviteData.acceptedBy;
             
-            // If the accepted invitee is not already in permissions, add them
             if (inviteeId && !newPermissions[inviteeId]) {
                 newPermissions[inviteeId] = { email: inviteData.inviteeEmail, role: inviteData.role };
                 permissionsChanged = true;
                 
-                // Mark the invite as processed so we don't handle it again
                 batch.update(inviteDoc.ref, { status: "processed" });
             }
         });
@@ -120,7 +118,6 @@ export function useSettings() {
             const userDocRef = doc(db, 'users', currentDataOwnerId);
             batch.set(userDocRef, { settings: { permissions: newPermissions } }, { merge: true });
             await batch.commit();
-            // The main useEffect will re-read the data and update the state
         }
     }, [user, db]);
 
@@ -134,50 +131,68 @@ export function useSettings() {
 
             setIsLoaded(false);
 
-            const ownerIdFromInvite = await processInvites(user.uid, user.email!);
-
-            let effectiveOwnerId = ownerIdFromInvite;
-            if (!effectiveOwnerId) {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (userDocSnap.exists() && userDocSnap.data()?.pointerToCorpsData) {
-                    effectiveOwnerId = userDocSnap.data()?.pointerToCorpsData;
-                } else {
-                    effectiveOwnerId = user.uid;
+            try {
+                let ownerIdFromInvite = null;
+                try {
+                    ownerIdFromInvite = await processInvites(user.uid, user.email!);
+                } catch (error) {
+                    console.error("Error processing invites:", error);
+                    toast({ variant: 'destructive', title: 'Invite Error', description: 'Could not process pending invites.' });
                 }
-            }
-            setDataOwnerId(effectiveOwnerId);
 
-            const dataDocRef = doc(db, 'users', effectiveOwnerId);
-            const dataDocSnap = await getDoc(dataDocRef);
+                let effectiveOwnerId = ownerIdFromInvite;
+                if (!effectiveOwnerId) {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (userDocSnap.exists() && userDocSnap.data()?.pointerToCorpsData) {
+                        effectiveOwnerId = userDocSnap.data()?.pointerToCorpsData;
+                    } else {
+                        effectiveOwnerId = user.uid;
+                    }
+                }
+                setDataOwnerId(effectiveOwnerId);
 
-            if (dataDocSnap.exists()) {
-                const data = dataDocSnap.data() as UserDocument;
-                const role = data.settings.permissions?.[user.uid]?.role || null;
-                
-                if (role === 'owner') {
-                    await syncPermissions(effectiveOwnerId, data.settings);
-                    // Re-fetch data after syncing permissions to get the latest state
-                    const updatedDataDocSnap = await getDoc(dataDocRef);
-                    if (updatedDataDocSnap.exists()) {
-                         const updatedData = updatedDataDocSnap.data() as UserDocument;
-                         setUserDocument(updatedData);
-                         setUserRole(updatedData.settings.permissions?.[user.uid]?.role || null);
+                const dataDocRef = doc(db, 'users', effectiveOwnerId);
+                const dataDocSnap = await getDoc(dataDocRef);
+
+                if (dataDocSnap.exists()) {
+                    const data = dataDocSnap.data() as UserDocument;
+                    const role = data.settings.permissions?.[user.uid]?.role || null;
+                    
+                    if (role === 'owner') {
+                        try {
+                            await syncPermissions(effectiveOwnerId, data.settings);
+                            const updatedDataDocSnap = await getDoc(dataDocRef);
+                            if (updatedDataDocSnap.exists()) {
+                                const updatedData = updatedDataDocSnap.data() as UserDocument;
+                                setUserDocument(updatedData);
+                                setUserRole(updatedData.settings.permissions?.[user.uid]?.role || null);
+                            }
+                        } catch (error) {
+                            console.error("Error syncing permissions:", error);
+                            toast({ variant: 'destructive', title: 'Sync Error', description: 'Could not sync user permissions.' });
+                            setUserDocument(data);
+                            setUserRole(role);
+                        }
+                    } else {
+                        setUserDocument(data);
+                        setUserRole(role);
                     }
                 } else {
-                    setUserDocument(data);
-                    setUserRole(role);
+                    const newUserDoc = defaultUserDocument(user.uid, user.email!);
+                    await setDoc(dataDocRef, newUserDoc);
+                    setUserDocument(newUserDoc);
+                    setUserRole('owner');
                 }
-            } else {
-                const newUserDoc = defaultUserDocument(user.uid, user.email!);
-                await setDoc(dataDocRef, newUserDoc);
-                setUserDocument(newUserDoc);
-                setUserRole('owner');
+            } catch (error) {
+                console.error("Fatal error loading settings:", error);
+                toast({ variant: 'destructive', title: 'Data Load Error', description: 'Could not load corps data. Check permissions and connection.' });
+            } finally {
+                setIsLoaded(true);
             }
-            setIsLoaded(true);
         }
         loadSettings();
-    }, [user, processInvites, syncPermissions]);
+    }, [user, processInvites, syncPermissions, toast]);
 
     const saveUserDocument = useCallback(async (newDocument: Partial<UserDocument>) => {
         if (!user || !db || !dataOwnerId) return;
@@ -191,7 +206,7 @@ export function useSettings() {
         } catch (error) {
             console.error("Failed to save user document to Firestore", error);
         }
-    }, [user, userDocument, dataOwnerId]);
+    }, [user, userDocument, dataOwnerId, db]);
     
     const settings = userDocument?.settings;
     const allYearsData = userDocument?.trainingYears || {};
