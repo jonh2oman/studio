@@ -18,19 +18,30 @@ export default function CorpsManagementPage() {
 
   const handleAddAsset = (asset: Omit<Asset, 'id' | 'assetId'>) => {
     const randomPart = Math.floor(100000 + Math.random() * 900000).toString();
-    const newAsset = { 
+    const newAsset: Asset = { 
       ...asset, 
       id: crypto.randomUUID(),
-      assetId: `288-ID-${randomPart}` 
+      assetId: `288-ID-${randomPart}`,
+      serialNumber: asset.serialNumber || '',
+      purchaseDate: asset.purchaseDate || '',
+      purchasePrice: asset.purchasePrice || 0,
+      notes: asset.notes || '',
     };
     const updatedAssets = [...(settings.assets || []), newAsset];
-    saveSettings({ ...settings, assets: updatedAssets });
+    saveSettings({ assets: updatedAssets });
     toast({ title: "Asset Added", description: `${newAsset.name} has been added to the tracker.` });
   };
 
   const handleUpdateAsset = (updatedAsset: Asset) => {
-    const updatedAssets = (settings.assets || []).map(a => a.id === updatedAsset.id ? updatedAsset : a);
-    saveSettings({ ...settings, assets: updatedAssets });
+    const cleanedAsset: Asset = {
+      ...updatedAsset,
+      serialNumber: updatedAsset.serialNumber || '',
+      purchaseDate: updatedAsset.purchaseDate || '',
+      purchasePrice: updatedAsset.purchasePrice || 0,
+      notes: updatedAsset.notes || '',
+    };
+    const updatedAssets = (settings.assets || []).map(a => a.id === cleanedAsset.id ? cleanedAsset : a);
+    saveSettings({ assets: updatedAssets });
     setEditingAsset(null);
     toast({ title: "Asset Updated", description: `${updatedAsset.name} has been updated.` });
   };
@@ -38,7 +49,7 @@ export default function CorpsManagementPage() {
   const handleRemoveAsset = (assetId: string) => {
     const assetToRemove = (settings.assets || []).find(a => a.id === assetId);
     const updatedAssets = (settings.assets || []).filter(a => a.id !== assetId);
-    saveSettings({ ...settings, assets: updatedAssets });
+    saveSettings({ assets: updatedAssets });
     toast({ variant: "destructive", title: "Asset Removed", description: `${assetToRemove?.name} has been removed.` });
   };
 
