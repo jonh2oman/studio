@@ -4,27 +4,58 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    match /users/{userId} {
-      // A user can read a document if they are the owner OR if they are listed in that document's permissions map.
-      allow read: if request.auth.uid == userId || (resource.data.permissions != null && resource.data.permissions[request.auth.uid] != null);
-      
-      // A user can only write to their own document (or the document they own).
-      allow write: if request.auth.uid == userId;
+    // Helper function to check if a user has a specific role for a given corps data owner.
+    function hasRole(ownerId, role) {
+      // Early exit if permissions map doesn't exist
+      if (!exists(/databases/$(database)/documents/users/$(ownerId))) {
+        return false;
+      }
+      let permissions = get(/databases/$(database)/documents/users/$(ownerId)).data.settings.permissions;
+      return request.auth.uid in permissions && permissions[request.auth.uid].role == role;
+    }
+    
+    // Helper function to check if a user is the owner of the data.
+    function isOwner(ownerId) {
+      return request.auth.uid == ownerId;
+    }
+    
+    // Helper function to check if a user has any access to the data.
+    function hasAccess(ownerId) {
+      if (!exists(/databases/$(database)/documents/users/$(ownerId))) {
+        return false;
+      }
+      let permissions = get(/databases/$(database)/documents/users/$(ownerId)).data.settings.permissions;
+      return request.auth.uid in permissions;
     }
 
+    // Rules for the 'users' collection
+    match /users/{userId} {
+      // Allow a user to read their own document.
+      // Also, allow any user with access to read the data owner's document.
+      allow read: if request.auth.uid == userId || hasAccess(userId);
+
+      // A user can create their own document on signup.
+      allow create: if request.auth.uid == userId;
+      
+      // A user can update their own document, BUT only to set the 'pointerToCorpsData' field when accepting an invite.
+      // The owner or an editor can update the full corps data document.
+      allow write: if (request.auth.uid == userId && request.resource.data.keys().hasOnly(['pointerToCorpsData'])) ||
+                      (isOwner(userId) || hasRole(userId, 'editor'));
+    }
+    
+    // Rules for the 'invites' collection
     match /invites/{inviteId} {
-      // An invite can only be created by the user who owns the data.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.corpsDataOwnerId;
+      // Any authenticated user can create an invitation.
+      allow create: if request.auth.uid != null;
       
-      // An invite can be read by the owner who sent it or the person who received it.
-      allow read: if request.auth.uid == resource.data.corpsDataOwnerId || request.auth.token.email == resource.data.inviteeEmail;
-      
-      // An invite can be updated by the invitee (to accept it) or the owner (to mark it as processed).
-      allow update: if (request.auth.token.email == resource.data.inviteeEmail && request.resource.data.status == 'accepted') || 
+      // An invited user can update an invite to "accepted".
+      // The data owner can update an invite to "processed".
+      allow update: if (request.auth.token.email == resource.data.inviteeEmail && request.resource.data.status == 'accepted') ||
                        (request.auth.uid == resource.data.corpsDataOwnerId && request.resource.data.status == 'processed');
       
-      // Invites cannot be deleted to maintain an audit trail.
-      allow delete: if false;
+      // The data owner or the invited user can read the invite.
+      allow read: if request.auth.uid == resource.data.corpsDataOwnerId ||
+                     request.auth.token.email == resource.data.inviteeEmail;
     }
   }
 }
