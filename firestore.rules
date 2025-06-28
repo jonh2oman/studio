@@ -1,61 +1,72 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if a user has a specific role for a given corps data owner.
-    function hasRole(ownerId, role) {
-      // Early exit if permissions map doesn't exist
-      if (!exists(/databases/$(database)/documents/users/$(ownerId))) {
-        return false;
-      }
-      let permissions = get(/databases/$(database)/documents/users/$(ownerId)).data.settings.permissions;
-      return request.auth.uid in permissions && permissions[request.auth.uid].role == role;
-    }
-    
-    // Helper function to check if a user is the owner of the data.
-    function isOwner(ownerId) {
-      return request.auth.uid == ownerId;
-    }
-    
-    // Helper function to check if a user has any access to the data.
-    function hasAccess(ownerId) {
-      if (!exists(/databases/$(database)/documents/users/$(ownerId))) {
-        return false;
-      }
-      let permissions = get(/databases/$(database)/documents/users/$(ownerId)).data.settings.permissions;
-      return request.auth.uid in permissions;
+
+    // HELPER FUNCTIONS
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Rules for the 'users' collection
-    match /users/{userId} {
-      // Allow a user to read their own document.
-      // Also, allow any user with access to read the data owner's document.
-      allow read: if request.auth.uid == userId || hasAccess(userId);
+    function isOwner(userId, docData) {
+      return docData.permissions[userId].role == 'owner';
+    }
 
-      // A user can create their own document on signup.
-      allow create: if request.auth.uid == userId;
-      
-      // A user can update their own document, BUT only to set the 'pointerToCorpsData' field when accepting an invite.
-      // The owner or an editor can update the full corps data document.
-      allow write: if (request.auth.uid == userId && request.resource.data.keys().hasOnly(['pointerToCorpsData'])) ||
-                      (isOwner(userId) || hasRole(userId, 'editor'));
+    function isEditor(userId, docData) {
+      return docData.permissions[userId].role == 'editor';
     }
     
-    // Rules for the 'invites' collection
+    function canRead(userId, docData) {
+      return docData.permissions[userId] != null;
+    }
+
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    // USER DOCUMENT RULES
+    match /users/{docUserId} {
+      allow read: if isSignedIn() && (
+                    // Can read your own doc
+                    request.auth.uid == docUserId ||
+                    // Can read the doc you have been granted access to
+                    (getUserData(request.auth.uid).pointerToCorpsData == docUserId) ||
+                    // Can read if you are in the permissions list of that doc
+                    canRead(request.auth.uid, resource.data)
+                  );
+
+      allow create: if isSignedIn() && request.auth.uid == docUserId;
+
+      allow update: if isSignedIn() && (
+                      // Can update your own doc (e.g., to add a pointer)
+                      request.auth.uid == docUserId ||
+                      // Can update the doc you are an editor/owner of
+                      isOwner(request.auth.uid, resource.data) || isEditor(request.auth.uid, resource.data)
+                    );
+                    
+      allow delete: if false; // Prevent client-side deletion
+    }
+
+    // INVITE DOCUMENT RULES
     match /invites/{inviteId} {
-      // Any authenticated user can create an invitation.
-      allow create: if request.auth.uid != null;
-      
-      // An invited user can update an invite to "accepted".
-      // The data owner can update an invite to "processed".
-      allow update: if (request.auth.token.email == resource.data.inviteeEmail && request.resource.data.status == 'accepted') ||
-                       (request.auth.uid == resource.data.corpsDataOwnerId && request.resource.data.status == 'processed');
-      
-      // The data owner or the invited user can read the invite.
-      allow read: if request.auth.uid == resource.data.corpsDataOwnerId ||
-                     request.auth.token.email == resource.data.inviteeEmail;
+      function incomingInvite() {
+        return request.resource.data;
+      }
+
+      // Only an owner of the target corps data can create an invite
+      allow create: if isSignedIn() && isOwner(request.auth.uid, getUserData(incomingInvite().corpsDataOwnerId));
+
+      // Only the sender or the intended recipient can read the invite
+      allow read: if isSignedIn() && 
+                    (request.auth.uid == resource.data.corpsDataOwnerId || request.auth.email == resource.data.inviteeEmail);
+
+      // Only the invitee can update it to "accepted", and only the owner can update it to "processed"
+      allow update: if isSignedIn() && (
+                      (request.auth.email == resource.data.inviteeEmail && incomingInvite().status == 'accepted') ||
+                      (request.auth.uid == resource.data.corpsDataOwnerId && incomingInvite().status == 'processed')
+                    );
+
+      allow delete: if false; // Prevent client-side deletion
     }
   }
 }
