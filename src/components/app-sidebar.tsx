@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -49,7 +49,8 @@ const navGroups = [
   {
     title: "Corps Management",
     items: [
-        { href: "/corps-management", label: "Corps Management", icon: Building2 },
+        { href: "/corps-management/assets", label: "Asset Management", icon: Building2 },
+        { href: "/corps-management/staff", label: "Staff Management", icon: Contact },
     ]
   },
   {
@@ -218,3 +219,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+

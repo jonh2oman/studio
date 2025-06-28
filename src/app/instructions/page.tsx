@@ -4,7 +4,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2 } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact } from "lucide-react";
 
 export default function InstructionsPage() {
   return (
@@ -42,7 +42,8 @@ export default function InstructionsPage() {
               <li><a href="#ada"><p className="flex items-center gap-2"><ClipboardList className="h-4 w-4" />ADA Planner</p></a></li>
               <li><a href="#reports"><p className="flex items-center gap-2"><FileText className="h-4 w-4" />Reports</p></a></li>
               <li><a href="#cadets"><p className="flex items-center gap-2"><Users className="h-4 w-4" />Cadet Management</p></a></li>
-              <li><a href="#corps-management"><p className="flex items-center gap-2"><Building2 className="h-4 w-4" />Corps Management</p></a></li>
+              <li><a href="#asset-management"><p className="flex items-center gap-2"><Building2 className="h-4 w-4" />Asset Management</p></a></li>
+              <li><a href="#staff-management"><p className="flex items-center gap-2"><Contact className="h-4 w-4" />Staff Management</p></a></li>
               <li><a href="#attendance"><p className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Attendance</p></a></li>
               <li><a href="#awards"><p className="flex items-center gap-2"><Trophy className="h-4 w-4" />Awards Management</p></a></li>
               <li><a href="#settings"><p className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Settings</p></a></li>
@@ -170,16 +171,26 @@ export default function InstructionsPage() {
             </AccordionItem>
           </Card>
           
-           <Card id="corps-management">
-            <AccordionItem value="corps-management" className="border-b-0">
+           <Card id="asset-management">
+            <AccordionItem value="asset-management" className="border-b-0">
               <AccordionTrigger className="p-6 text-xl">
-                 <div className="flex items-center gap-3"><Building2 className="h-6 w-6" />Corps Management</div>
+                 <div className="flex items-center gap-3"><Building2 className="h-6 w-6" />Asset Management</div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6 space-y-4">
-                <p className="text-muted-foreground">This is where you manage global corps data and personnel. This data persists across all training years. This page has two tabs: Asset Management and Staff Management.</p>
-                 <h4 className="font-semibold">Asset Management</h4>
+                <p className="text-muted-foreground">This is where you manage global corps assets. This data persists across all training years.</p>
                  <p>Use the "Add New Asset" form to add items to your corps' inventory. You can track details like category, serial number, status, condition, and location. This data is available in a printable report on the Reports page.</p>
-                 <h4 className="font-semibold">Staff Management</h4>
+                 <p>You can also manage the list of available asset categories on this page.</p>
+              </AccordionContent>
+            </AccordionItem>
+          </Card>
+
+           <Card id="staff-management">
+            <AccordionItem value="staff-management" className="border-b-0">
+              <AccordionTrigger className="p-6 text-xl">
+                 <div className="flex items-center gap-3"><Contact className="h-6 w-6" />Staff Management</div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This is where you manage your staff roster and duty assignments. This data persists across all training years.</p>
                  <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
               </AccordionContent>
             </AccordionItem>
