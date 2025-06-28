@@ -32,10 +32,7 @@ export default function SettingsPage() {
   
   const [newClassroom, setNewClassroom] = useState("");
   const [newCadetRank, setNewCadetRank] = useState("");
-  const [newOfficerRank, setNewOfficerRank] = useState("");
-  const [newStaffRole, setNewStaffRole] = useState("");
   const [newCadetRole, setNewCadetRole] = useState("");
-  const [newCafDress, setNewCafDress] = useState("");
   const [newCadetDress, setNewCadetDress] = useState("");
   const [newCustomEo, setNewCustomEo] = useState({ id: "", title: "", periods: 1 });
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -62,13 +59,6 @@ export default function SettingsPage() {
   const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
   const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
   const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  
-  const permanentRoles = useMemo(() => [
-    'Commanding Officer',
-    'Training Officer',
-    'Administration Officer',
-    'Supply Officer'
-  ], []);
 
   const commandingOfficer = useMemo(() => {
     return localSettings.staff.find(s => s.primaryRole === 'Commanding Officer');
@@ -123,40 +113,6 @@ export default function SettingsPage() {
     const cadetRanks = localSettings.cadetRanks || [];
     handleListChange('cadetRanks', cadetRanks.filter(r => r !== rank));
   };
-  
-  const handleAddOfficerRank = () => {
-    const officerRanks = localSettings.officerRanks || [];
-    if (newOfficerRank.trim() && !officerRanks.includes(newOfficerRank.trim())) {
-      handleListChange('officerRanks', [...officerRanks, newOfficerRank.trim()]);
-      setNewOfficerRank("");
-    }
-  };
-
-  const handleRemoveOfficerRank = (rank: string) => {
-    const officerRanks = localSettings.officerRanks || [];
-    handleListChange('officerRanks', officerRanks.filter(r => r !== rank));
-  };
-
-  const handleAddStaffRole = () => {
-    const staffRoles = localSettings.staffRoles || [];
-    if (newStaffRole.trim() && !staffRoles.includes(newStaffRole.trim())) {
-      handleListChange('staffRoles', [...staffRoles, newStaffRole.trim()]);
-      setNewStaffRole("");
-    }
-  };
-
-  const handleRemoveStaffRole = (role: string) => {
-    if (permanentRoles.includes(role)) {
-        toast({
-            variant: "destructive",
-            title: "Action Not Allowed",
-            description: "This is a permanent role and cannot be removed.",
-        });
-        return;
-    }
-    const staffRoles = localSettings.staffRoles || [];
-    handleListChange('staffRoles', staffRoles.filter(r => r !== role));
-  };
 
   const handleAddCadetRole = () => {
     const cadetRoles = localSettings.cadetRoles || [];
@@ -169,19 +125,6 @@ export default function SettingsPage() {
   const handleRemoveCadetRole = (role: string) => {
     const cadetRoles = localSettings.cadetRoles || [];
     handleListChange('cadetRoles', cadetRoles.filter(r => r !== role));
-  };
-
-  const handleAddCafDress = () => {
-    const ordersOfDress = localSettings.ordersOfDress || { caf: [], cadets: [] };
-    if (newCafDress.trim() && !ordersOfDress.caf.includes(newCafDress.trim())) {
-      handleSettingChange('ordersOfDress', { ...ordersOfDress, caf: [...ordersOfDress.caf, newCafDress.trim()] });
-      setNewCafDress("");
-    }
-  };
-
-  const handleRemoveCafDress = (dress: string) => {
-    const ordersOfDress = localSettings.ordersOfDress || { caf: [], cadets: [] };
-    handleSettingChange('ordersOfDress', { ...ordersOfDress, caf: ordersOfDress.caf.filter(d => d !== dress) });
   };
 
   const handleAddCadetDress = () => {
@@ -444,40 +387,6 @@ export default function SettingsPage() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            
-                             <Card className="border">
-                                <CardHeader>
-                                    <CardTitle>Manage Staff Roles</CardTitle>
-                                    <CardDescription>Add or remove staff roles, except for permanent roles.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex gap-2">
-                                    <Input 
-                                        value={newStaffRole}
-                                        onChange={(e) => setNewStaffRole(e.target.value)}
-                                        placeholder="New staff role name"
-                                    />
-                                    <Button onClick={handleAddStaffRole}>Add</Button>
-                                    </div>
-                                    <div className="space-y-2">
-                                    {(localSettings.staffRoles || []).map(role => (
-                                        <div key={role} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                        <span>{role}</span>
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            className="h-6 w-6" 
-                                            onClick={() => handleRemoveStaffRole(role)}
-                                            disabled={permanentRoles.includes(role)}
-                                            aria-label={permanentRoles.includes(role) ? "Permanent role" : "Remove role"}
-                                        >
-                                            <X className={cn("h-4 w-4", permanentRoles.includes(role) && "opacity-30")}/>
-                                        </Button>
-                                        </div>
-                                    ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
 
                              <Card className="border">
                                 <CardHeader>
@@ -535,27 +444,23 @@ export default function SettingsPage() {
 
                             <Card className="border">
                                 <CardHeader>
-                                    <CardTitle>Manage Officer Ranks</CardTitle>
-                                    <CardDescription>Add or remove staff ranks from the list available in the app.</CardDescription>
+                                    <CardTitle>Manage Cadet Orders of Dress</CardTitle>
+                                    <CardDescription>Add or remove orders of dress for Cadets.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex gap-2">
-                                    <Input 
-                                        value={newOfficerRank}
-                                        onChange={(e) => setNewOfficerRank(e.target.value)}
-                                        placeholder="New officer rank"
-                                    />
-                                    <Button onClick={handleAddOfficerRank}>Add</Button>
+                                        <Input value={newCadetDress} onChange={(e) => setNewCadetDress(e.target.value)} placeholder="New cadet dress" />
+                                        <Button onClick={handleAddCadetDress}>Add</Button>
                                     </div>
-                                    <div className="space-y-2">
-                                    {(localSettings.officerRanks || []).map(rank => (
-                                        <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                        <span>{rank}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRank(rank)}>
-                                            <X className="h-4 w-4"/>
-                                        </Button>
-                                        </div>
-                                    ))}
+                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                        {(localSettings.ordersOfDress?.cadets || []).map(dress => (
+                                            <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                                <span>{dress}</span>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetDress(dress)}>
+                                                    <X className="h-4 w-4"/>
+                                                </Button>
+                                            </div>
+                                        ))}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -587,49 +492,6 @@ export default function SettingsPage() {
                                 </CardContent>
                             </Card>
                             
-                            <Card className="lg:col-span-2 border">
-                                <CardHeader>
-                                    <CardTitle>Manage Orders of Dress</CardTitle>
-                                    <CardDescription>Add or remove orders of dress for CAF Staff and Cadets.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                        <h4 className="font-semibold">CAF Staff Dress</h4>
-                                        <div className="flex gap-2">
-                                            <Input value={newCafDress} onChange={(e) => setNewCafDress(e.target.value)} placeholder="New staff dress" />
-                                            <Button onClick={handleAddCafDress}>Add</Button>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {(localSettings.ordersOfDress?.caf || []).map(dress => (
-                                                <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                                    <span>{dress}</span>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCafDress(dress)}>
-                                                        <X className="h-4 w-4"/>
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <h4 className="font-semibold">Cadet Dress</h4>
-                                        <div className="flex gap-2">
-                                            <Input value={newCadetDress} onChange={(e) => setNewCadetDress(e.target.value)} placeholder="New cadet dress" />
-                                            <Button onClick={handleAddCadetDress}>Add</Button>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {(localSettings.ordersOfDress?.cadets || []).map(dress => (
-                                                <div key={dress} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                                    <span>{dress}</span>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveCadetDress(dress)}>
-                                                        <X className="h-4 w-4"/>
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
                             <Card className="lg:col-span-2 border">
                                 <CardHeader>
                                     <CardTitle>Manage Weekly Activities</CardTitle>
