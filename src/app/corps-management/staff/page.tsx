@@ -171,7 +171,7 @@ export default function StaffManagementPage() {
                             </Card>
                             <Card className="border">
                                 <CardHeader>
-                                    <CardTitle>Manage CAF Staff Dress</CardTitle>
+                                    <CardTitle>Manage CAF Orders of Dress</CardTitle>
                                     <CardDescription>Add or remove orders of dress for CAF Staff.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">

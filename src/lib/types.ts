@@ -117,6 +117,7 @@ export interface Settings {
   settingsCardOrder?: string[];
   generalSettingsCardOrder?: string[];
   planningResourcesCardOrder?: string[];
+  cadetSettingsCardOrder?: string[];
 }
 
 export interface Cadet {

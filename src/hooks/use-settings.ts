@@ -68,7 +68,8 @@ const defaultSettings: Settings = {
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
     settingsCardOrder: ['general', 'resources', 'data', 'danger'],
     generalSettingsCardOrder: ['trainingYear', 'corpsInfo'],
-    planningResourcesCardOrder: ['classrooms', 'cadetRoles', 'cadetRanks', 'cadetDress', 'customEos', 'weeklyActivities'],
+    planningResourcesCardOrder: ['classrooms', 'customEos', 'weeklyActivities'],
+    cadetSettingsCardOrder: ['cadetRoles', 'cadetRanks', 'cadetDress'],
 };
 
 export const defaultUserDocument: UserDocument = {
@@ -102,6 +103,7 @@ export function useSettings() {
                     settingsCardOrder: data.settings.settingsCardOrder || defaultSettings.settingsCardOrder,
                     generalSettingsCardOrder: data.settings.generalSettingsCardOrder || defaultSettings.generalSettingsCardOrder,
                     planningResourcesCardOrder: data.settings.planningResourcesCardOrder || defaultSettings.planningResourcesCardOrder,
+                    cadetSettingsCardOrder: data.settings.cadetSettingsCardOrder || defaultSettings.cadetSettingsCardOrder,
                 };
                 setSettings(mergedSettings);
             } else {
