@@ -30,7 +30,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
     const { user, loading: authLoading } = useAuth();
-    const { settings, saveSettings, isLoaded: settingsLoaded, forceSetOwner, userRole } = useSettings();
+    const { settings, saveSettings, isLoaded: settingsLoaded, forceSetOwner, userRole, dataOwnerId } = useSettings();
     const { toast } = useToast();
     const [isOwnerAlertOpen, setIsOwnerAlertOpen] = useState(false);
 
@@ -77,6 +77,7 @@ export default function ProfilePage() {
     }
     
     const availableRanks = staffProfile?.type === 'Officer' ? settings.officerRanks : settings.cadetRanks;
+    const isDataOwner = user && dataOwnerId === user.uid;
 
     return (
         <>
@@ -182,7 +183,7 @@ export default function ProfilePage() {
                 </Alert>
             )}
             
-            {userRole !== 'owner' && (
+            {!isDataOwner && (
                 <div className="mt-8">
                     <Card className="border-amber-500/50">
                         <CardHeader>
@@ -191,7 +192,7 @@ export default function ProfilePage() {
                                 Ownership Actions
                             </CardTitle>
                             <CardDescription>
-                                If you need to become the owner of the currently loaded data set for testing, use this tool.
+                               If you are viewing shared data and want to switch back to your own personal data set, use this tool.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -203,8 +204,7 @@ export default function ProfilePage() {
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            This will make you the sole owner of your personal corps data set and disconnect you from any shared data you are currently viewing.
-                                            This action is intended for development and testing.
+                                            This will disconnect you from any shared data and create a new, personal data set where you are the owner. This action is intended for development and testing.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>

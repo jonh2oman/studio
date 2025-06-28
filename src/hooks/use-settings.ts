@@ -138,7 +138,6 @@ export function useSettings() {
                     ownerIdFromInvite = await processInvites(user.uid, user.email!);
                 } catch (error) {
                     console.error("Error processing invites:", error);
-                    toast({ variant: 'destructive', title: 'Invite Error', description: 'Could not process pending invites.' });
                 }
 
                 let effectiveOwnerId = ownerIdFromInvite;
@@ -171,7 +170,6 @@ export function useSettings() {
                             }
                         } catch (error) {
                             console.error("Error syncing permissions:", error);
-                            toast({ variant: 'destructive', title: 'Sync Error', description: 'Could not sync user permissions.' });
                             setUserDocument(data);
                             setUserRole(role);
                         }
@@ -251,16 +249,13 @@ export function useSettings() {
         }
 
         try {
-            const newPermissions = {
-                [user.uid]: { email: user.email!, role: 'owner' }
-            };
-            
+            // Create a fresh, default document where the current user is the owner.
+            const newDocument = defaultUserDocument(user.uid, user.email!);
             const userDocRef = doc(db, 'users', user.uid);
             
-            await setDoc(userDocRef, { 
-                settings: { permissions: newPermissions },
-                pointerToCorpsData: deleteField() // Remove the pointer field
-            }, { merge: true });
+            // Overwrite the user's document with the new default document.
+            // This replaces any existing data (like a pointer) and establishes them as the owner of their own data set.
+            await setDoc(userDocRef, newDocument);
 
             toast({ title: "Ownership Claimed", description: "You are now the owner of your data. The page will reload." });
             setTimeout(() => window.location.reload(), 2000);
