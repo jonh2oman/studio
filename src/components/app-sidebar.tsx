@@ -315,7 +315,16 @@ export function AppSidebar() {
             <SidebarMenu className="px-2">
             {navGroups.map((group, index) => {
                 const groupKey = group.title || 'Main';
-                const orderedHrefs = settings.sidebarNavOrder?.[groupKey] || group.items.map(item => item.href);
+
+                const defaultHrefs = group.items.map(item => item.href);
+                const savedHrefs = settings.sidebarNavOrder?.[groupKey] || [];
+                
+                const defaultHrefSet = new Set(defaultHrefs);
+                const validSavedHrefs = savedHrefs.filter(href => defaultHrefSet.has(href));
+                const validSavedHrefSet = new Set(validSavedHrefs);
+                const newHrefs = defaultHrefs.filter(href => !validSavedHrefSet.has(href));
+                const orderedHrefs = [...validSavedHrefs, ...newHrefs];
+                
                 const itemsMap = new Map(group.items.map(item => [item.href, item]));
                 const groupTitle = group.title === 'Main' ? null : group.title;
                 
