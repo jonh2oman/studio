@@ -214,9 +214,8 @@ export function AppSidebar() {
 
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
-
     if (!over || active.id === over.id) {
         return;
     }
@@ -234,18 +233,26 @@ export function AppSidebar() {
         return; // Prevent dragging between groups
     }
 
-    const currentOrder = settings.sidebarNavOrder?.[activeGroupKey] || navGroups.find(g => (g.title || 'Main') === activeGroupKey)?.items.map(i => i.href) || [];
-    const oldIndex = currentOrder.indexOf(active.id as string);
-    const newIndex = currentOrder.indexOf(over.id as string);
-    const newOrder = arrayMove(currentOrder, oldIndex, newIndex);
+    saveSettings(prevSettings => {
+        const groupKey = activeGroupKey as string;
+        const currentNavOrder = prevSettings.sidebarNavOrder || {};
+        const currentOrder = currentNavOrder[groupKey] || navGroups.find(g => (g.title || 'Main') === groupKey)?.items.map(i => i.href) || [];
+        
+        const oldIndex = currentOrder.indexOf(active.id as string);
+        const newIndex = currentOrder.indexOf(over.id as string);
 
-    saveSettings({
-        sidebarNavOrder: {
-            ...settings.sidebarNavOrder,
-            [activeGroupKey]: newOrder,
-        }
+        if (oldIndex === -1 || newIndex === -1) return prevSettings;
+
+        const newOrder = arrayMove(currentOrder, oldIndex, newIndex);
+        
+        return {
+            sidebarNavOrder: {
+                ...currentNavOrder,
+                [groupKey]: newOrder,
+            }
+        };
     });
-  };
+  }, [saveSettings]);
 
 
   if (!isMounted) {

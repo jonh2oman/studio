@@ -193,28 +193,28 @@ export function useSettings() {
         loadSettings();
     }, [user, processInvites, syncPermissions, toast]);
 
-    const saveUserDocument = useCallback(async (newDocument: Partial<UserDocument>) => {
-        if (!user || !db || !dataOwnerId) return;
-
-        const updatedDocument = { ...userDocument, ...newDocument } as UserDocument;
-        setUserDocument(updatedDocument);
-
-        const userDocRef = doc(db, 'users', dataOwnerId);
-        try {
-            await setDoc(userDocRef, newDocument, { merge: true });
-        } catch (error) {
-            console.error("Failed to save user document to Firestore", error);
-        }
-    }, [user, userDocument, dataOwnerId, db]);
-    
     const settings = userDocument?.settings;
     const allYearsData = userDocument?.trainingYears || {};
 
-    const saveSettings = useCallback(async (newSettings: Partial<Settings>) => {
-        if (!settings) return;
-        const updatedSettings = { ...settings, ...newSettings };
-        await saveUserDocument({ settings: updatedSettings });
-    }, [settings, saveUserDocument]);
+    const saveSettings = useCallback((settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
+        if (!user || !db || !dataOwnerId) return;
+
+        setUserDocument(prevDoc => {
+            if (!prevDoc) return null;
+            const currentSettings = prevDoc.settings || defaultSettings;
+            const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
+            const updatedSettings = { ...currentSettings, ...update };
+
+            const userDocRef = doc(db, 'users', dataOwnerId);
+            setDoc(userDocRef, { settings: updatedSettings }, { merge: true }).catch(
+              (error) => {
+                console.error('Failed to save settings to Firestore', error);
+              }
+            );
+
+            return { ...prevDoc, settings: updatedSettings };
+        });
+    }, [user, db, dataOwnerId]);
 
     const resetUserDocument = useCallback(async () => {
         if (!user || !db || !dataOwnerId) {
@@ -249,12 +249,9 @@ export function useSettings() {
         }
 
         try {
-            // Create a fresh, default document where the current user is the owner.
             const newDocument = defaultUserDocument(user.uid, user.email!);
             const userDocRef = doc(db, 'users', user.uid);
             
-            // Overwrite the user's document with the new default document.
-            // This replaces any existing data (like a pointer) and establishes them as the owner of their own data set.
             await setDoc(userDocRef, newDocument);
 
             toast({ title: "Ownership Claimed", description: "You are now the owner of your data. The page will reload." });
