@@ -25,7 +25,7 @@ export function useZtoPortal() {
             corpsName,
             trainingYear: trainingYearString,
             planData,
-            element: planData.element,
+            element: planData.element || 'Sea', // Fallback for older files
         };
 
         const updatedPlans = [...ztoReviewedPlans, newPlan];

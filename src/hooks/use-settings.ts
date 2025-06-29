@@ -94,7 +94,19 @@ export function useSettings() {
                             ...(loadedData.settings?.dashboardCardOrder || {})
                         }
                     };
-                    setUserDocument({ ...loadedData, settings: mergedSettings });
+                    
+                    // Ensure all training years have an 'element' property for backward compatibility
+                    const migratedTrainingYears = { ...loadedData.trainingYears };
+                    if (migratedTrainingYears) {
+                        Object.keys(migratedTrainingYears).forEach(year => {
+                            if (!migratedTrainingYears[year].element) {
+                                // If the year doesn't have an element, fall back to the global setting.
+                                migratedTrainingYears[year].element = mergedSettings.element;
+                            }
+                        });
+                    }
+
+                    setUserDocument({ ...loadedData, settings: mergedSettings, trainingYears: migratedTrainingYears });
                 } else {
                     const newUserDoc = defaultUserDocument(user.uid, user.email!);
                     await setDoc(userDocRef, newUserDoc);

@@ -46,11 +46,11 @@ export function ImportPlanDialog({ isOpen, onOpenChange, onImport }: ImportPlanD
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        if (data && typeof data.firstTrainingNight === 'string' && Array.isArray(data.cadets) && typeof data.schedule === 'object' && data.element) {
+        if (data && typeof data.firstTrainingNight === 'string' && Array.isArray(data.cadets) && typeof data.schedule === 'object') {
           setFileData(data);
           toast({ title: 'File Ready', description: `"${file.name}" has been loaded.` });
         } else {
-          throw new Error('Invalid file format. Ensure it includes an "element".');
+          throw new Error('Invalid file format.');
         }
       } catch (error) {
         toast({ variant: 'destructive', title: 'Import Error', description: 'The selected file is not a valid training year export.' });
