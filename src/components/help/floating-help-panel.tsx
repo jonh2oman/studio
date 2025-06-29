@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useCallback, useMemo } from "react";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { changelogData } from "@/lib/changelog-data";
 import { instructionsData } from "@/lib/instructions-data";
 import { Badge } from "@/components/ui/badge";
+import React from "react";
 
 export function FloatingHelpPanel() {
     const { isHelpOpen, setHelpOpen } = useHelp();

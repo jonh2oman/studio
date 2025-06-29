@@ -12,20 +12,22 @@ export const instructionsData = [
         title: "Getting Started: Core Concepts", 
         icon: Rocket, 
         content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Multi-Element Support</h4>
-                    <p>First, go to Settings and select your unit's Element (Sea, Army, or Air). This is crucial as it loads the correct training program and terminology (e.g., Phase, Level, or Star Level) throughout the application.</p>
-                </div>
-                <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Real-Time Cloud Storage</h4>
-                    <p>All your data (schedules, cadets, etc.) is securely saved to the cloud and linked to your user account. Every change is saved automatically and in real-time. This means your data is safe, private, and accessible from any device where you log in.</p>
-                </div>
-                <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Everything is Organized by Training Year</h4>
-                    <p>The application is designed around Training Years (e.g., "2024-2025"). All your schedules, cadets, and reports are specific to the currently selected year. You must create your first training year in Settings to begin.</p>
-                </div>
-            </CardContent>
+            <AccordionContent className="px-6 pb-6">
+                <CardContent className="space-y-4 text-muted-foreground">
+                    <div className="space-y-2">
+                        <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Multi-Element Support</h4>
+                        <p>First, go to Settings and select your unit's Element (Sea, Army, or Air). This is crucial as it loads the correct training program and terminology (e.g., Phase, Level, or Star Level) throughout the application.</p>
+                    </div>
+                    <div className="space-y-2">
+                        <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Real-Time Cloud Storage</h4>
+                        <p>All your data (schedules, cadets, etc.) is securely saved to the cloud and linked to your user account. Every change is saved automatically and in real-time. This means your data is safe, private, and accessible from any device where you log in.</p>
+                    </div>
+                    <div className="space-y-2">
+                        <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Everything is Organized by Training Year</h4>
+                        <p>The application is designed around Training Years (e.g., "2024-2025"). All your schedules, cadets, and reports are specific to the currently selected year. You must create your first training year in Settings to begin.</p>
+                    </div>
+                </CardContent>
+            </AccordionContent>
         )
     },
     { 
@@ -238,7 +240,7 @@ export const instructionsData = [
             <AccordionContent className="px-6 pb-6 space-y-4">
                 <p className="text-muted-foreground">Configure the application to match your corps' specific needs. Changes here can affect automatic logic in other modules.</p>
                 <h4 className="font-semibold">Training Year Management</h4>
-                <p>Create a new training year, switch between existing years, or delete the active year. When creating a new year, you have the option to copy all data from a previous year, or import data from a shared file. An AI-powered feature can intelligently map a copied schedule to the new calendar, automatically adjusting for different start dates and holidays.</p>
+                <p>Create a new training year, switch between existing years, or delete the active year. When creating a new year, you have the option to copy all data from a previous year, or import from a shared file. An AI-powered feature can intelligently map a copied schedule to the new calendar, automatically adjusting for different start dates and holidays.</p>
                 <h4 className="font-semibold">Planning Resources</h4>
                 <p>Customize the lists used throughout the planners. This includes creating and managing classrooms and custom EOs.</p>
                 <h4 className="font-semibold">Data Management</h4>
