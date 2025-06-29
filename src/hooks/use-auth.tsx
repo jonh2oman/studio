@@ -33,36 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let unsubscribeDoc: (() => void) | null = null;
     
-    const setupUserAccount = async (user: User) => {
-      if (!db) return;
-      const userDocRef = doc(db, 'users', user.uid);
-      try {
-        const userEmail = user.email;
-        if (!userEmail) throw new Error("User email is not available.");
-
-        // Check for an invite first
-        const inviteRef = doc(db, 'invites', userEmail);
-        const inviteSnap = await getDoc(inviteRef);
-
-        if (inviteSnap.exists()) {
-          // User was invited. Link to existing corps.
-          const { corpsId } = inviteSnap.data();
-          await setDoc(userDocRef, { email: userEmail, corpsId }, { merge: true });
-          await deleteDoc(inviteRef); // Consume the invite
-          toast({ title: "Welcome!", description: "You've been successfully linked to an existing corps." });
-        } else {
-          // User was not invited. Create a new corps.
-          const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
-          await setDoc(userDocRef, { email: userEmail, corpsId: newCorpsRef.id }, { merge: true });
-          toast({ title: "Welcome!", description: "A new corps has been created for you." });
-        }
-      } catch (error) {
-        console.error("Error during new user setup:", error);
-        toast({ variant: 'destructive', title: 'Setup Error', description: 'Could not set up your account data.' });
-      }
-    };
-
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (unsubscribeDoc) {
         unsubscribeDoc();
         unsubscribeDoc = null;
@@ -72,22 +43,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(user);
         const userDocRef = doc(db, 'users', user.uid);
         
-        // This is the real-time listener for the user's data document.
         unsubscribeDoc = onSnapshot(userDocRef, 
           async (docSnap) => {
-            if (docSnap.exists() && docSnap.data().corpsId) {
-                // User document exists and is complete
+            if (docSnap.exists()) {
+                // User document exists, this is the normal case for a returning user.
                 setUserData(docSnap.data() as UserData);
                 setLoading(false);
             } else {
-                // User document either doesn't exist or is incomplete (no corpsId).
-                // This triggers the setup flow.
-                setUserData(null); // Ensure old data is cleared
-                await setupUserAccount(user);
-                // The setupUserAccount will write to the DB, which will trigger this snapshot listener again.
-                // On the next trigger, the first `if` condition should be met.
-                // We still set loading to false here to prevent the UI from being stuck if setup fails.
-                setLoading(false);
+                // User document does not exist. This is a brand new user signing up.
+                // We need to create their associated data.
+                try {
+                    const userEmail = user.email;
+                    if (!userEmail) throw new Error("User email is not available for setup.");
+
+                    const inviteRef = doc(db, 'invites', userEmail);
+                    const inviteSnap = await getDoc(inviteRef);
+
+                    let finalCorpsId: string;
+                    if (inviteSnap.exists()) {
+                        // User was invited. Link to the existing corps.
+                        finalCorpsId = inviteSnap.data().corpsId;
+                        await deleteDoc(inviteRef); // Consume the invite
+                        toast({ title: "Welcome!", description: "You've been successfully linked to an existing corps." });
+                    } else {
+                        // User was not invited. Create a new corps for them.
+                        const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
+                        finalCorpsId = newCorpsRef.id;
+                        toast({ title: "Welcome!", description: "A new corps has been created for you." });
+                    }
+                    
+                    // Finally, create the user's own document, linking them to a corps.
+                    await setDoc(userDocRef, { email: userEmail, corpsId: finalCorpsId });
+                    // The onSnapshot listener will fire again with the new document, and the `if (docSnap.exists())` block will execute.
+                } catch (error) {
+                    console.error("Error during new user setup:", error);
+                    toast({ variant: 'destructive', title: 'Account Setup Failed', description: 'Could not set up your account data.' });
+                    setLoading(false);
+                }
             }
           }, 
           (error) => {
@@ -110,7 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         unsubscribeDoc();
       }
     };
-  }, [toast]);
+  }, [toast]); // toast is a stable function, so this only runs once.
 
   const logout = useCallback(async () => {
       if (auth) {
