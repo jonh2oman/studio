@@ -130,13 +130,9 @@ export default function StaffManagementPage() {
 
     try {
         const inviteRef = doc(db, 'invites', staffMember.email);
-        const docSnap = await getDoc(inviteRef);
-
-        if (docSnap.exists()) {
-            toast({ title: "Invite Already Exists", description: `${staffMember.email} has already been invited.` });
-            return;
-        }
-
+        
+        // This is the core fix: We no longer check if an invite exists first, as that caused a
+        // permission error. We simply create or overwrite the invitation document.
         await setDoc(inviteRef, { corpsId: corpsId });
         
         const subject = `Invitation to join ${settings.corpsName || 'your team'} on Corps/Sqn Manager`;
