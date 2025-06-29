@@ -44,6 +44,9 @@ const defaultYearData: TrainingYearData = {
     }
 };
 
+const defaultDutySchedule: DutySchedule = {};
+const defaultAdaPlanners: AdaPlannerData[] = [];
+
 export function useTrainingYear() {
     const { user } = useAuth();
     const { settings, allYearsData, isLoaded: settingsLoaded, updateTrainingYears } = useSettings();
@@ -189,7 +192,7 @@ export function useTrainingYear() {
         updateCurrentYearData({ dutySchedule: newDutySchedule });
     }, [currentYearData, updateCurrentYearData]);
 
-    const adaPlanners = currentYearData?.adaPlanners || [];
+    const adaPlanners = currentYearData?.adaPlanners || defaultAdaPlanners;
 
     const addAdaPlanner = useCallback((name: string) => {
         if (!name.trim()) {
@@ -268,7 +271,7 @@ export function useTrainingYear() {
         currentYearData,
         allYearsData,
         updateCurrentYearData,
-        dutySchedule: currentYearData?.dutySchedule || {},
+        dutySchedule: currentYearData?.dutySchedule || defaultDutySchedule,
         updateDutySchedule,
         adaPlanners,
         addAdaPlanner,

@@ -49,6 +49,9 @@ export const defaultCorpsData: Omit<CorpsData, 'id'> = {
     ztoReviewedPlans: [],
 };
 
+const defaultTrainingYears = {};
+const defaultZtoPlans: ZtoReviewedPlan[] = [];
+
 export function useSettings() {
     const { user, userData } = useAuth();
     const { toast } = useToast();
@@ -183,8 +186,8 @@ export function useSettings() {
 
     return { 
         settings: corpsData?.settings || defaultSettings, 
-        allYearsData: corpsData?.trainingYears || {},
-        ztoReviewedPlans: corpsData?.ztoReviewedPlans || [],
+        allYearsData: corpsData?.trainingYears || defaultTrainingYears,
+        ztoReviewedPlans: corpsData?.ztoReviewedPlans || defaultZtoPlans,
         saveSettings, 
         isLoaded,
         resetUserDocument,
