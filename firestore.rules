@@ -3,16 +3,18 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read/write their own document to manage their link to a corps.
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth.uid == userId;
     }
 
-    // Access to a corps document is granted if the user's own document
-    // contains a matching corpsId. This allows multiple users to share one corps' data.
     match /corps/{corpsId} {
-      allow read, write: if request.auth != null &&
-                          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
+      // Allow a user to read/update/delete a corps document if their profile is linked to it.
+      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
+
+      // Allow a user to create a corps document ONLY if they don't already have one.
+      // This prevents users from creating multiple corps.
+      allow create: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == null;
     }
   }
 }
