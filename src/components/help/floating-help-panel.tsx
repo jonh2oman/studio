@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useHelp } from "@/hooks/use-help";
-import { Search, X } from "lucide-react";
+import { Search, X, GripVertical } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,7 +17,15 @@ import React from "react";
 export function FloatingHelpPanel() {
     const { isHelpOpen, setHelpOpen } = useHelp();
     const [searchTerm, setSearchTerm] = useState("");
-    
+    const [openItems, setOpenItems] = useState<string[]>(["getting-started"]);
+
+    // Drag and resize state
+    const [position, setPosition] = useState({ x: 50, y: 50 });
+    const [size, setSize] = useState({ width: 600, height: 700 });
+    const panelRef = useRef<HTMLDivElement>(null);
+    const dragStartOffset = useRef({ x: 0, y: 0 });
+    const resizeStart = useRef({ x: 0, y: 0, width: 0, height: 0 });
+
     // Search Logic
     const lowercasedTerm = searchTerm.toLowerCase();
 
@@ -51,22 +59,94 @@ export function FloatingHelpPanel() {
         );
     }, [lowercasedTerm]);
 
-    const openAccordionItems = useMemo(() => {
-        if (!lowercasedTerm) return ["getting-started"];
-        return filteredInstructions.map(item => item.id);
+    // Effect to auto-open accordion items on search
+    useEffect(() => {
+        if (!lowercasedTerm) {
+            setOpenItems(["getting-started"]);
+        } else {
+            const allMatchingIds = [
+                ...filteredInstructions.map(item => item.id),
+                "changelog"
+            ];
+            setOpenItems(allMatchingIds);
+        }
     }, [lowercasedTerm, filteredInstructions]);
     
+    // Dragging logic
+    const handleDragMove = useCallback((e: MouseEvent) => {
+        if (!panelRef.current) return;
+        const newX = e.clientX - dragStartOffset.current.x;
+        const newY = e.clientY - dragStartOffset.current.y;
+        const clampedX = Math.max(0, Math.min(newX, window.innerWidth - size.width));
+        const clampedY = Math.max(0, Math.min(newY, window.innerHeight - size.height));
+        setPosition({ x: clampedX, y: clampedY });
+    }, [size.width, size.height]);
+
+    const handleDragUp = useCallback(() => {
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragUp);
+    }, [handleDragMove]);
+
+    const handleDragDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.button !== 0) return;
+        document.body.style.userSelect = 'none';
+        dragStartOffset.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+        document.addEventListener('mousemove', handleDragMove);
+        document.addEventListener('mouseup', handleDragUp);
+        e.preventDefault();
+    }, [position.x, position.y, handleDragMove, handleDragUp]);
+
+    // Resizing logic
+    const handleResizeMove = useCallback((e: MouseEvent) => {
+        const newWidth = resizeStart.current.width + (e.clientX - resizeStart.current.x);
+        const newHeight = resizeStart.current.height + (e.clientY - resizeStart.current.y);
+        const minWidth = 400;
+        const minHeight = 500;
+        const maxWidth = window.innerWidth - position.x;
+        const maxHeight = window.innerHeight - position.y;
+        setSize({
+            width: Math.min(maxWidth, Math.max(minWidth, newWidth)),
+            height: Math.min(maxHeight, Math.max(minHeight, newHeight)),
+        });
+    }, [position.x, position.y]);
+
+    const handleResizeUp = useCallback(() => {
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleResizeUp);
+    }, [handleResizeMove]);
+
+    const handleResizeDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        if (e.button !== 0) return;
+        document.body.style.userSelect = 'none';
+        resizeStart.current = { x: e.clientX, y: e.clientY, width: size.width, height: size.height };
+        document.addEventListener('mousemove', handleResizeMove);
+        document.addEventListener('mouseup', handleResizeUp);
+    }, [size.width, size.height, handleResizeMove, handleResizeUp]);
+
+
     if (!isHelpOpen) {
         return null;
     }
 
     return (
         <div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col shadow-2xl z-[60] bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
-            style={{ width: '600px', height: '700px' }}
+            ref={panelRef}
+            className="fixed flex flex-col shadow-2xl z-[60] bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
+            style={{
+                width: `${size.width}px`,
+                height: `${size.height}px`,
+                transform: `translate(${position.x}px, ${position.y}px)`,
+            }}
         >
             <header className="flex items-center justify-between py-2 px-4 text-card-foreground border-b flex-shrink-0">
-                <div className="flex items-center gap-2 font-semibold">
+                <div 
+                    onMouseDown={handleDragDown}
+                    className="flex items-center gap-2 font-semibold cursor-move flex-grow"
+                >
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
                     Application Instructions
                 </div>
                 <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setHelpOpen(false)}>
@@ -86,7 +166,7 @@ export function FloatingHelpPanel() {
                 </div>
             </div>
             <ScrollArea className="flex-1 p-4">
-                <Accordion type="multiple" value={openAccordionItems} className="w-full space-y-4">
+                <Accordion type="multiple" value={openItems} onValueChange={setOpenItems} className="w-full space-y-4">
                     {filteredInstructions.map(item => (
                         <Card key={item.id} id={item.id}>
                             <AccordionItem value={item.id} className="border-b-0">
@@ -121,6 +201,14 @@ export function FloatingHelpPanel() {
                     </Card>
                 </Accordion>
             </ScrollArea>
+             <div
+                onMouseDown={handleResizeDown}
+                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+                style={{
+                    background: 'repeating-linear-gradient(-45deg, transparent, transparent 4px, hsl(var(--muted-foreground)) 4px, hsl(var(--muted-foreground)) 5px)',
+                    opacity: 0.5,
+                }}
+            />
         </div>
     );
 }
