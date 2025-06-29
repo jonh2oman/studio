@@ -110,20 +110,36 @@ export function useSettings() {
     }, [user, db, corpsData?.id, toast]);
 
 
-    const saveSettings = useCallback((settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
-        if (!corpsData) return;
-        
+    const saveSettings = useCallback(async (settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
+        if (!user || !db || !corpsData?.id) return;
+
         const currentSettings = corpsData.settings || defaultSettings;
         const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
         const updatedSettings = { ...currentSettings, ...update };
-        
-        const staffEmails = updatedSettings.staff
+
+        const newStaffEmails = updatedSettings.staff
             .map(s => s.email)
             .filter((email): email is string => !!email && email.trim() !== '');
 
-        updateCorpsData({ settings: updatedSettings, staffEmails: staffEmails });
+        const oldStaffEmails = new Set((currentSettings.staff || []).map(s => s.email).filter(Boolean));
+        const newlyAddedEmails = newStaffEmails.filter(email => !oldStaffEmails.has(email));
+        
+        if (newlyAddedEmails.length > 0) {
+            for (const email of newlyAddedEmails) {
+                try {
+                    const inviteRef = doc(db, 'invites', email);
+                    await setDoc(inviteRef, { corpsId: corpsData.id });
+                    toast({ title: "Invitation Ready", description: `${email} can now sign up to access this corps.` });
+                } catch (error) {
+                    console.error("Error creating invite:", error);
+                    toast({ variant: 'destructive', title: 'Invite Failed', description: `Could not create invite for ${email}.` });
+                }
+            }
+        }
 
-    }, [corpsData, updateCorpsData]);
+        await updateCorpsData({ settings: updatedSettings, staffEmails: newStaffEmails });
+
+    }, [user, db, corpsData, updateCorpsData, toast]);
     
     const updateTrainingYears = useCallback((newTrainingYears: CorpsData['trainingYears']) => {
         updateCorpsData({ trainingYears: newTrainingYears });
