@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useHelp } from "@/hooks/use-help";
-import { GripVertical, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,60 +18,6 @@ export function FloatingHelpPanel() {
     const { isHelpOpen, setHelpOpen } = useHelp();
     const [searchTerm, setSearchTerm] = useState("");
     
-    // Draggable and Resizable Logic
-    const [position, setPosition] = useState({ x: 20, y: 20 });
-    const [size, setSize] = useState({ width: 600, height: 700 });
-    const panelRef = useRef<HTMLDivElement>(null);
-    const dragStartOffset = useRef({ x: 0, y: 0 });
-    const resizeStart = useRef({ x: 0, y: 0, width: 0, height: 0 });
-
-    const handleDragMove = useCallback((e: MouseEvent) => {
-        if (!panelRef.current) return;
-        const newX = e.clientX - dragStartOffset.current.x;
-        const newY = e.clientY - dragStartOffset.current.y;
-        const clampedX = Math.max(0, Math.min(newX, window.innerWidth - size.width));
-        const clampedY = Math.max(0, Math.min(newY, window.innerHeight - size.height));
-        setPosition({ x: clampedX, y: clampedY });
-    }, [size.width, size.height]);
-
-    const handleDragUp = useCallback(() => {
-        document.body.style.userSelect = '';
-        document.removeEventListener('mousemove', handleDragMove);
-        document.removeEventListener('mouseup', handleDragUp);
-    }, [handleDragMove]);
-
-    const handleDragDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.button !== 0) return;
-        document.body.style.userSelect = 'none';
-        dragStartOffset.current = { x: e.clientX - position.x, y: e.clientY - position.y };
-        document.addEventListener('mousemove', handleDragMove);
-        document.addEventListener('mouseup', handleDragUp);
-        e.preventDefault();
-    }, [position.x, position.y, handleDragMove, handleDragUp]);
-
-    const handleResizeMove = useCallback((e: MouseEvent) => {
-        const newWidth = Math.max(400, resizeStart.current.width + (e.clientX - resizeStart.current.x));
-        const newHeight = Math.max(500, resizeStart.current.height + (e.clientY - resizeStart.current.y));
-        const maxWidth = window.innerWidth - position.x;
-        const maxHeight = window.innerHeight - position.y;
-        setSize({ width: Math.min(maxWidth, newWidth), height: Math.min(maxHeight, newHeight) });
-    }, [position.x, position.y]);
-
-    const handleResizeUp = useCallback(() => {
-        document.body.style.userSelect = '';
-        document.removeEventListener('mousemove', handleResizeMove);
-        document.removeEventListener('mouseup', handleResizeUp);
-    }, [handleResizeMove]);
-
-    const handleResizeDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        e.stopPropagation();
-        if (e.button !== 0) return;
-        document.body.style.userSelect = 'none';
-        resizeStart.current = { x: e.clientX, y: e.clientY, width: size.width, height: size.height };
-        document.addEventListener('mousemove', handleResizeMove);
-        document.addEventListener('mouseup', handleResizeUp);
-    }, [size.width, size.height, handleResizeMove, handleResizeUp]);
-
     // Search Logic
     const lowercasedTerm = searchTerm.toLowerCase();
 
@@ -116,20 +62,11 @@ export function FloatingHelpPanel() {
 
     return (
         <div
-            ref={panelRef}
-            className="fixed flex flex-col shadow-2xl z-[60] bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
-            style={{
-                width: `${size.width}px`,
-                height: `${size.height}px`,
-                transform: `translate(${position.x}px, ${position.y}px)`,
-            }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col shadow-2xl z-[60] bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
+            style={{ width: '600px', height: '700px' }}
         >
-            <header 
-                onMouseDown={handleDragDown} 
-                className="flex items-center justify-between py-2 px-4 text-card-foreground border-b cursor-move flex-shrink-0"
-            >
+            <header className="flex items-center justify-between py-2 px-4 text-card-foreground border-b flex-shrink-0">
                 <div className="flex items-center gap-2 font-semibold">
-                    <GripVertical className="h-5 w-5 text-muted-foreground" />
                     Application Instructions
                 </div>
                 <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setHelpOpen(false)}>
@@ -184,14 +121,6 @@ export function FloatingHelpPanel() {
                     </Card>
                 </Accordion>
             </ScrollArea>
-             <div
-                onMouseDown={handleResizeDown}
-                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
-                style={{
-                    background: 'repeating-linear-gradient(-45deg, transparent, transparent 4px, hsl(var(--muted-foreground)) 4px, hsl(var(--muted-foreground)) 5px)',
-                    opacity: 0.5,
-                }}
-            />
         </div>
     );
 }
