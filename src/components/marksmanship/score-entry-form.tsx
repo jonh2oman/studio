@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -18,6 +19,7 @@ import { Calendar as CalendarIcon, Medal, Target } from "lucide-react";
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
+import type { MarksmanshipRecord } from "@/lib/types";
 
 const scoreSchema = z.object({
   cadetId: z.string().min(1, "Please select a cadet."),
@@ -58,14 +60,22 @@ export function ScoreEntryForm() {
   });
 
   const onSubmit = (data: ScoreFormData) => {
-    const recordData = {
-        ...data,
+    const recordData: Omit<MarksmanshipRecord, 'id'> = {
+        cadetId: data.cadetId,
         date: format(data.date, 'yyyy-MM-dd'),
-        grouping1_cm: data.targetType === 'grouping' ? data.grouping1_cm : undefined,
-        grouping2_cm: data.targetType === 'grouping' ? data.grouping2_cm : undefined,
-        competitionScores: data.targetType === 'competition' ? data.competitionScores : undefined,
+        targetType: data.targetType,
+        notes: data.notes || "",
+    };
+
+    if (data.targetType === 'grouping') {
+        recordData.grouping1_cm = data.grouping1_cm;
+        recordData.grouping2_cm = data.grouping2_cm;
+    } else { // competition
+        recordData.competitionScores = data.competitionScores?.map(Number);
     }
+    
     addRecord(recordData);
+
     form.reset({
         ...form.getValues(),
         grouping1_cm: undefined,
