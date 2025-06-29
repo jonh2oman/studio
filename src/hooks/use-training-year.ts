@@ -46,7 +46,7 @@ const defaultYearData: TrainingYearData = {
 
 export function useTrainingYear() {
     const { user } = useAuth();
-    const { settings, allYearsData, isLoaded: settingsLoaded } = useSettings();
+    const { settings, allYearsData, isLoaded: settingsLoaded, updateTrainingYears } = useSettings();
     const { toast } = useToast();
     
     const [trainingYears, setTrainingYears] = useState<string[]>([]);
@@ -72,18 +72,23 @@ export function useTrainingYear() {
 
     const currentYearData = currentYear ? allYearsData[currentYear] : null;
 
-    const setCurrentYear = useCallback((year: string) => {
-        if (trainingYears.includes(year) && user) {
-            localStorage.setItem(`currentTrainingYear_${user.uid}`, year);
-            setCurrentYearState(year);
-            toast({ title: "Switched Year", description: `Now viewing training year ${year}.` });
+    const setCurrentYear = useCallback((year: string | null) => {
+        if (user) {
+            if (year && trainingYears.includes(year)) {
+                localStorage.setItem(`currentTrainingYear_${user.uid}`, year);
+                setCurrentYearState(year);
+                toast({ title: "Switched Year", description: `Now viewing training year ${year}.` });
+            } else if (year === null) {
+                localStorage.removeItem(`currentTrainingYear_${user.uid}`);
+                setCurrentYearState(null);
+            }
         }
     }, [trainingYears, toast, user]);
 
     const updateCurrentYearData = useCallback(async (
         dataUpdate: Partial<TrainingYearData> | ((prevData: TrainingYearData) => TrainingYearData)
     ) => {
-        if (!currentYear || !user || !db) return;
+        if (!currentYear || !user) return;
 
         const currentData = allYearsData[currentYear] || defaultYearData;
         const updatedData = typeof dataUpdate === 'function' 
@@ -91,11 +96,9 @@ export function useTrainingYear() {
             : { ...currentData, ...dataUpdate };
         
         const newAllYearsData = { ...allYearsData, [currentYear]: updatedData };
-        
-        const userDocRef = doc(db, 'users', user.uid);
-        await setDoc(userDocRef, { trainingYears: newAllYearsData }, { merge: true });
+        updateTrainingYears(newAllYearsData);
 
-    }, [currentYear, allYearsData, user, db]);
+    }, [currentYear, allYearsData, user, updateTrainingYears]);
 
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean, copyFromFileData?: TrainingYearData }) => {
@@ -104,7 +107,7 @@ export function useTrainingYear() {
             return;
         }
         
-        if (!user || !db) {
+        if (!user) {
             toast({ variant: "destructive", title: "Error", description: `User not authenticated.` });
             return;
         }
@@ -141,11 +144,7 @@ export function useTrainingYear() {
             
             const newAllYearsData = { ...allYearsData, [year]: newYearData };
             
-            const userDocRef = doc(db, 'users', user.uid);
-            await setDoc(userDocRef, { trainingYears: newAllYearsData }, { merge: true });
-            
-            const updatedYears = [...trainingYears, year].sort().reverse();
-            setTrainingYears(updatedYears);
+            updateTrainingYears(newAllYearsData);
             setCurrentYear(year);
 
             toast({ title: "Success", description: `Successfully created and switched to training year ${year}.` });
@@ -155,8 +154,30 @@ export function useTrainingYear() {
         } finally {
             setIsCreating(false);
         }
-    }, [user, db, trainingYears, allYearsData, toast, setCurrentYear, settings]);
+    }, [user, trainingYears, allYearsData, toast, setCurrentYear, settings, updateTrainingYears]);
     
+    const deleteTrainingYear = useCallback(async (yearToDelete: string) => {
+        if (!user || !allYearsData[yearToDelete]) {
+            toast({ variant: "destructive", title: "Error", description: "Cannot delete year." });
+            return;
+        }
+
+        const newAllYearsData = { ...allYearsData };
+        delete newAllYearsData[yearToDelete];
+        
+        updateTrainingYears(newAllYearsData);
+
+        // If the deleted year was the current one, we need to switch to another year.
+        if (currentYear === yearToDelete) {
+            const remainingYears = Object.keys(newAllYearsData).sort().reverse();
+            const newCurrentYear = remainingYears.length > 0 ? remainingYears[0] : null;
+            setCurrentYear(newCurrentYear);
+        }
+        
+        toast({ title: "Training Year Deleted", description: `Successfully deleted ${yearToDelete}.` });
+
+    }, [user, allYearsData, currentYear, toast, updateTrainingYears, setCurrentYear]);
+
     const updateDutySchedule = useCallback((date: string, scheduleUpdate: Partial<DutySchedule[string]>) => {
         if (!currentYearData) return;
         const newDutySchedule = {
@@ -242,6 +263,7 @@ export function useTrainingYear() {
         currentYear, 
         setCurrentYear, 
         createNewYear, 
+        deleteTrainingYear,
         isLoaded: settingsLoaded,
         isCreating, 
         currentYearData,

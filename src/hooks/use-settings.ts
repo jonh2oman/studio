@@ -120,6 +120,25 @@ export function useSettings() {
         });
     }, [db, toast]);
 
+    const updateTrainingYears = useCallback((newTrainingYears: UserDocument['trainingYears']) => {
+        const currentUser = userRef.current;
+        if (!currentUser || !db) return;
+
+        setUserDocument(prevDoc => {
+            if (!prevDoc) return null;
+            
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            setDoc(userDocRef, { trainingYears: newTrainingYears }, { merge: true }).catch(
+                (error) => {
+                console.error('Failed to save training years to Firestore', error);
+                toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save training year data.' });
+                }
+            );
+
+            return { ...prevDoc, trainingYears: newTrainingYears };
+        });
+    }, [db, toast]);
+
     const resetUserDocument = useCallback(async () => {
         const currentUser = userRef.current;
         if (!currentUser || !db) {
@@ -148,5 +167,6 @@ export function useSettings() {
         saveSettings, 
         isLoaded,
         resetUserDocument,
+        updateTrainingYears,
     };
 }

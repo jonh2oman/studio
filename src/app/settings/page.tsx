@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2, Cloud, GripVertical, Download } from "lucide-react";
+import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2, Cloud, GripVertical, Download, Trash2 } from "lucide-react";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
@@ -99,8 +99,16 @@ function SortableSubCard({ id, children, className }: { id: string, children: Re
 
 // Sub-components for individual settings cards
 const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
-    const { currentYear, trainingYears, setCurrentYear, isLoaded: yearsLoaded } = useTrainingYear();
+    const { currentYear, trainingYears, setCurrentYear, deleteTrainingYear } = useTrainingYear();
     const [isNewYearDialogOpen, setIsNewYearDialogOpen] = useState(false);
+    const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+
+    const handleDelete = () => {
+        if (currentYear) {
+            deleteTrainingYear(currentYear);
+        }
+        setIsDeleteAlertOpen(false);
+    };
 
     return (
         <Card className="border">
@@ -111,22 +119,44 @@ const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListene
                     <CardDescription>Select the active training year or create a new one.</CardDescription>
                 </div>
             </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <CardContent className="flex flex-col sm:flex-row sm:items-end gap-4">
                 <div className="flex-1">
                     <Label htmlFor="training-year-select">Active Training Year</Label>
-                    <Select value={currentYear || ''} onValueChange={setCurrentYear}>
-                        <SelectTrigger id="training-year-select"><SelectValue placeholder="Select a year..." /></SelectTrigger>
+                    <Select value={currentYear || ''} onValueChange={setCurrentYear} disabled={!currentYear}>
+                        <SelectTrigger id="training-year-select"><SelectValue placeholder="No years created..." /></SelectTrigger>
                         <SelectContent>
                             {trainingYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
-                <Button onClick={() => setIsNewYearDialogOpen(true)} className="w-full sm:w-auto mt-4 sm:mt-0 self-end">
-                    <PlusCircle className="mr-2" />
-                    Create New Year
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={() => setIsNewYearDialogOpen(true)} className="w-full sm:w-auto">
+                        <PlusCircle className="mr-2" />
+                        Create New Year
+                    </Button>
+                     <Button variant="destructive" onClick={() => setIsDeleteAlertOpen(true)} disabled={!currentYear}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Active Year
+                    </Button>
+                </div>
             </CardContent>
             {isNewYearDialogOpen && <NewYearDialog onOpenChange={setIsNewYearDialogOpen} />}
+             <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete the training year "{currentYear}". All associated cadets, schedules, and reports for this year will be lost. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                            Delete Year
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 };
