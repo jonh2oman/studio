@@ -3,14 +3,12 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarInset } from '@/components/ui/sidebar';
 import { HelpButton } from '@/components/help-button';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { AuthProvider } from '@/hooks/use-auth';
 import { BugReportButton } from '@/components/bug-report/bug-report-button';
 import { DataRefreshButton } from '@/components/data-refresh-button';
-import { HelpProvider } from '@/hooks/use-help';
 import { FloatingHelpPanel } from '@/components/help/floating-help-panel';
+import { ClientProviders } from '@/components/client-providers';
 
 export const metadata: Metadata = {
   title: 'Corps/Sqn Manager',
@@ -38,31 +36,25 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background">
-        <AuthProvider>
-          <HelpProvider>
-            <TooltipProvider delayDuration={0}>
-              <SidebarProvider>
-                <div className="flex min-h-screen">
-                  <div className="print:hidden">
-                    <AppSidebar />
-                  </div>
-                  <SidebarInset>
-                    {children}
-                  </SidebarInset>
-                </div>
-              </SidebarProvider>
-              <Toaster />
-              <FloatingHelpPanel />
-              <div className="print:hidden">
-                <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
-                  <BugReportButton />
-                  <HelpButton />
-                  <DataRefreshButton />
-                </div>
-              </div>
-            </TooltipProvider>
-          </HelpProvider>
-        </AuthProvider>
+        <ClientProviders>
+          <div className="flex min-h-screen">
+            <div className="print:hidden">
+              <AppSidebar />
+            </div>
+            <SidebarInset>
+              {children}
+            </SidebarInset>
+          </div>
+          <Toaster />
+          <FloatingHelpPanel />
+          <div className="print:hidden">
+            <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
+              <BugReportButton />
+              <HelpButton />
+              <DataRefreshButton />
+            </div>
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );

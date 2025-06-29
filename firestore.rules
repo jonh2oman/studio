@@ -1,33 +1,26 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
+    // Users can only read/write their own document
     match /users/{userId} {
       allow read, write: if request.auth.uid == userId;
     }
 
+    // A user can create a corps if they don't have one, and can read/update if they are a member.
     match /corps/{corpsId} {
-      function isMember() {
-        return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
-      }
-      
-      // Allow create if the user does not have a corpsId yet
-      allow create: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == null;
-      
-      // Allow read/write if the user's corpsId matches this document's ID
-      allow read, update, delete: if isMember();
+      allow read, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
+      allow create: if !exists(/databases/$(database)/documents/users/$(request.auth.uid)) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == null;
     }
-
+    
+    // A user can only read/delete their own invite.
+    // Only an existing member of a corps can create an invite.
     match /invites/{email} {
-      // An existing member of the target corps can create an invite.
-      function isCreatorMember() {
-        return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == request.resource.data.corpsId;
-      }
-
-      allow create: if isCreatorMember();
-
-      // Only the invited user can read or delete their own invite.
-      allow read, delete: if request.auth != null && request.auth.token.email == email;
+      allow read: if request.auth.token.email == email;
+      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId != null;
+      allow delete: if request.auth.token.email == email;
     }
   }
 }

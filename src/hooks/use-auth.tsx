@@ -32,6 +32,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let unsubscribeDoc: (() => void) | null = null;
+    
+    const setupUserAccount = async (user: User) => {
+      if (!db) return;
+      const userDocRef = doc(db, 'users', user.uid);
+      try {
+        const userEmail = user.email;
+        if (!userEmail) throw new Error("User email is not available.");
+
+        // Check for an invite first
+        const inviteRef = doc(db, 'invites', userEmail);
+        const inviteSnap = await getDoc(inviteRef);
+
+        if (inviteSnap.exists()) {
+          // User was invited. Link to existing corps.
+          const { corpsId } = inviteSnap.data();
+          await setDoc(userDocRef, { email: userEmail, corpsId }, { merge: true });
+          await deleteDoc(inviteRef); // Consume the invite
+          toast({ title: "Welcome!", description: "You've been successfully linked to an existing corps." });
+        } else {
+          // User was not invited. Create a new corps.
+          const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
+          await setDoc(userDocRef, { email: userEmail, corpsId: newCorpsRef.id }, { merge: true });
+          toast({ title: "Welcome!", description: "A new corps has been created for you." });
+        }
+      } catch (error) {
+        console.error("Error during new user setup:", error);
+        toast({ variant: 'destructive', title: 'Setup Error', description: 'Could not set up your account data.' });
+      }
+    };
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (unsubscribeDoc) {
@@ -42,49 +71,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user && db) {
         setUser(user);
         const userDocRef = doc(db, 'users', user.uid);
-
-        // Check if the user document exists. If not, it's a new sign-up.
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (!userDocSnap.exists()) {
-          // New user flow
-          const userEmail = user.email;
-          if (userEmail) {
-            try {
-              const inviteRef = doc(db, 'invites', userEmail);
-              const inviteSnap = await getDoc(inviteRef);
-
-              if (inviteSnap.exists()) {
-                // User was invited. Link to existing corps.
-                const { corpsId } = inviteSnap.data();
-                await setDoc(userDocRef, { email: userEmail, corpsId });
-                await deleteDoc(inviteRef); // Consume the invite
-                toast({ title: "Welcome!", description: "You've been successfully linked to an existing corps." });
-              } else {
-                // User was not invited. Create a new corps.
-                const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
-                await setDoc(userDocRef, { email: userEmail, corpsId: newCorpsRef.id });
-                toast({ title: "Welcome!", description: "A new corps has been created for you." });
-              }
-            } catch (error) {
-               console.error("Error during new user setup:", error);
-               toast({ variant: 'destructive', title: 'Setup Error', description: 'Could not set up your account data.' });
-               setLoading(false);
-            }
-          }
-        }
-
-        // Attach a real-time listener for all users (new and existing)
-        // This will trigger once the user document is created/updated above.
+        
+        // This is the real-time listener for the user's data document.
         unsubscribeDoc = onSnapshot(userDocRef, 
-          (docSnap) => {
+          async (docSnap) => {
             if (docSnap.exists() && docSnap.data().corpsId) {
+                // User document exists and is complete
                 setUserData(docSnap.data() as UserData);
+                setLoading(false);
             } else {
-                // This might be hit briefly for a new user, or if data is inconsistent.
-                setUserData(null);
+                // User document either doesn't exist or is incomplete (no corpsId).
+                // This triggers the setup flow.
+                setUserData(null); // Ensure old data is cleared
+                await setupUserAccount(user);
+                // The setupUserAccount will write to the DB, which will trigger this snapshot listener again.
+                // On the next trigger, the first `if` condition should be met.
+                // We still set loading to false here to prevent the UI from being stuck if setup fails.
+                setLoading(false);
             }
-            setLoading(false);
           }, 
           (error) => {
             console.error("Error listening to user document:", error);
