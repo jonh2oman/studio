@@ -138,7 +138,28 @@ export default function StaffManagementPage() {
         }
 
         await setDoc(inviteRef, { corpsId: corpsId });
-        toast({ title: "Invite Sent!", description: `An invitation has been prepared for ${staffMember.email}. They can now sign up to access this corps.` });
+        
+        const subject = `Invitation to join ${settings.corpsName || 'your team'} on Corps/Sqn Manager`;
+        const body = `
+Hi ${staffMember.firstName},
+
+You've been invited to collaborate on our training plan using the Corps/Sqn Manager application.
+
+Please use the link below to sign up with this email address (${staffMember.email}) to get access.
+
+Application Link: ${window.location.origin}
+
+Thank you!
+        `;
+        const mailtoLink = `mailto:${staffMember.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        window.open(mailtoLink, '_blank');
+        
+        toast({ 
+            title: "Email Client Opened", 
+            description: "Your email client has been opened with a pre-filled invitation. Please send the email to complete the invitation process." 
+        });
+
     } catch (error) {
         console.error("Error creating invite:", error);
         toast({ variant: "destructive", title: "Invite Failed", description: `Could not create invite for ${staffMember.email}.` });
