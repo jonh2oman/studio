@@ -39,11 +39,15 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
         Object.keys(schedule).forEach(slotId => {
             const dateStr = slotId.substring(0, 10);
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-                dates.add(dateStr);
+                // Only include dates that are NOT the designated weekly training night
+                const day = new Date(dateStr.replace(/-/g, '/'));
+                if (day.getDay() !== settings.trainingDay) {
+                    dates.add(dateStr);
+                }
             }
         });
         return Array.from(dates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    }, [schedule]);
+    }, [schedule, settings.trainingDay]);
 
     const handleDateLinkClick = (dateStr: string) => {
         setSelectedDate(new Date(dateStr.replace(/-/g, '/')));
