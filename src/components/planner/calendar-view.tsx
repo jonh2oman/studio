@@ -14,6 +14,7 @@ import { Badge } from "../ui/badge";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useTrainingYear } from "@/hooks/use-training-year";
+import { getPhaseDisplayName } from "@/lib/utils";
 
 interface CalendarViewProps {
   schedule: Schedule;
@@ -182,7 +183,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                             <div className="w-full text-left">
                                 <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => onUpdate(slotId, details)} >
                                     <button className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
-                                        <Badge className="mb-1">Phase {phase}</Badge>
+                                        <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
                                         <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                                         <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
                                         <div className="text-xs space-y-0.5">
@@ -195,7 +196,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                                     <X className="w-4 h-4"/>
                                 </Button>
                             </div>
-                        ) : ( <span className="text-xs text-muted-foreground text-center">Phase {phase}</span> )}
+                        ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
                       </div>
                     );
                   })}
@@ -206,7 +207,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
         </CardContent>
       </Card>
     );
-  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove, dayMetadata, updateDayMetadata, settings.ordersOfDress]);
+  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove, dayMetadata, updateDayMetadata, settings.ordersOfDress, settings.element]);
   
   if (!isLoaded || !currentDate || !trainingYear) {
     return <div className="flex items-center justify-center h-full"><p>Loading calendar...</p></div>;

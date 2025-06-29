@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { X, Pencil } from "lucide-react";
 import type { Cadet } from "@/lib/types";
 import { Badge } from "../ui/badge";
+import { useSettings } from "@/hooks/use-settings";
+import { getPhaseDisplayName } from "@/lib/utils";
 
 interface CadetListProps {
   cadets: Cadet[];
@@ -14,6 +16,8 @@ interface CadetListProps {
 }
 
 export function CadetList({ cadets, onRemoveCadet, onEditCadet }: CadetListProps) {
+  const { settings } = useSettings();
+  
   if (cadets.length === 0) {
     return <p className="text-muted-foreground text-center">No cadets have been added yet.</p>;
   }
@@ -37,7 +41,7 @@ export function CadetList({ cadets, onRemoveCadet, onEditCadet }: CadetListProps
                     <TableCell>{cadet.lastName}</TableCell>
                     <TableCell>{cadet.firstName}</TableCell>
                     <TableCell>{cadet.rank}</TableCell>
-                    <TableCell><Badge variant="secondary">Phase {cadet.phase}</Badge></TableCell>
+                    <TableCell><Badge variant="secondary">{getPhaseDisplayName(settings.element, cadet.phase)}</Badge></TableCell>
                     <TableCell>{cadet.role || 'N/A'}</TableCell>
                     <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => onEditCadet(cadet)}>

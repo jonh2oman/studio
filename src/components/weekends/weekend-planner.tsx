@@ -20,6 +20,8 @@ import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CsarPlanner } from '@/components/csar/csar-planner';
 import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel';
+import { useSettings } from '@/hooks/use-settings';
+import { getPhaseDisplayName } from '@/lib/utils';
 
 interface WeekendPlannerProps {
     objectivesVisible: boolean;
@@ -30,6 +32,7 @@ export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [activeCsarDay, setActiveCsarDay] = useState<string | null>(null);
+    const { settings } = useSettings();
 
     const weekendDays = useMemo(() => {
         if (!startDate) return [];
@@ -152,7 +155,7 @@ export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
                                                     <div className="w-full text-left">
                                                         <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => updateScheduleItem(slotId, details)} >
                                                             <button className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
-                                                                <Badge className="mb-1">Phase {phase}</Badge>
+                                                                <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
                                                                 <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                                                                 <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
                                                                 <div className="text-xs space-y-0.5">
@@ -165,7 +168,7 @@ export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
                                                             <X className="w-4 h-4"/>
                                                         </Button>
                                                     </div>
-                                                ) : ( <span className="text-xs text-muted-foreground text-center">Phase {phase}</span> )}
+                                                ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
                                             </div>
                                         );
                                     })}

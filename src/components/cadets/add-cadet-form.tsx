@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSettings } from "@/hooks/use-settings";
 import type { Cadet } from "@/lib/types";
+import { getPhaseDisplayName, getPhaseLabel } from "@/lib/utils";
 
 const cadetSchema = z.object({
   rank: z.string().min(1, "Rank is required"),
@@ -41,6 +42,8 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
     onAddCadet(data);
     form.reset();
   };
+  
+  const phaseLabel = getPhaseLabel(settings.element);
 
   return (
     <Card>
@@ -106,17 +109,17 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                     name="phase"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Phase</FormLabel>
+                        <FormLabel>{phaseLabel}</FormLabel>
                          <Select onValueChange={field.onChange} value={String(field.value)}>
                         <FormControl>
                             <SelectTrigger>
-                            <SelectValue placeholder="Select a phase" />
+                            <SelectValue placeholder={`Select a ${phaseLabel.toLowerCase()}`} />
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                             {[1,2,3,4,5].map((phase) => (
                             <SelectItem key={phase} value={String(phase)}>
-                                Phase {phase}
+                                {getPhaseDisplayName(settings.element, phase)}
                             </SelectItem>
                             ))}
                         </SelectContent>

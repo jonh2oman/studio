@@ -18,6 +18,7 @@ import { CheckCircle2, Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { useTrainingYear } from "@/hooks/use-training-year";
+import { getPhaseDisplayName } from "@/lib/utils";
 
 export function ObjectivesList() {
   const { schedule } = useSchedule();
@@ -112,7 +113,7 @@ export function ObjectivesList() {
         <Accordion type="multiple" className="w-full p-4">
           {filteredTrainingData.map((phase) => (
             <AccordionItem value={`phase-${phase.id}`} key={phase.id}>
-              <AccordionTrigger className="text-base font-medium">{phase.name}</AccordionTrigger>
+              <AccordionTrigger className="text-base font-medium">{getPhaseDisplayName(settings.element, phase.id)}</AccordionTrigger>
               <AccordionContent>
                 <Accordion type="multiple" className="w-full">
                   {phase.performanceObjectives.map((po) => {

@@ -11,6 +11,7 @@ import { useTrainingYear } from '@/hooks/use-training-year';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useSettings } from '@/hooks/use-settings';
+import { getPhaseDisplayName } from '@/lib/utils';
 
 export function TrainingCompletionReport() {
     const { schedule, isLoaded } = useSchedule();
@@ -36,7 +37,7 @@ export function TrainingCompletionReport() {
             
             if (mandatoryEOs.length === 0) {
                 return {
-                    phaseName: phase.name,
+                    phaseName: getPhaseDisplayName(settings.element, phase.id),
                     completed: 0,
                     total: 0,
                     progress: 100,
@@ -60,7 +61,7 @@ export function TrainingCompletionReport() {
             const progress = totalMandatoryPeriods > 0 ? (completedPeriods / totalMandatoryPeriods) * 100 : 100;
 
             return {
-                phaseName: phase.name,
+                phaseName: getPhaseDisplayName(settings.element, phase.id),
                 completed: completedPeriods,
                 total: totalMandatoryPeriods,
                 progress: Math.min(100, progress),

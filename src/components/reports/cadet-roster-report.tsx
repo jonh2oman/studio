@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 import { FileDown, Loader2 } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useSettings } from "@/hooks/use-settings";
+import { getPhaseDisplayName } from "@/lib/utils";
 
 export function CadetRosterReport() {
     const { cadets, isLoaded } = useCadets();
+    const { settings } = useSettings();
     const [isGenerating, setIsGenerating] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
     
@@ -76,7 +79,7 @@ export function CadetRosterReport() {
                                         <TableCell>{cadet.rank}</TableCell>
                                         <TableCell>{cadet.lastName}</TableCell>
                                         <TableCell>{cadet.firstName}</TableCell>
-                                        <TableCell>Phase {cadet.phase}</TableCell>
+                                        <TableCell>{getPhaseDisplayName(settings.element, cadet.phase)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

@@ -19,6 +19,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from '@dnd-kit/utilities';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { getPhaseDisplayName } from '@/lib/utils';
 
 const dashboardCategories = [
     {
@@ -205,12 +206,12 @@ export default function DashboardPage() {
         return trainingData.map(phase => {
             const mandatoryEOs = phase.performanceObjectives.flatMap(po => po.enablingObjectives.filter(eo => eo.type === 'mandatory'));
             const totalMandatoryPeriods = mandatoryEOs.reduce((sum, eo) => sum + eo.periods, 0);
-            if (totalMandatoryPeriods === 0) return { phaseName: phase.name, progress: 100, completed: 0, total: 0 };
+            if (totalMandatoryPeriods === 0) return { phaseName: getPhaseDisplayName(settings.element, phase.id), progress: 100, completed: 0, total: 0 };
             
             let completedPeriods = 0;
             mandatoryEOs.forEach(eo => { completedPeriods += Math.min(scheduledCounts[eo.id] || 0, eo.periods); });
             const progress = (completedPeriods / totalMandatoryPeriods) * 100;
-            return { phaseName: phase.name, progress: Math.min(100, progress), completed: completedPeriods, total: totalMandatoryPeriods };
+            return { phaseName: getPhaseDisplayName(settings.element, phase.id), progress: Math.min(100, progress), completed: completedPeriods, total: totalMandatoryPeriods };
         });
     }, [schedule, isLoaded, adaPlanners, yearsLoaded, settings.element]);
 

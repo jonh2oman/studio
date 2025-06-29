@@ -16,12 +16,15 @@ import { Crown, Trash2, Pencil, Loader2, Sparkles, Upload, Download } from 'luci
 import { AwardDialog } from '@/components/awards/award-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/hooks/use-settings';
+import { getPhaseDisplayName } from '@/lib/utils';
 
 export default function AwardsPage() {
     const { cadets, isLoaded: cadetsLoaded } = useCadets();
     const { schedule, isLoaded: scheduleLoaded } = useSchedule();
     const { awards, addAward, updateAward, removeAward, winners, addWinner, removeWinner, isLoaded: awardsLoaded, importAwards } = useAwards();
     const { toast } = useToast();
+    const { settings } = useSettings();
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingAward, setEditingAward] = useState<Award | null>(null);
@@ -301,7 +304,7 @@ export default function AwardsPage() {
                                                                     <div key={cadet.id} className="p-3 rounded-md border bg-background flex items-center justify-between">
                                                                         <div>
                                                                             <p className="font-medium">{cadet.lastName}, {cadet.firstName}</p>
-                                                                            <p className="text-sm text-muted-foreground">{cadet.rank} / Phase {cadet.phase}</p>
+                                                                            <p className="text-sm text-muted-foreground">{cadet.rank} / {getPhaseDisplayName(settings.element, cadet.phase)}</p>
                                                                         </div>
                                                                         <Button 
                                                                             size="sm" 
