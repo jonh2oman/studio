@@ -1,0 +1,458 @@
+
+"use client";
+
+import { useState, useRef, useCallback, useMemo } from "react";
+import { useHelp } from "@/hooks/use-help";
+import { GripVertical, Search, X, List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { changelogData } from "@/lib/changelog-data";
+import { Badge } from "@/components/ui/badge";
+
+const instructionsData = [
+    { 
+        id: "getting-started", 
+        title: "Getting Started: Core Concepts", 
+        icon: Rocket, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Multi-Element Support</h4>
+                    <p>First, go to Settings and select your unit's Element (Sea, Army, or Air). This is crucial as it loads the correct training program and terminology (e.g., Phase, Level, or Star Level) throughout the application.</p>
+                </div>
+                <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Real-Time Cloud Storage</h4>
+                    <p>All your data (schedules, cadets, etc.) is securely saved to the cloud and linked to your user account. Every change is saved automatically and in real-time. This means your data is safe, private, and accessible from any device where you log in.</p>
+                </div>
+                <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Everything is Organized by Training Year</h4>
+                    <p>The application is designed around Training Years (e.g., "2024-2025"). All your schedules, cadets, and reports are specific to the currently selected year. You must create your first training year in Settings to begin.</p>
+                </div>
+            </CardContent>
+        )
+    },
+    { 
+        id: "dashboard", 
+        title: "Dashboard", 
+        icon: List, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">The dashboard provides an at-a-glance overview of your training year and quick access to all modules.</p>
+                <h4 className="font-semibold">Mandatory Training Planning Progress</h4>
+                <p>This section displays progress bars for each Phase / Level / Star Level, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Weekend, LDA, and ADA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
+                <h4 className="font-semibold">Navigation Cards</h4>
+                <p>Each card on the dashboard links to a major module of the application. The categories can be expanded or collapsed to keep the view tidy. Simply click on a card to navigate to the respective page.</p>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "planners", 
+        title: "The Planners (Annual, Weekend, LDA)", 
+        icon: Calendar, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">The application includes three planners for different scheduling needs. All planners feature a sticky header, so page controls are always accessible. All scheduled activities, regardless of the planner used, contribute to the overall training progress on the Dashboard.</p>
+                <h4 className="font-semibold">The Objectives Panel</h4>
+                <p>This floating panel is your palette of lessons. It can be moved anywhere on the screen and resized to your liking. It contains all official EOs for your selected element, plus any custom EOs you've created in Settings. Use the search bar to quickly find what you need.</p>
+                <h4 className="font-semibold">Core Mechanic: Drag & Drop</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                    <li>Find the lesson (EO) you want to schedule in the floating "Training Objectives" panel.</li>
+                    <li>Click and drag the lesson from the list.</li>
+                    <li>Drop it onto the desired Phase / Level / Star Level slot for a specific Period on a specific day.</li>
+                    <li>Once an EO is scheduled, click on it to open a dialog where you can assign an Instructor and a Classroom. The app will warn you if you create a scheduling conflict (e.g., assigning the same instructor to two places at once).</li>
+                </ol>
+                <h4 className="font-semibold">CSAR Planning (Weekends & LDAs)</h4>
+                <p>The Weekend and LDA planners include a Cadet Support and Activity Request (CSAR) section for each day.</p>
+                 <ul className="list-disc list-inside space-y-1">
+                    <li>Toggle "CSAR Required?" to 'Yes'. This enables the other toggles and the "Plan CSAR" button.</li>
+                    <li>Click "Plan CSAR" to open a detailed planning sheet with tabs for Details, Meal Plan, and J4 (equipment).</li>
+                    <li>Fill out the form. The data is saved automatically as you fill it out.</li>
+                    <li>Track the submission and approval status using the toggles on the main planner page.</li>
+                </ul>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "ada", 
+        title: "ADA Planner", 
+        icon: ClipboardList, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">The Area Directed Activity (ADA) Planner is a special module designed to account for Enabling Objectives (EOs) that are completed outside of your regular corps/squadron training nights, such as at regional or area-level events.</p>
+                <h4 className="font-semibold">Core Purpose</h4>
+                <p>The primary function of this planner is to ensure that EOs completed at ADAs are correctly reflected in your overall training completion statistics on the Dashboard. There are no dates, instructors, or locations to manage here—it is purely for record-keeping.</p>
+                <h4 className="font-semibold">How to Use It</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                    <li>Click the "Add New ADA Planner" button to create a container for an activity. Give it a descriptive name (e.g., "Fall FTX 2024").</li>
+                    <li>From the floating "Training Objectives" panel, find the EOs that were covered during the ADA.</li>
+                    <li>Drag and drop each completed EO into the grid for the corresponding ADA planner.</li>
+                    <li>Each planner can hold up to 60 EOs. Any mandatory EOs you add here will immediately update the progress bars on your Dashboard.</li>
+                </ol>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "reports", 
+        title: "Reports", 
+        icon: FileText, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This module allows you to generate a PDF of the Weekly Routine Orders (WRO) and view other key reports.</p>
+                <h4 className="font-semibold">Generating a WRO</h4>
+                 <p>The WRO form intelligently pulls data from other parts of the application to streamline report creation.</p>
+                 <ol className="list-decimal list-inside space-y-1">
+                    <li>Select a Training Date. The schedule for this date will be automatically pulled from the planners.</li>
+                    <li><strong>Automatic Logic:</strong> The following fields are auto-populated based on your settings and schedules:
+                        <ul className="list-disc list-inside ml-6 my-2 bg-muted/50 p-3 rounded-md">
+                            <li><strong>RO Number:</strong> Generated from the year and week number of the selected date.</li>
+                            <li><strong>Duty Personnel:</strong> Pulled from the Duty Roster you configure in Corps Management.</li>
+                            <li><strong>Dress of the Day:</strong> Pulled from the setting on the Annual Planner for that date.</li>
+                            <li><strong>Upcoming Activities:</strong> Populated from the "Weekly Activities" you define in Settings.</li>
+                        </ul>
+                    </li>
+                    <li>Fill in the remaining fields (e.g., CO Name, Announcements, Notes).</li>
+                    <li>Optionally, upload a corps logo.</li>
+                    <li>Click "Generate WRO PDF". A PDF file will be created and downloaded.</li>
+                </ol>
+                <h4 className="font-semibold">Other Reports</h4>
+                <p>The reports page also includes several other useful reports that can be generated as PDFs:</p>
+                <ul className="list-disc list-inside">
+                    <li><strong>Cadet Roster:</strong> A complete list of all cadets.</li>
+                    <li><strong>Attendance:</strong> Includes a Summary, Daily Report, Perfect Attendance list, and At-Risk Cadets list.</li>
+                    <li><strong>Training Completion:</strong> Shows the progress of mandatory training for each phase.</li>
+                    <li><strong>Award Winners:</strong> A list of all awards and their assigned winners.</li>
+                    <li><strong>Corps Assets:</strong> A full inventory of all corps-owned assets.</li>
+                </ul>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "cadets", 
+        title: "Cadet Management", 
+        icon: Users, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This is where you manage your corps' roster for the current training year.</p>
+                 <h4 className="font-semibold">Adding a Cadet</h4>
+                 <p>Use the "Add New Cadet" form. Fill in their details, including their current Phase / Level / Star Level and an optional role (if you've configured any in Settings). The list of available ranks is also managed on this page.</p>
+                <h4 className="font-semibold">Editing or Removing a Cadet</h4>
+                <p>The "Cadet Roster" table lists all your cadets. Use the pencil icon to edit a cadet's details or the 'X' icon to remove them.</p>
+                 <h4 className="font-semibold">Cadet Settings</h4>
+                <p>You can manage the available ranks and roles for cadets in the accordion at the bottom of the page.</p>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "asset-management", 
+        title: "Asset Management", 
+        icon: Building2, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This is where you manage global corps assets. This data persists across all training years.</p>
+                 <p>Use the "Add New Asset" form to add items to your corps' inventory. You can track details like category, serial number, status, condition, and location. This data is available in a printable report on the Reports page.</p>
+                 <p>You can also manage the list of available asset categories on this page.</p>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "staff-management", 
+        title: "Staff Management", 
+        icon: Contact, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This is where you manage your staff roster and duty assignments. This data persists across all training years.</p>
+                <h4 className="font-semibold">Staff Roster & Duties</h4>
+                 <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "lsa", 
+        title: "LSA Wish List", 
+        icon: ShoppingCart, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">Create and manage your annual Local Support Allocation (LSA) request list. This is where you can track items your corps/squadron wishes to purchase, along with quantities, prices, and links.</p>
+                <h4 className="font-semibold">Tracking Items</h4>
+                 <p>Use the form to add items, including names, descriptions, and pricing information. You can also upload a price screenshot for your records. The main table will keep a running total of your requested budget.</p>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "attendance", 
+        title: "Attendance", 
+        icon: ClipboardCheck, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">Track cadet attendance for specific training nights.</p>
+                <h4 className="font-semibold">Taking Attendance</h4>
+                 <ol className="list-decimal list-inside space-y-1">
+                    <li>Select a training night using the calendar. Your regular training days (set in Settings) are highlighted.</li>
+                    <li>For each cadet, select their status: Present, Absent, or Excused.</li>
+                    <li>Use the checkboxes to mark if a cadet Arrived Late or Left Early.</li>
+                    <li>Click "Save Attendance" to save your changes. This data is crucial for generating accurate attendance reports and for the AI-powered award eligibility checks.</li>
+                </ol>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "awards", 
+        title: "Awards Management", 
+        icon: Trophy, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">Manage corps awards and determine eligible cadets using AI assistance.</p>
+                <h4 className="font-semibold flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />AI-Powered Eligibility Check</h4>
+                 <ul className="list-disc list-inside space-y-1">
+                    <li>Expand an award to view its criteria.</li>
+                    <li>Click the <strong>"Check Eligibility with AI"</strong> button.</li>
+                    <li><strong>Automatic Logic:</strong> The application sends the award criteria and your entire cadet roster (including their calculated attendance percentages) to an AI model. The AI analyzes this data and returns a list of cadets who meet all requirements.</li>
+                    <li>The "Eligible Cadets" section will update to show the results.</li>
+                </ul>
+                <h4 className="font-semibold">Assigning Winners</h4>
+                <p>From the list of eligible cadets, click the "Select" button to mark a cadet as a winner. You can select multiple winners for corps awards. The winner's name will appear in the award title for easy reference.</p>
+                <h4 className="font-semibold">Managing Awards</h4>
+                <p>You can add, edit, or delete award definitions. Note that award definitions are global across all training years, but winners are specific to each year.</p>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "zto-portal", 
+        title: "ZTO Plan Review Portal", 
+        icon: FolderKanban, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This module is for Zone Training Officers (ZTOs) or other supervisory staff to review multiple training plans from different corps/squadrons.</p>
+                <h4 className="font-semibold">Importing and Viewing Plans</h4>
+                 <ol className="list-decimal list-inside space-y-1">
+                    <li>Click "Import Plan" to open the import dialog.</li>
+                    <li>Give the plan a recognizable name (e.g., "288 Ardent") and upload the `.json` file provided by the corps/squadron.</li>
+                    <li>Once imported, the plan will appear as a card on the main page.</li>
+                    <li>Click the "View Plan" button on a card to open a full-screen, read-only version of that unit's annual training calendar for review.</li>
+                </ol>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "settings", 
+        title: "Settings", 
+        icon: Settings2, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">Configure the application to match your corps' specific needs. Changes here can affect automatic logic in other modules.</p>
+                <h4 className="font-semibold">Training Year Management</h4>
+                <p>Create a new training year, switch between existing years, or delete the active year. When creating a new year, you have the option to copy all data from a previous year, or import data from a shared file. An AI-powered feature can intelligently map a copied schedule to the new calendar, automatically adjusting for different start dates and holidays.</p>
+                <h4 className="font-semibold">Planning Resources</h4>
+                <p>Customize the lists used throughout the planners. This includes creating and managing classrooms and custom EOs.</p>
+                <h4 className="font-semibold">Data Management</h4>
+                <ul className="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>Full Application Backup:</strong> Download a single JSON file containing all your data across all training years. This is useful for personal backups and disaster recovery.</li>
+                    <li><strong>Export Single Training Year:</strong> You can export the data for a single training year to a shareable `.json` file.</li>
+                    <li><strong>Importing Data:</strong> Another user can import a shared file when creating a new training year on their account, allowing for easy sharing of plans.</li>
+                </ul>
+                <h4 className="font-semibold flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive"/>Danger Zone</h4>
+                <p>The "Reset Application" button will permanently delete <strong>all</strong> of your data from the cloud, including all training years, schedules, cadets, and settings associated with your account. This action is irreversible and cannot be undone. Use this with extreme caution.</p>
+            </AccordionContent>
+        )
+    },
+    { 
+        id: "about", 
+        title: "About", 
+        icon: Info, 
+        content: (
+            <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This page contains version information, credits, contact details, and software licensing for the application.</p>
+                <h4 className="font-semibold">Disclaimer</h4>
+                <p>This is an unofficial planning tool and is not endorsed by the Canadian Cadet Organization (CCO) or the Department of National Defence (DND).</p>
+                 <h4 className="font-semibold">Changelog</h4>
+                <p>Click the "View Changelog" button to see a detailed history of all updates and new features added to the application.</p>
+            </AccordionContent>
+        )
+    },
+];
+
+export function FloatingHelpPanel() {
+    const { isHelpOpen, setHelpOpen } = useHelp();
+    const [searchTerm, setSearchTerm] = useState("");
+    
+    // Draggable and Resizable Logic
+    const [position, setPosition] = useState({ x: 20, y: 20 });
+    const [size, setSize] = useState({ width: 600, height: 700 });
+    const panelRef = useRef<HTMLDivElement>(null);
+    const dragStartOffset = useRef({ x: 0, y: 0 });
+    const resizeStart = useRef({ x: 0, y: 0, width: 0, height: 0 });
+
+    const handleDragMove = useCallback((e: MouseEvent) => {
+        if (!panelRef.current) return;
+        const newX = e.clientX - dragStartOffset.current.x;
+        const newY = e.clientY - dragStartOffset.current.y;
+        const clampedX = Math.max(0, Math.min(newX, window.innerWidth - size.width));
+        const clampedY = Math.max(0, Math.min(newY, window.innerHeight - size.height));
+        setPosition({ x: clampedX, y: clampedY });
+    }, [size.width, size.height]);
+
+    const handleDragUp = useCallback(() => {
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', handleDragMove);
+        document.removeEventListener('mouseup', handleDragUp);
+    }, [handleDragMove]);
+
+    const handleDragDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.button !== 0) return;
+        document.body.style.userSelect = 'none';
+        dragStartOffset.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+        document.addEventListener('mousemove', handleDragMove);
+        document.addEventListener('mouseup', handleDragUp);
+        e.preventDefault();
+    }, [position.x, position.y, handleDragMove, handleDragUp]);
+
+    const handleResizeMove = useCallback((e: MouseEvent) => {
+        const newWidth = Math.max(400, resizeStart.current.width + (e.clientX - resizeStart.current.x));
+        const newHeight = Math.max(500, resizeStart.current.height + (e.clientY - resizeStart.current.y));
+        const maxWidth = window.innerWidth - position.x;
+        const maxHeight = window.innerHeight - position.y;
+        setSize({ width: Math.min(maxWidth, newWidth), height: Math.min(maxHeight, newHeight) });
+    }, [position.x, position.y]);
+
+    const handleResizeUp = useCallback(() => {
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleResizeUp);
+    }, [handleResizeMove]);
+
+    const handleResizeDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        if (e.button !== 0) return;
+        document.body.style.userSelect = 'none';
+        resizeStart.current = { x: e.clientX, y: e.clientY, width: size.width, height: size.height };
+        document.addEventListener('mousemove', handleResizeMove);
+        document.addEventListener('mouseup', handleResizeUp);
+    }, [size.width, size.height, handleResizeMove, handleResizeUp]);
+
+    // Search Logic
+    const lowercasedTerm = searchTerm.toLowerCase();
+
+    const filteredInstructions = useMemo(() => {
+        if (!lowercasedTerm) return instructionsData;
+        
+        // This is a simple text extractor from React nodes. It's not perfect but works for this structure.
+        const getNodeText = (node: React.ReactNode): string => {
+            if (typeof node === 'string') return node;
+            if (typeof node === 'number') return String(node);
+            if (Array.isArray(node)) return node.map(getNodeText).join(' ');
+            if (React.isValidElement(node) && node.props.children) {
+                return getNodeText(node.props.children);
+            }
+            return '';
+        };
+
+        return instructionsData.filter(item => {
+            const titleMatch = item.title.toLowerCase().includes(lowercasedTerm);
+            const contentText = getNodeText(item.content).toLowerCase();
+            const contentMatch = contentText.includes(lowercasedTerm);
+            return titleMatch || contentMatch;
+        });
+    }, [lowercasedTerm]);
+
+    const filteredChangelog = useMemo(() => {
+        if (!lowercasedTerm) return changelogData;
+        return changelogData.filter(entry => 
+            entry.version.toLowerCase().includes(lowercasedTerm) ||
+            entry.date.toLowerCase().includes(lowercasedTerm) ||
+            entry.changes.some(change => change.toLowerCase().includes(lowercasedTerm))
+        );
+    }, [lowercasedTerm]);
+
+    const openAccordionItems = useMemo(() => {
+        if (!lowercasedTerm) return ["getting-started"];
+        return filteredInstructions.map(item => item.id);
+    }, [lowercasedTerm, filteredInstructions]);
+    
+    if (!isHelpOpen) {
+        return null;
+    }
+
+    return (
+        <div
+            ref={panelRef}
+            className="fixed flex flex-col shadow-2xl z-[60] bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
+            style={{
+                width: `${size.width}px`,
+                height: `${size.height}px`,
+                transform: `translate(${position.x}px, ${position.y}px)`,
+            }}
+        >
+            <header 
+                onMouseDown={handleDragDown} 
+                className="flex items-center justify-between py-2 px-4 text-card-foreground border-b cursor-move flex-shrink-0"
+            >
+                <div className="flex items-center gap-2 font-semibold">
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    Application Instructions
+                </div>
+                <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setHelpOpen(false)}>
+                    <X className="h-4 w-4" />
+                </Button>
+            </header>
+            <div className="p-4 border-b">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        type="search"
+                        placeholder="Search instructions..."
+                        className="pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+            <ScrollArea className="flex-1 p-4">
+                <Accordion type="multiple" defaultValue={openAccordionItems} className="w-full space-y-4">
+                    {filteredInstructions.map(item => (
+                        <Card key={item.id} id={item.id}>
+                            <AccordionItem value={item.id} className="border-b-0">
+                                <AccordionTrigger className="p-6 text-xl hover:no-underline">
+                                    <div className="flex items-center gap-3">
+                                        <item.icon className="h-6 w-6" />{item.title}
+                                    </div>
+                                </AccordionTrigger>
+                                {item.content}
+                            </AccordionItem>
+                        </Card>
+                    ))}
+                    <Card>
+                         <AccordionItem value="changelog" className="border-b-0">
+                            <AccordionTrigger className="p-6 text-xl hover:no-underline">Changelog</AccordionTrigger>
+                            <AccordionContent className="px-6 pb-6 space-y-4">
+                               {filteredChangelog.map((entry) => (
+                                    <div key={entry.version}>
+                                        <div className="flex items-center gap-4 mb-3">
+                                            <h3 className="text-xl font-bold">{entry.version}</h3>
+                                            <Badge variant="outline">{entry.date}</Badge>
+                                        </div>
+                                        <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                                            {entry.changes.map((change, index) => (
+                                                <li key={index}>{change}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </AccordionContent>
+                         </AccordionItem>
+                    </Card>
+                </Accordion>
+            </ScrollArea>
+             <div
+                onMouseDown={handleResizeDown}
+                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+                style={{
+                    background: 'repeating-linear-gradient(-45deg, transparent, transparent 4px, hsl(var(--muted-foreground)) 4px, hsl(var(--muted-foreground)) 5px)',
+                    opacity: 0.5,
+                }}
+            />
+        </div>
+    );
+}

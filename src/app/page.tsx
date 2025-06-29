@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { elementalTrainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -56,7 +56,6 @@ const dashboardCategories = [
     {
         title: "Settings & Help",
         items: [
-            { href: "/instructions", title: "Instructions", icon: BookOpen, description: "Read the user guide for this application." },
             { href: "/settings", title: "Settings", icon: Settings, description: "Configure corps information, instructors, and classrooms." },
             { href: "/about", title: "About", icon: Info, description: "View application details and license information." },
         ]

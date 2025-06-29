@@ -33,7 +33,6 @@ const navGroups = [
     title: "Main",
     items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/instructions", label: "Instructions", icon: BookOpen },
     ]
   },
   {

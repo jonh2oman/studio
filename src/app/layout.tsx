@@ -9,6 +9,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/hooks/use-auth';
 import { BugReportButton } from '@/components/bug-report/bug-report-button';
 import { DataRefreshButton } from '@/components/data-refresh-button';
+import { HelpProvider } from '@/hooks/use-help';
+import { FloatingHelpPanel } from '@/components/help/floating-help-panel';
 
 export const metadata: Metadata = {
   title: 'Corps/Sqn Manager',
@@ -37,26 +39,29 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background">
         <AuthProvider>
-          <TooltipProvider delayDuration={0}>
-            <SidebarProvider>
-              <div className="flex min-h-screen">
-                <div className="print:hidden">
-                  <AppSidebar />
+          <HelpProvider>
+            <TooltipProvider delayDuration={0}>
+              <SidebarProvider>
+                <div className="flex min-h-screen">
+                  <div className="print:hidden">
+                    <AppSidebar />
+                  </div>
+                  <SidebarInset>
+                    {children}
+                  </SidebarInset>
                 </div>
-                <SidebarInset>
-                  {children}
-                </SidebarInset>
+              </SidebarProvider>
+              <Toaster />
+              <FloatingHelpPanel />
+              <div className="print:hidden">
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
+                  <BugReportButton />
+                  <HelpButton />
+                  <DataRefreshButton />
+                </div>
               </div>
-            </SidebarProvider>
-            <Toaster />
-            <div className="print:hidden">
-              <div className="fixed bottom-6 right-6 z-50 flex flex-col-reverse gap-4">
-                <BugReportButton />
-                <HelpButton />
-                <DataRefreshButton />
-              </div>
-            </div>
-          </TooltipProvider>
+            </TooltipProvider>
+          </HelpProvider>
         </AuthProvider>
       </body>
     </html>
