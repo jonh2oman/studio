@@ -1,13 +1,64 @@
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { WeekendPlanner } from "@/components/weekends/weekend-planner";
 import { Button } from '@/components/ui/button';
-import { Menu, Printer } from 'lucide-react';
+import { Menu, FileDown, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useToast } from '@/hooks/use-toast';
 
 export default function WeekendsPage() {
   const [objectivesVisible, setObjectivesVisible] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const plannerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const handleGeneratePdf = async () => {
+    const input = plannerRef.current;
+    if (!input) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not find planner content to capture.' });
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      const canvas = await html2canvas(input, { 
+        scale: 2, 
+        useCORS: true,
+        width: input.scrollWidth,
+        height: input.scrollHeight,
+        windowWidth: input.scrollWidth,
+        windowHeight: input.scrollHeight,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a3',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(imgData);
+      
+      const ratio = pdfWidth / imgProps.width;
+      const pdfHeight = imgProps.height * ratio;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('Weekend-Plan.pdf');
+
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({ variant: 'destructive', title: 'PDF Generation Failed', description: 'There was an error creating the PDF file.' });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
 
   return (
     <div className="flex h-full flex-col">
@@ -31,8 +82,9 @@ export default function WeekendsPage() {
                     </TooltipContent>
                 </Tooltip>
 
-                <Button onClick={() => window.print()} variant="outline" size="sm">
-                  <Printer className="mr-2 h-4 w-4" /> Print Plan
+                <Button onClick={handleGeneratePdf} variant="outline" size="sm" disabled={isGenerating}>
+                  {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+                  Generate PDF
                 </Button>
             </div>
             <div>
@@ -41,7 +93,7 @@ export default function WeekendsPage() {
             </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto pt-6">
+      <div ref={plannerRef} className="flex-1 overflow-y-auto pt-6">
         <WeekendPlanner objectivesVisible={objectivesVisible} />
       </div>
     </div>
