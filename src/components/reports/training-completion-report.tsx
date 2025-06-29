@@ -2,7 +2,7 @@
 "use client";
 import { useMemo, useState, useRef } from 'react';
 import { useSchedule } from '@/hooks/use-schedule';
-import { trainingData } from '@/lib/data';
+import { elementalTrainingData } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from "@/components/ui/button";
@@ -10,15 +10,20 @@ import { FileDown, Loader2 } from "lucide-react";
 import { useTrainingYear } from '@/hooks/use-training-year';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useSettings } from '@/hooks/use-settings';
 
 export function TrainingCompletionReport() {
     const { schedule, isLoaded } = useSchedule();
     const { adaPlanners, isLoaded: yearsLoaded } = useTrainingYear();
+    const { settings } = useSettings();
     const [isGenerating, setIsGenerating] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
 
     const phaseProgress = useMemo(() => {
-        if (!isLoaded || !yearsLoaded) return [];
+        if (!isLoaded || !yearsLoaded || !settings.element) return [];
+
+        const trainingData = elementalTrainingData[settings.element];
+        if (!trainingData) return [];
 
         const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
         const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
@@ -61,7 +66,7 @@ export function TrainingCompletionReport() {
                 progress: Math.min(100, progress),
             };
         });
-    }, [schedule, isLoaded, adaPlanners, yearsLoaded]);
+    }, [schedule, isLoaded, adaPlanners, yearsLoaded, settings.element]);
 
     const handleGeneratePdf = async () => {
         const input = pdfRef.current;

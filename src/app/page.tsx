@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
-import { trainingData } from '@/lib/data';
+import { elementalTrainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -188,7 +188,10 @@ export default function DashboardPage() {
     };
 
     const phaseProgress = useMemo(() => {
-        if (!isLoaded || !yearsLoaded) return [];
+        if (!isLoaded || !yearsLoaded || !settings.element) return [];
+        const trainingData = elementalTrainingData[settings.element];
+        if (!trainingData) return [];
+
         const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
         const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
         const allScheduledEOs = [...scheduleEOs, ...adaEOs];
@@ -209,7 +212,7 @@ export default function DashboardPage() {
             const progress = (completedPeriods / totalMandatoryPeriods) * 100;
             return { phaseName: phase.name, progress: Math.min(100, progress), completed: completedPeriods, total: totalMandatoryPeriods };
         });
-    }, [schedule, isLoaded, adaPlanners, yearsLoaded]);
+    }, [schedule, isLoaded, adaPlanners, yearsLoaded, settings.element]);
 
     const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 

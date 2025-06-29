@@ -104,7 +104,10 @@ export interface LsaWishListItem {
   priceScreenshot?: string; // base64 data URI
 }
 
+export type CadetElement = 'Sea' | 'Army' | 'Air';
+
 export interface Settings {
+  element: CadetElement;
   trainingDay: number;
   corpsName: string;
   corpsLogo?: string;

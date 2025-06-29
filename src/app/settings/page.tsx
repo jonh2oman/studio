@@ -13,7 +13,7 @@ import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2, Clo
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
-import type { WeeklyActivity, Settings, CustomEO, UserDocument, TrainingYearData } from "@/lib/types";
+import type { WeeklyActivity, Settings, CustomEO, UserDocument, TrainingYearData, CadetElement } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -198,10 +198,13 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
                  </div>
             </CardHeader>
             <CardContent className="space-y-8">
-                <div className="space-y-2"><Label htmlFor="corpsName">Corps Name</Label><Input id="corpsName" placeholder="e.g., RCSCC 288 ARDENT" defaultValue={localSettings.corpsName} onBlur={(e) => handleSettingChange('corpsName', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Weekly Training Night</Label><Select value={String(localSettings.trainingDay)} onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}><SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={index} value={String(index)}>{day}</SelectItem>)}</SelectContent></Select></div>
-                <div className="space-y-2"><Label htmlFor="coDisplay">Commanding Officer</Label><Input id="coDisplay" readOnly value={commandingOfficer ? `${commandingOfficer.rank} ${commandingOfficer.firstName} ${commandingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
-                <div className="space-y-2"><Label htmlFor="toDisplay">Training Officer</Label><Input id="toDisplay" readOnly value={trainingOfficer ? `${trainingOfficer.rank} ${trainingOfficer.firstName} ${trainingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2"><Label htmlFor="corpsName">Corps/Sqn Name</Label><Input id="corpsName" placeholder="e.g., RCSCC 288 ARDENT" defaultValue={localSettings.corpsName} onBlur={(e) => handleSettingChange('corpsName', e.target.value)} /></div>
+                    <div className="space-y-2"><Label>Element</Label><Select value={localSettings.element} onValueChange={(value) => handleSettingChange('element', value as CadetElement)}><SelectTrigger><SelectValue placeholder="Select an element" /></SelectTrigger><SelectContent><SelectItem value="Sea">Sea Cadets</SelectItem><SelectItem value="Army">Army Cadets</SelectItem><SelectItem value="Air">Air Cadets</SelectItem></SelectContent></Select></div>
+                    <div className="space-y-2"><Label>Weekly Training Night</Label><Select value={String(localSettings.trainingDay)} onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}><SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={index} value={String(index)}>{day}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="space-y-2"><Label htmlFor="coDisplay">Commanding Officer</Label><Input id="coDisplay" readOnly value={commandingOfficer ? `${commandingOfficer.rank} ${commandingOfficer.firstName} ${commandingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
+                    <div className="space-y-2"><Label htmlFor="toDisplay">Training Officer</Label><Input id="toDisplay" readOnly value={trainingOfficer ? `${trainingOfficer.rank} ${trainingOfficer.firstName} ${trainingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
+                </div>
                 <div className="space-y-2"><Label>Corps Logo</Label><div className="flex items-center gap-4">{localSettings.corpsLogo ? <img src={localSettings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" /> : <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50"><span className="text-xs text-muted-foreground">No Logo</span></div>}<div className="space-y-2"><Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" /><p className="text-sm text-muted-foreground">Max 500KB.</p>{localSettings.corpsLogo && <Button variant="outline" size="sm" onClick={() => handleSettingChange('corpsLogo', '')}>Remove Logo</Button>}</div></div></div>
             </CardContent>
         </Card>

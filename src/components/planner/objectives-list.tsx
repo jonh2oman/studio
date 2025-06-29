@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { trainingData } from "@/lib/data";
+import { elementalTrainingData } from "@/lib/data";
 import { useSchedule } from "@/hooks/use-schedule";
 import { useSettings } from "@/hooks/use-settings";
 import {
@@ -24,6 +24,8 @@ export function ObjectivesList() {
   const { settings } = useSettings();
   const { adaPlanners } = useTrainingYear();
   const [searchTerm, setSearchTerm] = useState("");
+
+  const trainingData = elementalTrainingData[settings.element] || [];
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, eo: EO) => {
     e.dataTransfer.setData("application/json", JSON.stringify(eo));
@@ -63,6 +65,7 @@ export function ObjectivesList() {
   }, [schedule, adaPlanners]);
 
   const filteredTrainingData = useMemo(() => {
+    if (!trainingData) return [];
     if (!searchTerm) return trainingData;
     const lowercasedTerm = searchTerm.toLowerCase();
 
@@ -77,7 +80,7 @@ export function ObjectivesList() {
 
         return { ...phase, performanceObjectives: filteredPOs };
     }).filter(phase => phase.performanceObjectives.length > 0);
-  }, [searchTerm]);
+  }, [searchTerm, trainingData]);
   
   const filteredCustomEOs = useMemo(() => {
     if (!settings.customEOs) return [];

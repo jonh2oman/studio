@@ -17,6 +17,7 @@ const permanentRoles = [
 ];
 
 const defaultSettings: Settings = {
+    element: 'Sea',
     trainingDay: 2, // Tuesday
     corpsName: "",
     corpsLogo: "",

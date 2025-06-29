@@ -1,7 +1,8 @@
 
 import type { Phase } from './types';
 
-const rawData = {
+// SEA CADET DATA
+const seaRawData = {
   "Phase 1": {
     "PO X01 - Participate in Citizenship Activities": {
       "M": [["MX01.01C", "Participate in Citizenship Activities", 3]],
@@ -90,7 +91,7 @@ const rawData = {
     },
     "PO 208 - Execute Drill as a Member of a Squad": {
       "M": [["M208.01", "Execute Left and Right Turns on the March", 2], ["M208.02", "Form Single File From the Halt", 1]],
-      "C": [["C208.01", "Practice Ceremonial Drill as a Review", 2], ["C208.02", "Execute Drill With Arms", 8], ["C108.01", "Execute Supplementary Drill Movements", 6]]
+      "C": [["C208.01", "Practice Ceremonial Drill as a Review", 2], ["C208.02", "Execute Drill with Arms", 8], ["C108.01", "Execute Supplementary Drill Movements", 6]]
     },
     "PO 211 - Participate in Recreational Summer Biathlon activities": {
       "C": [["C211.01", "Identify Civilian Biathlon Opportunities", 1], ["C211.02", "Run on Alternate Terrain", 1], ["C211.03", "Fire the Cadet Air Rifle using a Sling Following Physical Activity", 1], ["C211.04", "Participate in a Competitive Summer Biathlon Activity", 6]]
@@ -238,32 +239,66 @@ const rawData = {
   }
 };
 
-export const trainingData: Phase[] = Object.entries(rawData).map(([phaseName, pos], phaseIndex) => {
-  const phaseId = phaseIndex + 1;
-  return {
-    id: phaseId,
-    name: phaseName,
-    performanceObjectives: Object.entries(pos).map(([poTitle, eos]) => {
-      const poId = poTitle.split(' - ')[0];
-      const mandatoryEOs = (eos.M || []).map(([id, title, periods]) => ({
-        id: `${phaseId}-${id as string}`,
-        title: title as string,
-        periods: periods as number,
-        type: 'mandatory' as const,
-        poId: poId,
-      }));
-      const complimentaryEOs = (eos.C || []).map(([id, title, periods]) => ({
-        id: `${phaseId}-${id as string}`,
-        title: title as string,
-        periods: periods as number,
-        type: 'complimentary' as const,
-        poId: poId,
-      }));
-      return {
-        id: poId,
-        title: poTitle.substring(poTitle.indexOf(' - ') + 3),
-        enablingObjectives: [...mandatoryEOs, ...complimentaryEOs],
-      };
-    }),
-  };
-});
+// ARMY CADET DATA (Placeholder)
+const armyRawData = JSON.parse(JSON.stringify(seaRawData)
+  .replace(/Sea Cadet/g, "Army Cadet")
+  .replace(/Naval/g, "Field")
+  .replace(/M1/g, "M3")
+  .replace(/C1/g, "C3")
+  .replace(/M2/g, "M3")
+  .replace(/C2/g, "C3")
+  .replace(/Sail a Sailboat/g, "Participate in a Field Exercise")
+  .replace(/Perform Basic Ropework/g, "Perform Basic Fieldcraft")
+  .replace(/Nautical/g, "Field Training")
+);
+
+// AIR CADET DATA (Placeholder)
+const airRawData = JSON.parse(JSON.stringify(seaRawData)
+  .replace(/Sea Cadet/g, "Air Cadet")
+  .replace(/Naval/g, "Aviation")
+  .replace(/M1/g, "M4")
+  .replace(/C1/g, "C4")
+  .replace(/M2/g, "M4")
+  .replace(/C2/g, "C4")
+  .replace(/Sail a Sailboat/g, "Participate in an Aviation Exercise")
+  .replace(/Perform Basic Ropework/g, "Perform Basic Airmanship")
+  .replace(/Nautical/g, "Aviation")
+);
+
+const parseRawData = (rawData: any): Phase[] => {
+  return Object.entries(rawData).map(([phaseName, pos], phaseIndex) => {
+    const phaseId = phaseIndex + 1;
+    return {
+      id: phaseId,
+      name: phaseName,
+      performanceObjectives: Object.entries(pos as any).map(([poTitle, eos]) => {
+        const poId = poTitle.split(' - ')[0];
+        const mandatoryEOs = ((eos as any).M || []).map(([id, title, periods]: [string, string, number]) => ({
+          id: `${phaseId}-${id}`,
+          title: title,
+          periods: periods,
+          type: 'mandatory' as const,
+          poId: poId,
+        }));
+        const complimentaryEOs = ((eos as any).C || []).map(([id, title, periods]: [string, string, number]) => ({
+          id: `${phaseId}-${id}`,
+          title: title,
+          periods: periods,
+          type: 'complimentary' as const,
+          poId: poId,
+        }));
+        return {
+          id: poId,
+          title: poTitle.substring(poTitle.indexOf(' - ') + 3),
+          enablingObjectives: [...mandatoryEOs, ...complimentaryEOs],
+        };
+      }),
+    };
+  });
+};
+
+export const elementalTrainingData = {
+  Sea: parseRawData(seaRawData),
+  Army: parseRawData(armyRawData),
+  Air: parseRawData(airRawData),
+};
