@@ -17,7 +17,12 @@ import { Loader2, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const signupSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email("Invalid email address").refine(
+    (email) => email.endsWith('@cadets.gc.ca') || email.endsWith('@forces.gc.ca'),
+    {
+      message: "Email must be a valid @cadets.gc.ca or @forces.gc.ca address.",
+    }
+  ),
   password: z.string()
     .min(8, "Password must be at least 8 characters long.")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
