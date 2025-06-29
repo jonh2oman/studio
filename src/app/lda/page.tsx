@@ -92,8 +92,8 @@ export default function LdaPage() {
             </div>
         </div>
       </div>
-      <div ref={plannerRef} className="flex-1 overflow-y-auto pt-6">
-        <LdaPlanner objectivesVisible={objectivesVisible} />
+      <div className="flex-1 overflow-y-auto pt-6">
+        <LdaPlanner objectivesVisible={objectivesVisible} ref={plannerRef} />
       </div>
     </div>
   );

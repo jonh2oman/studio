@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, forwardRef } from 'react';
 import { format, addDays } from 'date-fns';
 import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle } from 'lucide-react';
 
@@ -27,7 +27,7 @@ interface WeekendPlannerProps {
     objectivesVisible: boolean;
 }
 
-export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
+export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({ objectivesVisible }, ref) => {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
@@ -211,11 +211,12 @@ export function WeekendPlanner({ objectivesVisible }: WeekendPlannerProps) {
                     </Popover>
                 </div>
                 <ScrollArea>
-                    <div className="p-4 flex gap-4">
+                    <div ref={ref} className="p-4 flex gap-4">
                         {weekendDays.map(renderDayCard)}
                     </div>
                 </ScrollArea>
             </div>
         </div>
     );
-}
+});
+WeekendPlanner.displayName = "WeekendPlanner";

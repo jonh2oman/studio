@@ -27,10 +27,8 @@ export default function PlannerPage() {
     setIsGenerating(true);
     const originalViewMode = viewMode;
 
-    // We must switch to year view to capture the whole plan
     if (originalViewMode !== 'year') {
       setViewMode('year');
-      // Wait for the next browser frame to render the changes
       await new Promise((resolve) => requestAnimationFrame(resolve));
     }
 
@@ -38,7 +36,6 @@ export default function PlannerPage() {
       const canvas = await html2canvas(input, {
         scale: 2,
         useCORS: true,
-        // Crucially, set width and height to capture the entire scrollable content
         width: input.scrollWidth,
         height: input.scrollHeight,
         windowWidth: input.scrollWidth,
@@ -55,7 +52,6 @@ export default function PlannerPage() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const imgProps = pdf.getImageProperties(imgData);
       
-      // Calculate the height of the image in the PDF to maintain aspect ratio
       const ratio = pdfWidth / imgProps.width;
       const pdfHeight = imgProps.height * ratio;
 
@@ -67,7 +63,6 @@ export default function PlannerPage() {
       toast({ variant: 'destructive', title: 'PDF Generation Failed', description: 'There was an error creating the PDF file.' });
     } finally {
       setIsGenerating(false);
-      // Switch back to the original view if we changed it
       if (originalViewMode !== 'year') {
         setViewMode(originalViewMode);
       }
@@ -107,9 +102,8 @@ export default function PlannerPage() {
             </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto pt-6">
+      <div ref={plannerRef} className="flex-1 overflow-y-auto pt-6">
         <Planner 
-          printRef={plannerRef}
           viewMode={viewMode} 
           objectivesVisible={objectivesVisible} 
           setViewMode={setViewMode}

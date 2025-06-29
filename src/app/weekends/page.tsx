@@ -93,8 +93,8 @@ export default function WeekendsPage() {
             </div>
         </div>
       </div>
-      <div ref={plannerRef} className="flex-1 overflow-y-auto pt-6">
-        <WeekendPlanner objectivesVisible={objectivesVisible} />
+      <div className="flex-1 overflow-y-auto pt-6">
+        <WeekendPlanner objectivesVisible={objectivesVisible} ref={plannerRef} />
       </div>
     </div>
   );

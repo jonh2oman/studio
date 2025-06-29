@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, forwardRef } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle } from 'lucide-react';
 
@@ -27,7 +27,7 @@ interface LdaPlannerProps {
     objectivesVisible: boolean;
 }
 
-export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
+export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objectivesVisible }, ref) => {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
@@ -46,7 +46,6 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
     }, [schedule]);
 
     const handleDateLinkClick = (dateStr: string) => {
-        // Handle timezone issues by replacing hyphens. This is consistent with settings page.
         setSelectedDate(new Date(dateStr.replace(/-/g, '/')));
     };
 
@@ -251,7 +250,7 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
                     </div>
                 )}
                 
-                <div className="p-4">
+                <div ref={ref} className="p-4">
                     {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
                         <div className="text-center text-muted-foreground py-16">
                             Please select a date to start planning.
@@ -261,4 +260,5 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
             </div>
         </div>
     );
-}
+});
+LdaPlanner.displayName = "LdaPlanner";
