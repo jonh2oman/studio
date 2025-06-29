@@ -5,7 +5,7 @@ import { useState, useEffect, createContext, useContext, ReactNode, useMemo, use
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import type { UserData } from '@/lib/types';
 
 interface AuthContextType {
@@ -28,33 +28,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (auth) {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            setUser(user);
-            const userDocRef = doc(db, 'users', user.uid);
-            const docSnap = await getDoc(userDocRef);
+    let unsubscribeDoc: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      // Unsubscribe from previous user's document listener
+      if (unsubscribeDoc) {
+        unsubscribeDoc();
+        unsubscribeDoc = null;
+      }
+
+      if (user && db) {
+        setUser(user);
+        const userDocRef = doc(db, 'users', user.uid);
+
+        // Set up a real-time listener for the user's document
+        unsubscribeDoc = onSnapshot(userDocRef, 
+          (docSnap) => {
             if (docSnap.exists()) {
-                setUserData(docSnap.data() as UserData);
+              setUserData(docSnap.data() as UserData);
             } else {
-                // New user, create their user document
-                const newUserData: UserData = { email: user.email!, corpsId: null };
-                await setDoc(userDocRef, newUserData);
-                setUserData(newUserData);
+              // This case handles a brand new user whose doc hasn't been created yet.
+              const newUserData: UserData = { email: user.email!, corpsId: null };
+              setDoc(userDocRef, newUserData)
+                .then(() => {
+                  // The listener will automatically pick up this change and set the state.
+                })
+                .catch(error => console.error("Error creating user document:", error));
             }
-          } else {
-            // User logged out
+            setLoading(false);
+          }, 
+          (error) => {
+            console.error("Error listening to user document:", error);
             setUser(null);
             setUserData(null);
+            setLoading(false);
           }
-          setLoading(false);
-        });
-        return () => unsubscribe();
-    } else {
+        );
+      } else {
+        // User logged out or db not available
         setUser(null);
         setUserData(null);
         setLoading(false);
-    }
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeDoc) {
+        unsubscribeDoc();
+      }
+    };
   }, []);
 
   const logout = useCallback(async () => {
