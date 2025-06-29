@@ -87,32 +87,33 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
         };
 
         return (
-            <Card key={dateStr} className="flex-shrink-0 w-full">
+            <Card key={dateStr} className="flex-shrink-0 w-full relative">
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 text-destructive hover:bg-destructive/10 hover:text-destructive print:hidden">
+                            <X className="h-5 w-5" />
+                            <span className="sr-only">Clear Day</span>
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
                         <div className="flex-1">
                              <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
                         </div>
                         <div className="flex items-center gap-2">
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm">
-                                        <Trash2 className="mr-2 h-4 w-4" /> Clear Day
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
                              <Sheet open={isCsarSheetOpen} onOpenChange={setIsCsarSheetOpen}>
                                 <Card className="p-3 bg-muted/50 w-72">
                                     <CardTitle className="text-base mb-2 flex items-center justify-between">
@@ -167,7 +168,7 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                    ) : (
                                        <div className="p-6">Loading CSAR data or no CSAR required...</div>
                                    )}
-                               </SheetContent>
+                                </SheetContent>
                             </Sheet>
                         </div>
                     </div>
