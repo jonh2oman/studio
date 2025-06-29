@@ -56,11 +56,7 @@ export const MarksmanshipProvider = ({ children }: { children: React.ReactNode }
         isLoaded,
     };
 
-    return (
-        <MarksmanshipContext.Provider value={value}>
-            {children}
-        </MarksmanshipContext.Provider>
-    );
+    return React.createElement(MarksmanshipContext.Provider, { value: value }, children);
 };
 
 export const useMarksmanship = () => {
