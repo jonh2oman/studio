@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban, Target } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { elementalTrainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -37,6 +37,7 @@ const dashboardCategories = [
             { href: "/cadets", title: "Cadet Management", icon: Users, description: "Add, view, and manage your corps' cadet roster." },
             { href: "/attendance", title: "Attendance Management", icon: ClipboardCheck, description: "Mark and track attendance for training nights." },
             { href: "/awards", title: "Awards Management", icon: Trophy, description: "Manage corps awards and track eligible cadets." },
+            { href: "/marksmanship", title: "Marksmanship", icon: Target, description: "Enter cadet scores and track their achievements." },
         ]
     },
     {
@@ -157,13 +158,42 @@ export default function DashboardPage() {
 
     useEffect(() => {
         const savedOrder = settings.dashboardCardOrder;
+        
+        // Default orders from the master list
         const defaultCategoryOrder = dashboardCategories.map(c => c.title);
         const defaultItemOrders = Object.fromEntries(
             dashboardCategories.map(c => [c.title, c.items.map(i => i.href)])
         );
+
+        // Merge category order
+        const savedCategorySet = new Set(savedOrder?.categoryOrder || []);
+        const mergedCategoryOrder = [...(savedOrder?.categoryOrder || [])];
+        defaultCategoryOrder.forEach(title => {
+            if (!savedCategorySet.has(title)) {
+                mergedCategoryOrder.push(title);
+            }
+        });
+
+        // Merge item orders for each category
+        const mergedItemOrders: Record<string, string[]> = { ...defaultItemOrders };
+        if (savedOrder?.itemOrder) {
+            Object.keys(defaultItemOrders).forEach(title => {
+                const savedItems = savedOrder.itemOrder[title] || [];
+                const defaultItems = defaultItemOrders[title] || [];
+                const savedItemSet = new Set(savedItems);
+                const finalItems = [...savedItems];
+                defaultItems.forEach(href => {
+                    if (!savedItemSet.has(href)) {
+                        finalItems.push(href);
+                    }
+                });
+                mergedItemOrders[title] = finalItems;
+            });
+        }
         
-        setCategoryOrder(savedOrder?.categoryOrder?.length ? savedOrder.categoryOrder : defaultCategoryOrder);
-        setItemOrders(savedOrder?.itemOrder && Object.keys(savedOrder.itemOrder).length ? savedOrder.itemOrder : defaultItemOrders);
+        setCategoryOrder(mergedCategoryOrder);
+        setItemOrders(mergedItemOrders);
+
     }, [settings.dashboardCardOrder]);
 
     const handleCategoryDragEnd = (event: DragEndEvent) => {
