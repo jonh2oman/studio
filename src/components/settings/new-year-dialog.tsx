@@ -156,7 +156,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
                         </FormItem>
                          <FormItem className="flex items-center space-x-3 space-y-0 p-4 border rounded-md has-[:checked]:border-primary">
                             <FormControl><RadioGroupItem value="copyFile" /></FormControl>
-                             <FormLabel className="font-normal w-full cursor-pointer">Create from a backup file</FormLabel>
+                             <FormLabel className="font-normal w-full cursor-pointer">Create from a shared Training Year file</FormLabel>
                         </FormItem>
                     </RadioGroup>
                 )}
@@ -186,7 +186,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
             
             {creationMethod === 'copyFile' && (
                 <div className="space-y-4 pl-4 border-l-2 ml-4">
-                    <FormLabel>Backup File</FormLabel>
+                    <FormLabel>Shared Training Year File</FormLabel>
                     <div className="flex items-center gap-2">
                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                             <FileUp className="mr-2 h-4 w-4" /> Upload File
@@ -194,7 +194,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
                         {fileName && <Badge variant="secondary">{fileName}</Badge>}
                         <Input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" />
                     </div>
-                    <FormDescription>Upload a `.json` file that was exported from the "Export Single Training Year" feature.</FormDescription>
+                    <FormDescription>Upload a `.json` file that was exported from another user. This will create a new training year on your account with all the data from their file, including their calendar schedule.</FormDescription>
                 </div>
             )}
 
