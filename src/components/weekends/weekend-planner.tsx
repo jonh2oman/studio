@@ -67,7 +67,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
         };
         
         return (
-            <Card key={dateStr} className="flex-shrink-0 w-[80vw] md:w-[40vw] lg:w-[30rem]">
+            <Card key={dateStr} className="flex-shrink-0 w-[44rem]">
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
                         <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>

@@ -130,7 +130,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
     };
 
     return (
-      <Card key={dateStr} className={cn("overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", (viewMode === 'year' || viewMode === 'month') && "w-[22rem] flex-shrink-0")}>
+      <Card key={dateStr} className={cn("overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", (viewMode === 'year' || viewMode === 'month') && "w-[44rem] flex-shrink-0")}>
         <CardHeader>
           <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
           <div className="grid grid-cols-2 gap-4 pt-2">
