@@ -3,8 +3,20 @@ import type { ChangelogEntry } from './types';
 
 export const changelogData: ChangelogEntry[] = [
   {
+    version: "1.3.1",
+    date: "August 12, 2024",
+    changes: [
+      "Major Feature: Added a comprehensive Marksmanship Scoring module to record grouping and competition scores and track cadet achievements.",
+      "Fix: Resolved a critical issue causing the application to crash when using the search bar in the Help & Instructions panel.",
+      "Fix: Corrected a race condition during login that could cause a user's data to be overwritten with a blank profile. This also resolves errors when creating a new training year.",
+      "UI Fix: Added a dedicated 'Manage PO/NCM Ranks' and 'Manage PO/NCM Roles' card to the Staff Management page for better organization.",
+      "Security: Implemented stricter password complexity requirements on the signup page.",
+      "UI Fix: Replaced the ship icon with a user icon on the login and signup pages for better context."
+    ]
+  },
+  {
     version: "1.3.0",
-    date: "Current Version",
+    date: "August 10, 2024",
     changes: [
       "Major Feature: Added full support for all three cadet elements (Sea, Army, and Air).",
       "Integrated the complete, official training programs for Army and Air Cadets.",
@@ -18,7 +30,6 @@ export const changelogData: ChangelogEntry[] = [
       "UI Fix: Shortened long menu items (e.g., 'CSTP - Annual') for a cleaner interface.",
       "UI Improvement: Added a frosted glass aesthetic throughout the application for a more modern look.",
       "UX Improvement: The 'Invite Staff' button now opens the user's default email client with a pre-filled message, clarifying the invitation process.",
-      "Critical Fix: Resolved an application crash caused by searching in the Help & Instructions panel.",
     ],
   },
   {

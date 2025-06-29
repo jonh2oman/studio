@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban, Target } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -50,6 +50,7 @@ const navGroups = [
       { href: "/cadets", label: "Cadets", icon: Users },
       { href: "/attendance", label: "Attendance", icon: ClipboardCheck },
       { href: "/awards", label: "Awards", icon: Trophy },
+      { href: "/marksmanship", label: "Marksmanship", icon: Target },
     ]
   },
   {

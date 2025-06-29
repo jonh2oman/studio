@@ -168,6 +168,19 @@ export interface AttendanceState {
     [date: string]: AttendanceRecord[];
 }
 
+export type MarksmanshipClassification = "Distinguished Marksman" | "Expert Marksman" | "First Class Marksman" | "Marksman" | "Unclassified";
+
+export interface MarksmanshipRecord {
+    id: string;
+    cadetId: string;
+    date: string; // YYYY-MM-DD
+    targetType: 'grouping' | 'competition';
+    grouping1_cm?: number;
+    grouping2_cm?: number;
+    competitionScores?: number[]; // Array of 10 scores
+    notes?: string;
+}
+
 export interface MealPlanItem {
     id: string;
     dateRequired: Date;
@@ -286,6 +299,7 @@ export interface TrainingYearData {
     awardWinners: AwardWinner;
     csarDetails: CsarDetails;
     adaPlanners?: AdaPlannerData[];
+    marksmanshipRecords?: MarksmanshipRecord[];
 }
 
 export interface ZtoReviewedPlan {
@@ -311,4 +325,10 @@ export interface UserData {
     email: string;
     corpsId: string | null;
     displayName?: string;
+}
+
+export interface ChangelogEntry {
+    version: string;
+    date: string;
+    changes: string[];
 }

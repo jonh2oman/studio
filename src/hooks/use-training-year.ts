@@ -6,7 +6,7 @@ import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData } from '@/lib/types';
+import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord } from '@/lib/types';
 import { useSettings } from './use-settings';
 
 const defaultYearData: TrainingYearData = {
@@ -19,6 +19,7 @@ const defaultYearData: TrainingYearData = {
     attendance: {},
     awardWinners: {},
     adaPlanners: [],
+    marksmanshipRecords: [],
     csarDetails: {
         activityName: '',
         activityType: '',

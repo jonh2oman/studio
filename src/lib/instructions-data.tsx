@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { CardContent } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target } from "lucide-react";
 
 export const instructionsData = [
     { 
@@ -84,6 +84,32 @@ export const instructionsData = [
                     <li>Drag and drop each completed EO into the grid for the corresponding ADA planner.</li>
                     <li>Each planner can hold up to 60 EOs. Any mandatory EOs you add here will immediately update the progress bars on your Dashboard.</li>
                 </ol>
+            </CardContent>
+        )
+    },
+     { 
+        id: "marksmanship", 
+        title: "Marksmanship", 
+        icon: Target, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This module allows you to track cadet marksmanship scores for both grouping and competition targets, and it automatically maintains a record of their highest achieved classification.</p>
+                <h4 className="font-semibold text-foreground">Entering a New Score</h4>
+                <p>Use the "Enter New Score" form on the left side of the page.</p>
+                 <ol className="list-decimal list-inside space-y-1">
+                    <li>Select the cadet and the date of the shoot.</li>
+                    <li>Choose the target type: "Grouping" or "Competition".</li>
+                    <li><strong>For Grouping:</strong> Enter the two 5-shot group measurements in centimeters. The form will immediately show you what classification level (e.g., "Marksman", "Expert") those scores qualify for.</li>
+                    <li><strong>For Competition:</strong> Enter the score (0-10) for each of the 10 scoring diagrams. The form will show a running total.</li>
+                    <li>Add any optional notes and click "Add Score Record".</li>
+                </ol>
+                <h4 className="font-semibold text-foreground">Achievements List</h4>
+                <p>The main table on this page provides an at-a-glance summary for every cadet. It automatically calculates and displays:</p>
+                <ul className="list-disc list-inside">
+                    <li>Their highest achieved classification badge from all their grouping scores.</li>
+                    <li>Their best score out of 100 from all their competition scores.</li>
+                </ul>
+                <p>Click the "View" icon on any cadet's row to see a popup with a complete history of all their recorded scores for the year.</p>
             </CardContent>
         )
     },
