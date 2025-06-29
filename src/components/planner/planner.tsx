@@ -12,7 +12,8 @@ interface PlannerProps {
   setViewMode: (mode: string) => void;
 }
 
-export default function Planner({ viewMode, objectivesVisible, setViewMode }: PlannerProps) {
+const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
+  ({ viewMode, objectivesVisible, setViewMode }, ref) => {
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata } = useSchedule();
 
     const handleDrop = (date: string, period: number, phase: number, eo: EO) => {
@@ -21,7 +22,7 @@ export default function Planner({ viewMode, objectivesVisible, setViewMode }: Pl
     };
 
     return (
-        <div className="relative rounded-lg border bg-card print:border-none print:h-auto print:overflow-visible">
+        <div ref={ref} className="relative rounded-lg border bg-card print:border-none print:h-auto print:overflow-visible">
             {objectivesVisible && <DraggableObjectivesPanel viewMode={viewMode} setViewMode={setViewMode} />}
             <div>
                 <CalendarView 
@@ -36,4 +37,8 @@ export default function Planner({ viewMode, objectivesVisible, setViewMode }: Pl
             </div>
         </div>
     );
-}
+});
+
+Planner.displayName = "Planner";
+
+export default Planner;

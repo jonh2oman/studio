@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { WeekendPlanner } from "@/components/weekends/weekend-planner";
 import { Button } from '@/components/ui/button';
 import { Menu, FileDown, Loader2 } from 'lucide-react';
@@ -16,7 +16,7 @@ export default function WeekendsPage() {
   const plannerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleGeneratePdf = async () => {
+  const handleGeneratePdf = useCallback(async () => {
     const input = plannerRef.current;
     if (!input) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not find planner content to capture.' });
@@ -43,12 +43,30 @@ export default function WeekendsPage() {
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgProps = pdf.getImageProperties(imgData);
       
-      const ratio = pdfWidth / imgProps.width;
-      const pdfHeight = imgProps.height * ratio;
+      const imgWidth = imgProps.width;
+      const imgHeight = imgProps.height;
+      
+      const ratio = pdfWidth / imgWidth;
+      const scaledImgHeight = imgHeight * ratio;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let heightLeft = scaledImgHeight;
+      let position = 0;
+
+      // Add the first page
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledImgHeight);
+      heightLeft -= pdfHeight;
+
+      // Add subsequent pages if the content is taller than one page
+      while (heightLeft > 0) {
+        position = heightLeft - scaledImgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledImgHeight);
+        heightLeft -= pdfHeight;
+      }
+      
       pdf.save('Weekend-Plan.pdf');
 
     } catch (error) {
@@ -57,7 +75,7 @@ export default function WeekendsPage() {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [toast]);
 
 
   return (

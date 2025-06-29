@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import Planner from '@/components/planner/planner';
 import { Button } from '@/components/ui/button';
 import { FileDown, Loader2, Menu } from 'lucide-react';
@@ -17,7 +17,7 @@ export default function PlannerPage() {
   const plannerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleGeneratePdf = async () => {
+  const handleGeneratePdf = useCallback(async () => {
     const input = plannerRef.current;
     if (!input) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not find planner content to capture.' });
@@ -27,8 +27,10 @@ export default function PlannerPage() {
     setIsGenerating(true);
     const originalViewMode = viewMode;
 
+    // Temporarily switch to 'year' view to capture everything
     if (originalViewMode !== 'year') {
       setViewMode('year');
+      // Wait for the DOM to update
       await new Promise((resolve) => requestAnimationFrame(resolve));
     }
 
@@ -50,12 +52,30 @@ export default function PlannerPage() {
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgProps = pdf.getImageProperties(imgData);
       
-      const ratio = pdfWidth / imgProps.width;
-      const pdfHeight = imgProps.height * ratio;
+      const imgWidth = imgProps.width;
+      const imgHeight = imgProps.height;
+      
+      const ratio = pdfWidth / imgWidth;
+      const scaledImgHeight = imgHeight * ratio;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let heightLeft = scaledImgHeight;
+      let position = 0;
+
+      // Add the first page
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledImgHeight);
+      heightLeft -= pdfHeight;
+      
+      // Add subsequent pages if the content is taller than one page
+      while (heightLeft > 0) {
+        position = heightLeft - scaledImgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledImgHeight);
+        heightLeft -= pdfHeight;
+      }
+
       pdf.save('CSTP-Annual-Plan.pdf');
 
     } catch (error) {
@@ -63,11 +83,12 @@ export default function PlannerPage() {
       toast({ variant: 'destructive', title: 'PDF Generation Failed', description: 'There was an error creating the PDF file.' });
     } finally {
       setIsGenerating(false);
+      // Switch back to the original view
       if (originalViewMode !== 'year') {
         setViewMode(originalViewMode);
       }
     }
-  };
+  }, [viewMode, toast]);
 
   return (
     <div className="flex h-full flex-col">
@@ -102,8 +123,9 @@ export default function PlannerPage() {
             </div>
         </div>
       </div>
-      <div ref={plannerRef} className="flex-1 overflow-y-auto pt-6">
+      <div className="flex-1 overflow-y-auto pt-6">
         <Planner 
+          ref={plannerRef}
           viewMode={viewMode} 
           objectivesVisible={objectivesVisible} 
           setViewMode={setViewMode}
