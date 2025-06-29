@@ -98,7 +98,7 @@ export function useTrainingYear() {
     }, [currentYear, allYearsData, user, db]);
 
 
-    const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean }) => {
+    const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean, copyFromFileData?: TrainingYearData }) => {
         if (trainingYears.includes(year)) {
             toast({ variant: "destructive", title: "Error", description: `Training year ${year} already exists.` });
             return;
@@ -113,14 +113,14 @@ export function useTrainingYear() {
         toast({ title: "Creating New Year...", description: `Please wait while we set up ${year}.` });
 
         try {
-            let newYearData: TrainingYearData = { ...defaultYearData, firstTrainingNight: startDate };
+            let newYearData: TrainingYearData;
 
             if (copyFrom && allYearsData[copyFrom]) {
                 const sourceData = allYearsData[copyFrom];
-                newYearData.cadets = promoteCadets 
-                    ? sourceData.cadets.map(c => ({ ...c, phase: Math.min(5, c.phase + 1) }))
-                    : sourceData.cadets;
-                
+                newYearData = { ...sourceData, firstTrainingNight: startDate };
+                if (promoteCadets) {
+                    newYearData.cadets = sourceData.cadets.map(c => ({ ...c, phase: Math.min(5, c.phase + 1) }));
+                }
                 if (useAiForCopy) {
                     const result = await copyTrainingSchedule({
                         sourceScheduleJson: JSON.stringify(sourceData.schedule),
@@ -129,9 +129,14 @@ export function useTrainingYear() {
                         trainingDayOfWeek: settings?.trainingDay ?? 2,
                     });
                     newYearData.schedule = JSON.parse(result.newScheduleJson);
-                } else {
-                    newYearData.schedule = sourceData.schedule;
                 }
+            } else if (copyFromFileData) {
+                newYearData = { ...copyFromFileData, firstTrainingNight: startDate };
+                if (promoteCadets) {
+                    newYearData.cadets = newYearData.cadets.map(c => ({...c, phase: Math.min(5, c.phase + 1)}));
+                }
+            } else {
+                 newYearData = { ...defaultYearData, firstTrainingNight: startDate };
             }
             
             const newAllYearsData = { ...allYearsData, [year]: newYearData };
@@ -240,6 +245,7 @@ export function useTrainingYear() {
         isLoaded: settingsLoaded,
         isCreating, 
         currentYearData,
+        allYearsData,
         updateCurrentYearData,
         dutySchedule: currentYearData?.dutySchedule || {},
         updateDutySchedule,

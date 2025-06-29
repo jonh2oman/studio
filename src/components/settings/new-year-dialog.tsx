@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { FileUp, Loader2 } from "lucide-react";
 
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,23 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useState, useRef } from "react";
+import type { TrainingYearData } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "../ui/badge";
 
 const newYearSchema = z.object({
   firstTrainingNight: z.coerce.date({ required_error: "First training night is required" }),
-  shouldCopy: z.boolean().default(false),
+  creationMethod: z.enum(["fresh", "copyYear", "copyFile"]),
   sourceYear: z.string().optional(),
   promoteCadets: z.boolean().default(false),
+}).refine(data => {
+    if (data.creationMethod === 'copyYear') return !!data.sourceYear;
+    return true;
+}, {
+    message: "Please select a source year to copy from.",
+    path: ["sourceYear"],
 });
 
 type NewYearFormData = z.infer<typeof newYearSchema>;
@@ -31,19 +41,54 @@ interface NewYearDialogProps {
 
 export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
   const { trainingYears, createNewYear, isCreating } = useTrainingYear();
+  const { toast } = useToast();
   const [useAi, setUseAi] = useState(false);
+  const [fileData, setFileData] = useState<TrainingYearData | null>(null);
+  const [fileName, setFileName] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<NewYearFormData>({
     resolver: zodResolver(newYearSchema),
     defaultValues: {
-      shouldCopy: false,
-      promoteCadets: false,
+        creationMethod: "fresh",
+        promoteCadets: false,
     },
   });
   
-  const watchShouldCopy = form.watch("shouldCopy");
+  const creationMethod = form.watch("creationMethod");
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const text = e.target?.result as string;
+            const data = JSON.parse(text);
+            // Basic validation to ensure it looks like TrainingYearData
+            if (data && typeof data.firstTrainingNight === 'string' && Array.isArray(data.cadets) && typeof data.schedule === 'object') {
+                 setFileData(data);
+                 toast({ title: "File Ready", description: `"${file.name}" has been successfully loaded.`});
+            } else {
+                throw new Error("Invalid file format.");
+            }
+        } catch (error) {
+            toast({ variant: "destructive", title: "Import Error", description: "The selected file is not a valid training year export." });
+            setFileData(null);
+            setFileName("");
+        }
+    };
+    reader.readAsText(file);
+  };
 
   const onSubmit = async (data: NewYearFormData) => {
+    if (data.creationMethod === 'copyFile' && !fileData) {
+        toast({ variant: "destructive", title: "File Required", description: "Please select a file to import." });
+        return;
+    }
+
     const yearStartDate = data.firstTrainingNight;
     const year = yearStartDate.getMonth() >= 8 ? yearStartDate.getFullYear() : yearStartDate.getFullYear() - 1;
     const newYearString = `${year}-${year + 1}`;
@@ -51,9 +96,10 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
     await createNewYear({
       year: newYearString,
       startDate: format(yearStartDate, "yyyy-MM-dd"),
-      copyFrom: data.shouldCopy ? data.sourceYear : undefined,
-      promoteCadets: data.shouldCopy ? data.promoteCadets : false,
-      useAiForCopy: useAi,
+      copyFrom: data.creationMethod === 'copyYear' ? data.sourceYear : undefined,
+      promoteCadets: data.creationMethod !== 'fresh' ? data.promoteCadets : false,
+      useAiForCopy: data.creationMethod === 'copyYear' ? useAi : false,
+      copyFromFileData: data.creationMethod === 'copyFile' ? fileData : undefined,
     });
     
     onOpenChange(false);
@@ -65,7 +111,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
         <DialogHeader>
           <DialogTitle>Create New Training Year</DialogTitle>
           <DialogDescription>
-            Set up a new training year. You can optionally copy data from a previous year.
+            Set up a new training year. You can start fresh, copy a previous year, or import from a file.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -91,30 +137,32 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="shouldCopy"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Copy data from a previous year?
-                    </FormLabel>
-                    <FormDescription>
-                      This will copy the schedule, cadets, and other settings.
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
+            <Controller
+                name="creationMethod"
+                control={form.control}
+                render={({ field }) => (
+                    <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="grid grid-cols-1 gap-2"
+                    >
+                        <FormItem className="flex items-center space-x-3 space-y-0 p-4 border rounded-md has-[:checked]:border-primary">
+                            <FormControl><RadioGroupItem value="fresh" /></FormControl>
+                             <FormLabel className="font-normal w-full cursor-pointer">Start a blank training year</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0 p-4 border rounded-md has-[:checked]:border-primary">
+                            <FormControl><RadioGroupItem value="copyYear" /></FormControl>
+                             <FormLabel className="font-normal w-full cursor-pointer">Copy from an existing training year</FormLabel>
+                        </FormItem>
+                         <FormItem className="flex items-center space-x-3 space-y-0 p-4 border rounded-md has-[:checked]:border-primary">
+                            <FormControl><RadioGroupItem value="copyFile" /></FormControl>
+                             <FormLabel className="font-normal w-full cursor-pointer">Create from a backup file</FormLabel>
+                        </FormItem>
+                    </RadioGroup>
+                )}
             />
 
-            {watchShouldCopy && (
+            {creationMethod === 'copyYear' && (
                 <div className="space-y-4 pl-4 border-l-2 ml-4">
                     <FormField
                       control={form.control}
@@ -123,62 +171,44 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
                         <FormItem>
                           <FormLabel>Source Training Year</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a year to copy from" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {trainingYears.map(year => (
-                                <SelectItem key={year} value={year}>{year}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                           <FormMessage />
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select a year to copy from" /></SelectTrigger></FormControl>
+                            <SelectContent>{trainingYears.map(year => (<SelectItem key={year} value={year}>{year}</SelectItem>))}</SelectContent>
+                          </Select><FormMessage />
                         </FormItem>
                       )}
                     />
-                    
                      <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                         <FormControl>
-                            <Checkbox
-                                checked={useAi}
-                                onCheckedChange={(checked) => setUseAi(!!checked)}
-                            />
-                        </FormControl>
-                         <div className="space-y-1 leading-none">
-                            <FormLabel>
-                            Use AI to copy schedule?
-                            </FormLabel>
-                            <FormDescription>
-                           Let AI intelligently map last year's schedule to the new calendar dates. If unchecked, it will be a direct copy.
-                            </FormDescription>
-                        </div>
+                         <FormControl><Checkbox checked={useAi} onCheckedChange={(checked) => setUseAi(!!checked)}/></FormControl>
+                         <div className="space-y-1 leading-none"><FormLabel>Use AI to copy schedule?</FormLabel><FormDescription>Let AI intelligently map last year's schedule to the new calendar dates. If unchecked, it will be a direct copy.</FormDescription></div>
                     </div>
-
-                    <FormField
-                      control={form.control}
-                      name="promoteCadets"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                            <FormControl>
-                                <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                             <div className="space-y-1 leading-none">
-                                <FormLabel>
-                                Promote cadets to the next phase?
-                                </FormLabel>
-                                <FormDescription>
-                                Automatically increment the phase for all copied cadets.
-                                </FormDescription>
-                            </div>
-                        </FormItem>
-                      )}
-                    />
                 </div>
+            )}
+            
+            {creationMethod === 'copyFile' && (
+                <div className="space-y-4 pl-4 border-l-2 ml-4">
+                    <FormLabel>Backup File</FormLabel>
+                    <div className="flex items-center gap-2">
+                        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                            <FileUp className="mr-2 h-4 w-4" /> Upload File
+                        </Button>
+                        {fileName && <Badge variant="secondary">{fileName}</Badge>}
+                        <Input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" />
+                    </div>
+                    <FormDescription>Upload a `.json` file that was exported from the "Export Single Training Year" feature.</FormDescription>
+                </div>
+            )}
+
+            {creationMethod !== 'fresh' && (
+                <FormField
+                    control={form.control}
+                    name="promoteCadets"
+                    render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                            <div className="space-y-1 leading-none"><FormLabel>Promote cadets to the next phase?</FormLabel><FormDescription>Automatically increment the phase for all copied cadets.</FormDescription></div>
+                    </FormItem>
+                    )}
+                />
             )}
 
             <DialogFooter>
