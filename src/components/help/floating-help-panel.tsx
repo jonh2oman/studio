@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useHelp } from "@/hooks/use-help";
-import { Search, X, GripVertical } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,14 +19,6 @@ export function FloatingHelpPanel() {
     const [searchTerm, setSearchTerm] = useState("");
     const [openItems, setOpenItems] = useState<string[]>(["getting-started"]);
 
-    // Drag and resize state
-    const [position, setPosition] = useState({ x: 50, y: 50 });
-    const [size, setSize] = useState({ width: 600, height: 700 });
-    const panelRef = useRef<HTMLDivElement>(null);
-    const dragStartOffset = useRef({ x: 0, y: 0 });
-    const resizeStart = useRef({ x: 0, y: 0, width: 0, height: 0 });
-
-    // Search Logic
     const lowercasedTerm = searchTerm.toLowerCase();
 
     const filteredInstructions = useMemo(() => {
@@ -59,7 +51,6 @@ export function FloatingHelpPanel() {
         );
     }, [lowercasedTerm]);
 
-    // Effect to auto-open accordion items on search
     useEffect(() => {
         if (searchTerm) {
             const allMatchingIds = [
@@ -70,83 +61,16 @@ export function FloatingHelpPanel() {
         }
     }, [searchTerm, filteredInstructions]);
     
-    // Dragging logic
-    const handleDragMove = useCallback((e: MouseEvent) => {
-        if (!panelRef.current) return;
-        const newX = e.clientX - dragStartOffset.current.x;
-        const newY = e.clientY - dragStartOffset.current.y;
-        const clampedX = Math.max(0, Math.min(newX, window.innerWidth - size.width));
-        const clampedY = Math.max(0, Math.min(newY, window.innerHeight - size.height));
-        setPosition({ x: clampedX, y: clampedY });
-    }, [size.width, size.height]);
-
-    const handleDragUp = useCallback(() => {
-        document.body.style.userSelect = '';
-        document.removeEventListener('mousemove', handleDragMove);
-        document.removeEventListener('mouseup', handleDragUp);
-    }, [handleDragMove]);
-
-    const handleDragDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.button !== 0) return;
-        document.body.style.userSelect = 'none';
-        dragStartOffset.current = { x: e.clientX - position.x, y: e.clientY - position.y };
-        document.addEventListener('mousemove', handleDragMove);
-        document.addEventListener('mouseup', handleDragUp);
-        e.preventDefault();
-    }, [position.x, position.y, handleDragMove, handleDragUp]);
-
-    // Resizing logic
-    const handleResizeMove = useCallback((e: MouseEvent) => {
-        const newWidth = resizeStart.current.width + (e.clientX - resizeStart.current.x);
-        const newHeight = resizeStart.current.height + (e.clientY - resizeStart.current.y);
-        const minWidth = 400;
-        const minHeight = 500;
-        const maxWidth = window.innerWidth - position.x;
-        const maxHeight = window.innerHeight - position.y;
-        setSize({
-            width: Math.min(maxWidth, Math.max(minWidth, newWidth)),
-            height: Math.min(maxHeight, Math.max(minHeight, newHeight)),
-        });
-    }, [position.x, position.y]);
-
-    const handleResizeUp = useCallback(() => {
-        document.body.style.userSelect = '';
-        document.removeEventListener('mousemove', handleResizeMove);
-        document.removeEventListener('mouseup', handleResizeUp);
-    }, [handleResizeMove]);
-
-    const handleResizeDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        e.stopPropagation();
-        if (e.button !== 0) return;
-        document.body.style.userSelect = 'none';
-        resizeStart.current = { x: e.clientX, y: e.clientY, width: size.width, height: size.height };
-        document.addEventListener('mousemove', handleResizeMove);
-        document.addEventListener('mouseup', handleResizeUp);
-    }, [size.width, size.height, handleResizeMove, handleResizeUp]);
-
-
     if (!isHelpOpen) {
         return null;
     }
 
     return (
         <div
-            ref={panelRef}
-            className="fixed flex flex-col shadow-2xl z-[60] bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
-            style={{
-                width: `${size.width}px`,
-                height: `${size.height}px`,
-                transform: `translate(${position.x}px, ${position.y}px)`,
-            }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[700px] flex flex-col shadow-2xl z-[60] bg-card/90 backdrop-blur-sm border rounded-lg overflow-hidden"
         >
             <header className="flex items-center justify-between py-2 px-4 text-card-foreground border-b flex-shrink-0">
-                <div 
-                    onMouseDown={handleDragDown}
-                    className="flex items-center gap-2 font-semibold cursor-move flex-grow"
-                >
-                    <GripVertical className="h-5 w-5 text-muted-foreground" />
-                    Application Instructions
-                </div>
+                <h2 className="font-semibold">Application Instructions</h2>
                 <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setHelpOpen(false)}>
                     <X className="h-4 w-4" />
                 </Button>
@@ -203,14 +127,6 @@ export function FloatingHelpPanel() {
                     )}
                 </Accordion>
             </ScrollArea>
-             <div
-                onMouseDown={handleResizeDown}
-                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
-                style={{
-                    background: 'repeating-linear-gradient(-45deg, transparent, transparent 4px, hsl(var(--muted-foreground)) 4px, hsl(var(--muted-foreground)) 5px)',
-                    opacity: 0.5,
-                }}
-            />
         </div>
     );
 }
