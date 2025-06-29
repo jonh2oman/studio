@@ -68,7 +68,7 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
         const dress = metadata.dressOfTheDay || { caf: 'N/A', cadets: 'N/A' };
 
         return (
-            <Card key={dateStr} className="w-[22rem] flex-shrink-0 bg-background">
+            <Card key={dateStr} className="w-[44rem] flex-shrink-0 bg-background">
                 <CardHeader>
                     <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
                     <div className="grid grid-cols-2 gap-4 pt-2 text-xs">
