@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -76,14 +75,14 @@ export function StaffList({ staff, onEditStaff, onRemoveStaff, onInviteStaff }: 
                                 </TooltipContent>
                             </Tooltip>
                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon"><X className="h-4 w-4 text-destructive"/></Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent><p>Remove Staff</p></TooltipContent>
-                                    </Tooltip>
-                                </AlertDialogTrigger>
+                                        </AlertDialogTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>Remove Staff</p></TooltipContent>
+                                </Tooltip>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
