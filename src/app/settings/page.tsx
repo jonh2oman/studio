@@ -42,6 +42,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 // Component for top-level draggable cards (General, Resources, etc.)
@@ -163,6 +164,7 @@ const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListene
 
 const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { settings, saveSettings } = useSettings();
+    const { currentYearData, isLoaded: yearIsLoaded } = useTrainingYear();
     const { toast } = useToast();
     const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     
@@ -170,6 +172,11 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
         saveSettings({ [key]: value });
         toast({ title: "Settings Saved" });
     };
+
+    const isSchedulePopulated = useMemo(() => {
+        if (!yearIsLoaded || !currentYearData) return false;
+        return Object.keys(currentYearData.schedule || {}).length > 0;
+    }, [currentYearData, yearIsLoaded]);
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -203,14 +210,33 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
                     </div>
                     <div className="space-y-2">
                         <Label>Element</Label>
-                        <Select value={settings.element} onValueChange={(value) => handleSettingChange('element', value as CadetElement)}>
-                            <SelectTrigger><SelectValue placeholder="Select an element" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Sea">Sea Cadets</SelectItem>
-                                <SelectItem value="Army">Army Cadets</SelectItem>
-                                <SelectItem value="Air">Air Cadets</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="w-full">
+                                        <Select 
+                                            value={settings.element} 
+                                            onValueChange={(value) => handleSettingChange('element', value as CadetElement)}
+                                            disabled={isSchedulePopulated}
+                                        >
+                                            <SelectTrigger className={cn(isSchedulePopulated && "cursor-not-allowed")}>
+                                                <SelectValue placeholder="Select an element" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Sea">Sea Cadets</SelectItem>
+                                                <SelectItem value="Army">Army Cadets</SelectItem>
+                                                <SelectItem value="Air">Air Cadets</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </TooltipTrigger>
+                                {isSchedulePopulated && (
+                                    <TooltipContent>
+                                        <p>Cannot change element once planning has begun.</p>
+                                    </TooltipContent>
+                                )}
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                     <div className="space-y-2">
                         <Label>Weekly Training Night</Label>
