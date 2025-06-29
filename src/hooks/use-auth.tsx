@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
@@ -57,13 +57,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
       if (auth) {
           await signOut(auth);
           setUser(null);
           setUserData(null);
       }
-  };
+  }, []);
+
+  const value = useMemo(() => ({ user, userData, loading, logout }), [user, userData, loading, logout]);
 
   if (loading) {
     return (
@@ -74,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
