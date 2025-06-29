@@ -3,15 +3,15 @@
 
 import React, { useState, useMemo } from "react";
 import { useHelp } from "@/hooks/use-help";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { changelogData } from "@/lib/changelog-data";
 import { instructionsData } from "@/lib/instructions-data";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 export function FloatingHelpPanel() {
     const { isHelpOpen, setHelpOpen } = useHelp();
@@ -59,23 +59,14 @@ export function FloatingHelpPanel() {
         return userOpenedItems;
     }, [searchTerm, filteredInstructions, filteredChangelog, userOpenedItems]);
 
-    if (!isHelpOpen) {
-        return null;
-    }
-    
     return (
-        <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setHelpOpen(false)}>
-            <div 
-                className="fixed top-1/2 left-1/2 z-50 flex flex-col -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-2xl h-[80vh] max-h-[800px] bg-card border rounded-lg shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            >
-                 <div className="flex items-center justify-between py-2 px-4 text-card-foreground border-b flex-shrink-0">
-                    <h2 className="font-semibold text-card-foreground">Application Instructions</h2>
-                    <Button variant="ghost" size="icon" className="cursor-pointer" onClick={() => setHelpOpen(false)}>
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-                 <div className="p-4 border-b">
+        <Sheet open={isHelpOpen} onOpenChange={setHelpOpen}>
+            <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0">
+                <SheetHeader className="p-6 pb-2">
+                    <SheetTitle>Application Help & Instructions</SheetTitle>
+                    <SheetDescription>Search for instructions or browse the changelog.</SheetDescription>
+                </SheetHeader>
+                <div className="px-6 pb-4 border-b">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input 
@@ -87,12 +78,12 @@ export function FloatingHelpPanel() {
                         />
                     </div>
                 </div>
-                <ScrollArea className="flex-1 p-4">
+                <ScrollArea className="flex-1 p-6 pt-2">
                     <Accordion type="multiple" value={displayedOpenItems} onValueChange={setUserOpenedItems} className="w-full space-y-4">
                         {filteredInstructions.map(item => (
                             <Card key={item.id}>
                                 <AccordionItem value={item.id} className="border-b-0">
-                                    <AccordionTrigger className="p-6 text-xl hover:no-underline">
+                                    <AccordionTrigger className="p-6 text-lg hover:no-underline">
                                         <div className="flex items-center gap-3">
                                             <item.icon className="h-6 w-6" />{item.title}
                                         </div>
@@ -106,7 +97,7 @@ export function FloatingHelpPanel() {
                         {filteredChangelog.length > 0 && (
                             <Card>
                                 <AccordionItem value="changelog" className="border-b-0">
-                                    <AccordionTrigger className="p-6 text-xl hover:no-underline">Changelog</AccordionTrigger>
+                                    <AccordionTrigger className="p-6 text-lg hover:no-underline">Changelog</AccordionTrigger>
                                     <AccordionContent className="px-6 pb-6 space-y-4">
                                     {filteredChangelog.map((entry) => (
                                             <div key={entry.version}>
@@ -127,7 +118,7 @@ export function FloatingHelpPanel() {
                         )}
                     </Accordion>
                 </ScrollArea>
-            </div>
-        </div>
+            </SheetContent>
+        </Sheet>
     );
 }
