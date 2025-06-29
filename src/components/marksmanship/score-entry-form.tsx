@@ -148,8 +148,8 @@ export function ScoreEntryForm() {
             {watchTargetType === 'grouping' && (
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="grouping1_cm" render={({ field }) => (<FormItem><FormLabel>Grouping 1 (cm)</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={form.control} name="grouping2_cm" render={({ field }) => (<FormItem><FormLabel>Grouping 2 (cm)</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="grouping1_cm" render={({ field }) => (<FormItem><FormLabel>Grouping 1 (cm)</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name="grouping2_cm" render={({ field }) => (<FormItem><FormLabel>Grouping 2 (cm)</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
                     {achievedClassification !== 'Unclassified' && <Badge className="w-fit">Achieved: {achievedClassification}</Badge>}
                 </div>
