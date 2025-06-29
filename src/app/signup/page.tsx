@@ -10,11 +10,11 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Ship } from "lucide-react";
+import Image from "next/image";
 
 const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -62,51 +62,61 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[400px] gap-6 p-6 sm:p-0">
+          <div className="grid gap-4 text-center">
+            <div className="flex justify-center">
                 <div className="bg-primary/20 p-3 rounded-full">
                     <Ship className="w-8 h-8 text-primary" />
                 </div>
             </div>
-            <CardTitle className="text-2xl">Create an Account</CardTitle>
-            <CardDescription className="px-4 text-center pt-2">
-                Create an account to securely save your corps/squadron data and access it from any device.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onEmailSubmit)} className="space-y-4">
-              <FormField control={form.control} name="email" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl><Input type="email" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="password" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl><Input type="password" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign Up
-              </Button>
-            </form>
-          </Form>
+            <h1 className="text-3xl font-bold">Create an Account</h1>
+            <p className="text-balance text-muted-foreground">
+                Enter your information to create an account
+            </p>
+          </div>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onEmailSubmit)} className="space-y-4">
+                <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl><Input type="email" {...field} /></FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )} />
+                <FormField control={form.control} name="password" render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl><Input type="password" {...field} /></FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )} />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Sign Up
+                </Button>
+                </form>
+            </Form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
+            <Link href="/login" className="underline font-semibold text-primary">
               Login
             </Link>
-          </p>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </div>
+      <div className="hidden bg-muted lg:block">
+        <Image
+          src="https://placehold.co/1200x1200.png"
+          alt="Cadet elemental crests"
+          width="1200"
+          height="1200"
+          className="h-full w-full object-cover"
+          data-ai-hint="cadet crests"
+        />
+      </div>
     </div>
   );
 }
