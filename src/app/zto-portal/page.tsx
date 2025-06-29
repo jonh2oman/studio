@@ -19,7 +19,7 @@ export default function ZtoPortalPage() {
     const [viewingPlan, setViewingPlan] = useState<ZtoReviewedPlan | null>(null);
     
     return (
-        <>
+        <Sheet>
             <PageHeader
                 title="ZTO Plan Review Portal"
                 description="Import and review training plans from corps and squadrons in your zone."
@@ -73,14 +73,12 @@ export default function ZtoPortalPage() {
                                         </AlertDialogContent>
                                     </AlertDialog>
 
-                                     <Sheet>
-                                        <SheetTrigger asChild>
-                                            <Button variant="outline" onClick={() => setViewingPlan(plan)}>
-                                                <View className="mr-2 h-4 w-4" />
-                                                View Plan
-                                            </Button>
-                                        </SheetTrigger>
-                                    </Sheet>
+                                     <SheetTrigger asChild>
+                                        <Button variant="outline" onClick={() => setViewingPlan(plan)}>
+                                            <View className="mr-2 h-4 w-4" />
+                                            View Plan
+                                        </Button>
+                                    </SheetTrigger>
                                 </CardFooter>
                             </Card>
                         ))}
@@ -108,6 +106,6 @@ export default function ZtoPortalPage() {
                     </>
                 )}
             </SheetContent>
-        </>
+        </Sheet>
     );
 }
