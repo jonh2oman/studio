@@ -13,7 +13,7 @@ import { X, PlusCircle, Calendar as CalendarIcon, FileDown, FileUp, Loader2, Clo
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { NewYearDialog } from "@/components/settings/new-year-dialog";
 import { Label } from "@/components/ui/label";
-import type { WeeklyActivity, Settings, CustomEO, UserDocument, TrainingYearData, CadetElement } from "@/lib/types";
+import type { WeeklyActivity, Settings, CustomEO, CorpsData, TrainingYearData, CadetElement } from "@/lib/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

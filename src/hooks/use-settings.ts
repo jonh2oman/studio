@@ -2,19 +2,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Settings, UserDocument, LsaWishListItem, ZtoReviewedPlan } from '@/lib/types';
+import type { Settings, CorpsData, TrainingYearData, ZtoReviewedPlan } from '@/lib/types';
 import { useAuth } from './use-auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { awardsData } from '@/lib/awards-data';
 import { useToast } from './use-toast';
-
-const permanentRoles = [
-    'Commanding Officer',
-    'Training Officer',
-    'Administration Officer',
-    'Supply Officer'
-];
 
 const defaultSettings: Settings = {
     element: 'Sea',
@@ -22,7 +15,12 @@ const defaultSettings: Settings = {
     corpsName: "",
     corpsLogo: "",
     staff: [],
-    staffRoles: [...permanentRoles],
+    staffRoles: [
+      'Commanding Officer',
+      'Training Officer',
+      'Administration Officer',
+      'Supply Officer'
+    ],
     cadetRoles: [],
     classrooms: [],
     cadetRanks: [],
@@ -33,7 +31,6 @@ const defaultSettings: Settings = {
         cadets: []
     },
     customEOs: [],
-    firstTrainingNight: '', // This is now a dummy value, real value is per-year
     awards: awardsData,
     assets: [],
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
@@ -46,18 +43,16 @@ const defaultSettings: Settings = {
     dashboardCardOrder: { categoryOrder: [], itemOrder: {} },
 };
 
-export const defaultUserDocument: (userId: string, email: string) => UserDocument = (userId, email) => ({
-    settings: {
-        ...defaultSettings,
-    },
+export const defaultCorpsData: Omit<CorpsData, 'id'> = {
+    settings: defaultSettings,
     trainingYears: {},
     ztoReviewedPlans: [],
-});
+};
 
 export function useSettings() {
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
     const { toast } = useToast();
-    const [userDocument, setUserDocument] = useState<UserDocument | null>(null);
+    const [corpsData, setCorpsData] = useState<CorpsData | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     
     const userRef = useRef(user);
@@ -66,9 +61,8 @@ export function useSettings() {
     }, [user]);
 
     useEffect(() => {
-        const loadSettings = async () => {
-            if (!user || !db) {
-                setUserDocument(null);
+        const loadCorpsData = async () => {
+            if (!user || !userData || !db) {
                 setIsLoaded(true);
                 return;
             };
@@ -76,42 +70,36 @@ export function useSettings() {
             setIsLoaded(false);
 
             try {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDocSnap = await getDoc(userDocRef);
+                if (userData.corpsId) {
+                    const corpsDocRef = doc(db, 'corps', userData.corpsId);
+                    const corpsDocSnap = await getDoc(corpsDocRef);
 
-                if (userDocSnap.exists()) {
-                    const loadedData = userDocSnap.data() as UserDocument;
-                    // Deep merge settings with defaults to ensure all keys are present for existing users
-                    const mergedSettings = { 
-                        ...defaultSettings, 
-                        ...loadedData.settings,
-                        ordersOfDress: {
-                            ...defaultSettings.ordersOfDress,
-                            ...(loadedData.settings?.ordersOfDress || {})
-                        },
-                         dashboardCardOrder: {
-                            ...defaultSettings.dashboardCardOrder,
-                            ...(loadedData.settings?.dashboardCardOrder || {})
-                        }
-                    };
-                    
-                    // Ensure all training years have an 'element' property for backward compatibility
-                    const migratedTrainingYears = { ...loadedData.trainingYears };
-                    if (migratedTrainingYears) {
-                        Object.keys(migratedTrainingYears).forEach(year => {
-                            if (!migratedTrainingYears[year].element) {
-                                // If the year doesn't have an element, fall back to the global setting.
-                                migratedTrainingYears[year].element = mergedSettings.element;
-                            }
-                        });
+                    if (corpsDocSnap.exists()) {
+                        const loadedData = corpsDocSnap.data() as Omit<CorpsData, 'id'>;
+                        // Deep merge settings with defaults
+                        const mergedSettings = { 
+                            ...defaultSettings, 
+                            ...loadedData.settings,
+                            ordersOfDress: { ...defaultSettings.ordersOfDress, ...(loadedData.settings?.ordersOfDress || {}) },
+                            dashboardCardOrder: { ...defaultSettings.dashboardCardOrder, ...(loadedData.settings?.dashboardCardOrder || {}) }
+                        };
+                        
+                        setCorpsData({ id: corpsDocSnap.id, ...loadedData, settings: mergedSettings });
+
+                    } else {
+                        // Corps ID exists on user but not in corps collection - an error state
+                        console.error("Error: Corps ID points to a non-existent document.");
+                        toast({ variant: 'destructive', title: 'Data Error', description: 'Could not find your corps data. Please contact support.' });
                     }
-
-                    setUserDocument({ ...loadedData, settings: mergedSettings, trainingYears: migratedTrainingYears });
                 } else {
-                    const newUserDoc = defaultUserDocument(user.uid, user.email!);
-                    await setDoc(userDocRef, newUserDoc);
-                    setUserDocument(newUserDoc);
+                    // New user with no corpsId, create a new corps for them.
+                    const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
+                    const userDocRef = doc(db, 'users', user.uid);
+                    await setDoc(userDocRef, { corpsId: newCorpsRef.id }, { merge: true });
+                    setCorpsData({ id: newCorpsRef.id, ...defaultCorpsData });
+                    toast({ title: "Welcome!", description: "A new corps has been created for you." });
                 }
+
             } catch (error) {
                 console.error("Fatal error loading settings:", error);
                 toast({ variant: 'destructive', title: 'Failed to load corps data.', description: 'Please check your connection and try refreshing the page.' });
@@ -119,87 +107,70 @@ export function useSettings() {
                 setIsLoaded(true);
             }
         }
-        loadSettings();
-    }, [user, toast]);
-
-    const settings = userDocument?.settings;
-    const allYearsData = userDocument?.trainingYears || {};
-    const ztoReviewedPlans = userDocument?.ztoReviewedPlans || [];
+        loadCorpsData();
+    }, [user, userData, toast]);
     
+    const updateCorpsData = useCallback(async (dataUpdate: Partial<Omit<CorpsData, 'id'>>) => {
+        if (!user || !db || !corpsData?.id) return;
+        
+        try {
+            const corpsDocRef = doc(db, 'corps', corpsData.id);
+            await setDoc(corpsDocRef, dataUpdate, { merge: true });
+
+            // Update local state immediately for responsiveness
+            setCorpsData(prevData => {
+                if (!prevData) return null;
+                
+                // A bit of a deep merge needed for settings
+                const newSettings = dataUpdate.settings 
+                    ? { ...prevData.settings, ...dataUpdate.settings } 
+                    : prevData.settings;
+                
+                const newTrainingYears = dataUpdate.trainingYears
+                    ? { ...prevData.trainingYears, ...dataUpdate.trainingYears }
+                    : prevData.trainingYears;
+
+                return { ...prevData, ...dataUpdate, settings: newSettings, trainingYears: newTrainingYears };
+            });
+
+        } catch (error) {
+            console.error('Failed to save data to Firestore', error);
+            toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save your changes.' });
+        }
+    }, [user, db, corpsData?.id, toast]);
+
+
     const saveSettings = useCallback((settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
-        const currentUser = userRef.current;
-        if (!currentUser || !db) return;
+        if (!corpsData) return;
+        
+        const currentSettings = corpsData.settings || defaultSettings;
+        const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
+        const updatedSettings = { ...currentSettings, ...update };
 
-        setUserDocument(prevDoc => {
-            if (!prevDoc) return null;
-            
-            const currentSettings = prevDoc.settings || defaultSettings;
-            const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
-            const updatedSettings = { ...currentSettings, ...update };
+        updateCorpsData({ settings: updatedSettings });
 
-            const userDocRef = doc(db, 'users', currentUser.uid);
-            setDoc(userDocRef, { settings: updatedSettings }, { merge: true }).catch(
-              (error) => {
-                console.error('Failed to save settings to Firestore', error);
-                toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save settings.' });
-              }
-            );
+    }, [corpsData, updateCorpsData]);
+    
+    const updateTrainingYears = useCallback((newTrainingYears: CorpsData['trainingYears']) => {
+        updateCorpsData({ trainingYears: newTrainingYears });
+    }, [updateCorpsData]);
 
-            return { ...prevDoc, settings: updatedSettings };
-        });
-    }, [db, toast]);
-
-    const updateTrainingYears = useCallback((newTrainingYears: UserDocument['trainingYears']) => {
-        const currentUser = userRef.current;
-        if (!currentUser || !db) return;
-
-        setUserDocument(prevDoc => {
-            if (!prevDoc) return null;
-            
-            const userDocRef = doc(db, 'users', currentUser.uid);
-            setDoc(userDocRef, { trainingYears: newTrainingYears }, { merge: true }).catch(
-                (error) => {
-                console.error('Failed to save training years to Firestore', error);
-                toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save training year data.' });
-                }
-            );
-
-            return { ...prevDoc, trainingYears: newTrainingYears };
-        });
-    }, [db, toast]);
-
-     const saveZtoReviewedPlans = useCallback((newPlans: ZtoReviewedPlan[]) => {
-        const currentUser = userRef.current;
-        if (!currentUser || !db) return;
-
-        setUserDocument(prevDoc => {
-            if (!prevDoc) return null;
-            
-            const userDocRef = doc(db, 'users', currentUser.uid);
-            setDoc(userDocRef, { ztoReviewedPlans: newPlans }, { merge: true }).catch(
-              (error) => {
-                console.error('Failed to save ZTO plans to Firestore', error);
-                toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save reviewed plans.' });
-              }
-            );
-
-            return { ...prevDoc, ztoReviewedPlans: newPlans };
-        });
-    }, [db, toast]);
+    const saveZtoReviewedPlans = useCallback((newPlans: ZtoReviewedPlan[]) => {
+         updateCorpsData({ ztoReviewedPlans: newPlans });
+    }, [updateCorpsData]);
 
     const resetUserDocument = useCallback(async () => {
-        const currentUser = userRef.current;
-        if (!currentUser || !db) {
-            toast({ variant: "destructive", title: "Error", description: "Cannot reset data. User not authenticated." });
+        if (!user || !db || !corpsData?.id) {
+            toast({ variant: "destructive", title: "Error", description: "Cannot reset data. Not authenticated or no corps data found." });
             return;
         }
 
         try {
-            const newUserDoc = defaultUserDocument(currentUser.uid, currentUser.email!);
-            const userDocRef = doc(db, 'users', currentUser.uid);
-            await setDoc(userDocRef, newUserDoc);
+            const corpsDocRef = doc(db, 'corps', corpsData.id);
+            await setDoc(corpsDocRef, defaultCorpsData);
             
-            localStorage.removeItem(`currentTrainingYear_${currentUser.uid}`);
+            // To be safe, clear local current year storage
+            localStorage.removeItem(`currentTrainingYear_${user.uid}`);
 
             toast({ title: "Application Reset", description: "Your data has been successfully reset. The page will now reload." });
             setTimeout(() => window.location.reload(), 2000);
@@ -207,16 +178,17 @@ export function useSettings() {
             console.error("Failed to reset application:", error);
             toast({ variant: "destructive", title: "Reset Failed", description: "Could not reset your data." });
         }
-    }, [db, toast]);
+    }, [db, toast, user, corpsData?.id]);
+
 
     return { 
-        settings: settings || defaultSettings, 
-        allYearsData,
+        settings: corpsData?.settings || defaultSettings, 
+        allYearsData: corpsData?.trainingYears || {},
+        ztoReviewedPlans: corpsData?.ztoReviewedPlans || [],
         saveSettings, 
         isLoaded,
         resetUserDocument,
         updateTrainingYears,
-        ztoReviewedPlans,
         saveZtoReviewedPlans,
     };
 }

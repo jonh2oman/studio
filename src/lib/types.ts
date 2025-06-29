@@ -124,7 +124,6 @@ export interface Settings {
       cadets: string[];
   };
   customEOs: CustomEO[];
-  firstTrainingNight: string; // Dummy property for compatibility
   awards: Award[];
   assets: Asset[];
   assetCategories: string[];
@@ -294,17 +293,19 @@ export interface ZtoReviewedPlan {
     element: CadetElement;
 }
 
-export interface UserDocument {
+// Represents the data stored at /corps/{corpsId}
+export interface CorpsData {
+    id: string;
     settings: Settings;
     trainingYears: {
         [year: string]: TrainingYearData;
     };
     ztoReviewedPlans?: ZtoReviewedPlan[];
-    displayName?: string;
 }
 
-export interface ChangelogEntry {
-  version: string;
-  date: string;
-  changes: string[];
+// Represents the data stored at /users/{userId}
+export interface UserData {
+    email: string;
+    corpsId: string | null;
+    displayName?: string;
 }

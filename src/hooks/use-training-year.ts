@@ -5,9 +5,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { TrainingYearData, DutySchedule, AdaPlannerData, EO } from '@/lib/types';
+import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData } from '@/lib/types';
 import { useSettings } from './use-settings';
 
 const defaultYearData: TrainingYearData = {
@@ -143,7 +142,7 @@ export function useTrainingYear() {
                  newYearData = { ...defaultYearData, firstTrainingNight: startDate, element: settings.element };
             }
             
-            const newAllYearsData = { ...allYearsData, [year]: newYearData };
+            const newAllYearsData: CorpsData['trainingYears'] = { ...allYearsData, [year]: newYearData };
             
             updateTrainingYears(newAllYearsData);
             setCurrentYear(year);
@@ -168,7 +167,6 @@ export function useTrainingYear() {
         
         updateTrainingYears(newAllYearsData);
 
-        // If the deleted year was the current one, we need to switch to another year.
         if (currentYear === yearToDelete) {
             const remainingYears = Object.keys(newAllYearsData).sort().reverse();
             const newCurrentYear = remainingYears.length > 0 ? remainingYears[0] : null;

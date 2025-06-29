@@ -3,7 +3,7 @@
 
 import { useCallback } from 'react';
 import { useSettings } from './use-settings';
-import type { ZtoReviewedPlan, TrainingYearData } from '@/lib/types';
+import type { ZtoReviewedPlan, TrainingYearData, CorpsData } from '@/lib/types';
 import { useToast } from './use-toast';
 
 export function useZtoPortal() {
@@ -28,7 +28,7 @@ export function useZtoPortal() {
             element: planData.element || 'Sea', // Fallback for older files
         };
 
-        const updatedPlans = [...ztoReviewedPlans, newPlan];
+        const updatedPlans = [...(ztoReviewedPlans || []), newPlan];
         saveZtoReviewedPlans(updatedPlans);
         toast({ title: "Plan Imported", description: `Successfully imported plan for ${corpsName}.` });
     }, [ztoReviewedPlans, saveZtoReviewedPlans, toast]);

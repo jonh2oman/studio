@@ -3,38 +3,56 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import type { UserData } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;
+  userData: UserData | null;
   loading: boolean;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
     user: null, 
+    userData: null,
     loading: true, 
     logout: async () => {}
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // The onAuthStateChanged listener will not be set up if auth is null,
-    // which is the case when Firebase is not configured.
-    // In that scenario, `user` will remain null and `loading` will become false.
     if (auth) {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-          setUser(user);
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            setUser(user);
+            const userDocRef = doc(db, 'users', user.uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                setUserData(docSnap.data() as UserData);
+            } else {
+                // New user, create their user document
+                const newUserData: UserData = { email: user.email!, corpsId: null };
+                await setDoc(userDocRef, newUserData);
+                setUserData(newUserData);
+            }
+          } else {
+            // User logged out
+            setUser(null);
+            setUserData(null);
+          }
           setLoading(false);
         });
         return () => unsubscribe();
     } else {
-        // No Firebase, no auth.
         setUser(null);
+        setUserData(null);
         setLoading(false);
     }
   }, []);
@@ -43,6 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (auth) {
           await signOut(auth);
           setUser(null);
+          setUserData(null);
       }
   };
 
@@ -55,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, userData, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );
