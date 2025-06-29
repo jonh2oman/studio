@@ -3,6 +3,18 @@ import type { ChangelogEntry } from './types';
 
 export const changelogData: ChangelogEntry[] = [
   {
+    version: "1.3.2",
+    date: "August 13, 2024",
+    changes: [
+      "Enhanced login and signup pages with a centered, modern card layout.",
+      "Upgraded the Help & Instructions panel to a full-height sliding sheet for a better user experience.",
+      "Added a subtle pulse animation to the Help button to improve discoverability.",
+      "Increased the width of planner day cards for improved readability and aesthetics.",
+      "Security: Implemented domain restriction on the signup page to only allow `@cadets.gc.ca` and `@forces.gc.ca` emails.",
+      "Fixed numerous bugs, including score calculation and database save errors in the Marksmanship module.",
+    ]
+  },
+  {
     version: "1.3.1",
     date: "August 12, 2024",
     changes: [

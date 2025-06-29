@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { CardContent } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug } from "lucide-react";
 
 export const instructionsData = [
     { 
@@ -279,6 +279,20 @@ export const instructionsData = [
         )
     },
     { 
+        id: "help-and-bugs", 
+        title: "Help & Bug Reports", 
+        icon: HelpCircle, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This application includes built-in help and a simple way to report issues.</p>
+                <h4 className="font-semibold text-foreground flex items-center gap-2"><HelpCircle className="h-4 w-4"/>Help Panel</h4>
+                <p>Click the pulsing blue help button at the bottom right of the screen to open the Help & Instructions panel. This panel slides in from the right and contains searchable documentation for every feature in the application.</p>
+                <h4 className="font-semibold text-foreground flex items-center gap-2"><Bug className="h-4 w-4"/>Bug Reports</h4>
+                <p>If you encounter a bug or an error, please use the red bug report button. This will open a pre-filled form that you can submit to the developer. Providing detailed steps helps us fix issues faster!</p>
+            </CardContent>
+        )
+    },
+    { 
         id: "about", 
         title: "About", 
         icon: Info, 
@@ -287,7 +301,9 @@ export const instructionsData = [
                 <p>This page contains version information, credits, contact details, and software licensing for the application.</p>
                 <h4 className="font-semibold text-foreground">Disclaimer</h4>
                 <p>This is an unofficial planning tool and is not endorsed by the Canadian Cadet Organization (CCO) or the Department of National Defence (DND).</p>
-                 <h4 className="font-semibold text-foreground">Changelog</h4>
+                <h4 className="font-semibold text-foreground">User Accounts</h4>
+                <p>To ensure security and proper access, account creation is restricted to users with a valid <span className="font-mono bg-muted/50 px-1 rounded">@cadets.gc.ca</span> or <span className="font-mono bg-muted/50 px-1 rounded">@forces.gc.ca</span> email address.</p>
+                <h4 className="font-semibold text-foreground">Changelog</h4>
                 <p>Click the "View Changelog" button to see a detailed history of all updates and new features added to the application.</p>
             </CardContent>
         )
