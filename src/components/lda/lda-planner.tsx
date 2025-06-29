@@ -175,8 +175,8 @@ export function LdaPlanner({ objectivesVisible }: LdaPlannerProps) {
                                                                 <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                                                                 <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
                                                                 <div className="text-xs space-y-0.5">
-                                                                    <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor || 'N/A'}</p>
-                                                                    <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom || 'N/A'}</p>
+                                                                    <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor?.trim() ? scheduledItem.instructor : 'N/A'}</p>
+                                                                    <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom?.trim() ? scheduledItem.classroom : 'N/A'}</p>
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>

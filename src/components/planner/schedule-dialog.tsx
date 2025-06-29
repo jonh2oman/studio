@@ -62,7 +62,7 @@ export function ScheduleDialog({ children, scheduledItem, onUpdate }: ScheduleDi
                     <SelectValue placeholder="Select instructor" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="">N/A</SelectItem>
+                    <SelectItem value=" ">N/A</SelectItem>
                     {settings.staff.map(member => (
                         <SelectItem key={member.id} value={`${member.rank} ${member.lastName}`}>{member.rank} {member.firstName} {member.lastName}</SelectItem>
                     ))}
@@ -78,7 +78,7 @@ export function ScheduleDialog({ children, scheduledItem, onUpdate }: ScheduleDi
                     <SelectValue placeholder="Select classroom" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="">N/A</SelectItem>
+                    <SelectItem value=" ">N/A</SelectItem>
                      {settings.classrooms.map(name => (
                         <SelectItem key={name} value={name}>{name}</SelectItem>
                     ))}
