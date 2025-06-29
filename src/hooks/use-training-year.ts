@@ -12,6 +12,7 @@ import { useSettings } from './use-settings';
 
 const defaultYearData: TrainingYearData = {
     firstTrainingNight: '',
+    element: 'Sea',
     dutySchedule: {},
     cadets: [],
     schedule: {},
@@ -120,7 +121,7 @@ export function useTrainingYear() {
 
             if (copyFrom && allYearsData[copyFrom]) {
                 const sourceData = allYearsData[copyFrom];
-                newYearData = { ...sourceData, firstTrainingNight: startDate };
+                newYearData = { ...sourceData, firstTrainingNight: startDate, element: sourceData.element || settings.element };
                 if (promoteCadets) {
                     newYearData.cadets = sourceData.cadets.map(c => ({ ...c, phase: Math.min(5, c.phase + 1) }));
                 }
@@ -134,12 +135,12 @@ export function useTrainingYear() {
                     newYearData.schedule = JSON.parse(result.newScheduleJson);
                 }
             } else if (copyFromFileData) {
-                newYearData = { ...copyFromFileData, firstTrainingNight: startDate };
+                newYearData = { ...copyFromFileData, firstTrainingNight: startDate, element: copyFromFileData.element || 'Sea' };
                 if (promoteCadets) {
                     newYearData.cadets = newYearData.cadets.map(c => ({...c, phase: Math.min(5, c.phase + 1)}));
                 }
             } else {
-                 newYearData = { ...defaultYearData, firstTrainingNight: startDate };
+                 newYearData = { ...defaultYearData, firstTrainingNight: startDate, element: settings.element };
             }
             
             const newAllYearsData = { ...allYearsData, [year]: newYearData };

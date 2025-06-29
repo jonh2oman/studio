@@ -1,4 +1,5 @@
 
+
 export interface EO {
   id: string;
   title: string;
@@ -274,6 +275,7 @@ export interface AdaPlannerData {
 
 export interface TrainingYearData {
     firstTrainingNight: string;
+    element: CadetElement;
     dutySchedule: DutySchedule;
     cadets: Cadet[];
     schedule: Schedule;
@@ -289,6 +291,7 @@ export interface ZtoReviewedPlan {
     corpsName: string;
     trainingYear: string;
     planData: TrainingYearData;
+    element: CadetElement;
 }
 
 export interface UserDocument {

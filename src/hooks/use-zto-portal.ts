@@ -25,6 +25,7 @@ export function useZtoPortal() {
             corpsName,
             trainingYear: trainingYearString,
             planData,
+            element: planData.element,
         };
 
         const updatedPlans = [...ztoReviewedPlans, newPlan];

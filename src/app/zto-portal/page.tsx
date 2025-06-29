@@ -6,13 +6,17 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { useZtoPortal } from '@/hooks/use-zto-portal';
 import { ImportPlanDialog } from '@/components/zto/import-plan-dialog';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, View } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import type { ZtoReviewedPlan } from '@/lib/types';
+import { StaticCalendarView } from '@/components/zto/static-calendar-view';
 
 export default function ZtoPortalPage() {
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
     const { isLoaded, reviewedPlans, addPlan, removePlan } = useZtoPortal();
+    const [viewingPlan, setViewingPlan] = useState<ZtoReviewedPlan | null>(null);
     
     return (
         <>
@@ -38,17 +42,17 @@ export default function ZtoPortalPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {reviewedPlans.map(plan => (
-                            <Card key={plan.id}>
+                            <Card key={plan.id} className="flex flex-col">
                                 <CardHeader>
                                     <CardTitle>{plan.corpsName}</CardTitle>
                                     <CardDescription>Training Year: {plan.trainingYear}</CardDescription>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="flex-grow">
                                     <p className="text-sm text-muted-foreground">
-                                        This card will eventually show a summary or a link to view the static calendar.
+                                       Element: <span className="font-semibold text-foreground">{plan.element}</span>
                                     </p>
                                 </CardContent>
-                                <CardFooter className="flex justify-end">
+                                <CardFooter className="flex justify-between">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="destructive" size="sm">
@@ -68,6 +72,15 @@ export default function ZtoPortalPage() {
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
+
+                                     <Sheet>
+                                        <SheetTrigger asChild>
+                                            <Button variant="outline" onClick={() => setViewingPlan(plan)}>
+                                                <View className="mr-2 h-4 w-4" />
+                                                View Plan
+                                            </Button>
+                                        </SheetTrigger>
+                                    </Sheet>
                                 </CardFooter>
                             </Card>
                         ))}
@@ -82,6 +95,19 @@ export default function ZtoPortalPage() {
                     onImport={addPlan}
                 />
             )}
+            
+            <SheetContent className="w-full sm:max-w-full h-full max-h-full flex flex-col p-0">
+                {viewingPlan && (
+                    <>
+                        <SheetHeader className="p-4 border-b">
+                            <SheetTitle>Reviewing: {viewingPlan.corpsName} ({viewingPlan.trainingYear})</SheetTitle>
+                        </SheetHeader>
+                        <div className="overflow-auto flex-grow">
+                           <StaticCalendarView plan={viewingPlan} />
+                        </div>
+                    </>
+                )}
+            </SheetContent>
         </>
     );
 }
