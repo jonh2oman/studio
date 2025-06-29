@@ -21,6 +21,7 @@ const defaultSettings: Settings = {
       'Administration Officer',
       'Supply Officer'
     ],
+    poNcmRoles: [],
     cadetRoles: [],
     classrooms: [],
     cadetRanks: [],

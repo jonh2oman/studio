@@ -116,6 +116,7 @@ export interface Settings {
   corpsLogo?: string;
   staff: StaffMember[];
   staffRoles: string[];
+  poNcmRoles: string[];
   cadetRoles: string[];
   classrooms: string[];
   cadetRanks: string[];

@@ -101,6 +101,8 @@ export function AddStaffForm({ staff, onStaffChange, editingStaff, onCancelEdit 
      useEffect(() => {
         if (!editingStaff) {
              setValue('rank', '');
+             setValue('primaryRole', '');
+             setValue('additionalRoles', []);
         }
     }, [watchType, setValue, editingStaff]);
 
@@ -114,6 +116,8 @@ export function AddStaffForm({ staff, onStaffChange, editingStaff, onCancelEdit 
         }
         onCancelEdit();
     };
+    
+    const availableRoles = watchType === 'Officer' ? settings.staffRoles : settings.poNcmRoles;
 
     return (
         <Card>
@@ -154,14 +158,14 @@ export function AddStaffForm({ staff, onStaffChange, editingStaff, onCancelEdit 
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                             <FormField control={control} name="primaryRole" render={({ field }) => (
-                                <FormItem><FormLabel>Primary Role</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select primary role..." /></SelectTrigger></FormControl><SelectContent>{settings.staffRoles.map(role => (<SelectItem key={role} value={role}>{role}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                                <FormItem><FormLabel>Primary Role</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select primary role..." /></SelectTrigger></FormControl><SelectContent>{availableRoles.map(role => (<SelectItem key={role} value={role}>{role}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                             )} />
                             <FormField control={control} name="additionalRoles" render={({ field }) => (
                                 <FormItem><FormLabel>Additional Roles</FormLabel>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild><Button variant="outline" className="w-full justify-between">{field.value?.length ? `${field.value.length} selected` : "Select additional roles..."}<ChevronDown className="h-4 w-4 opacity-50" /></Button></DropdownMenuTrigger>
                                         <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]"><DropdownMenuLabel>Assign Additional Roles</DropdownMenuLabel><DropdownMenuSeparator />
-                                            {settings.staffRoles.map(role => {
+                                            {availableRoles.map(role => {
                                                 const isChecked = field.value?.includes(role);
                                                 const isPrimary = watchPrimaryRole === role;
                                                 return (<DropdownMenuCheckboxItem key={role} checked={isChecked} disabled={isPrimary} onCheckedChange={(checked) => {

@@ -28,7 +28,8 @@ export default function StaffManagementPage() {
 
   const [newOfficerRank, setNewOfficerRank] = useState("");
   const [newPoNcmRank, setNewPoNcmRank] = useState("");
-  const [newStaffRole, setNewStaffRole] = useState("");
+  const [newOfficerRole, setNewOfficerRole] = useState("");
+  const [newPoNcmRole, setNewPoNcmRole] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
 
   const permanentRoles = useMemo(() => [
@@ -68,27 +69,27 @@ export default function StaffManagementPage() {
   };
   
   const handleAddPoNcmRank = () => {
-    const cadetRanks = settings.cadetRanks || [];
-    if (newPoNcmRank.trim() && !cadetRanks.includes(newPoNcmRank.trim())) {
-      handleListChange('cadetRanks', [...cadetRanks, newPoNcmRank.trim()]);
+    const poNcmRanks = settings.cadetRanks || [];
+    if (newPoNcmRank.trim() && !poNcmRanks.includes(newPoNcmRank.trim())) {
+      handleListChange('cadetRanks', [...poNcmRanks, newPoNcmRank.trim()]);
       setNewPoNcmRank("");
     }
   };
 
   const handleRemovePoNcmRank = (rank: string) => {
-    const cadetRanks = settings.cadetRanks || [];
-    handleListChange('cadetRanks', cadetRanks.filter(r => r !== rank));
+    const poNcmRanks = settings.cadetRanks || [];
+    handleListChange('cadetRanks', poNcmRanks.filter(r => r !== rank));
   };
 
-  const handleAddStaffRole = () => {
-    const staffRoles = settings.staffRoles || [];
-    if (newStaffRole.trim() && !staffRoles.includes(newStaffRole.trim())) {
-      handleListChange('staffRoles', [...staffRoles, newStaffRole.trim()]);
-      setNewStaffRole("");
+  const handleAddOfficerRole = () => {
+    const officerRoles = settings.staffRoles || [];
+    if (newOfficerRole.trim() && !officerRoles.includes(newOfficerRole.trim())) {
+      handleListChange('staffRoles', [...officerRoles, newOfficerRole.trim()]);
+      setNewOfficerRole("");
     }
   };
 
-  const handleRemoveStaffRole = (role: string) => {
+  const handleRemoveOfficerRole = (role: string) => {
     if (permanentRoles.includes(role)) {
         toast({
             variant: "destructive",
@@ -97,8 +98,21 @@ export default function StaffManagementPage() {
         });
         return;
     }
-    const staffRoles = settings.staffRoles || [];
-    handleListChange('staffRoles', staffRoles.filter(r => r !== role));
+    const officerRoles = settings.staffRoles || [];
+    handleListChange('staffRoles', officerRoles.filter(r => r !== role));
+  };
+
+  const handleAddPoNcmRole = () => {
+    const poNcmRoles = settings.poNcmRoles || [];
+    if (newPoNcmRole.trim() && !poNcmRoles.includes(newPoNcmRole.trim())) {
+      handleListChange('poNcmRoles', [...poNcmRoles, newPoNcmRole.trim()]);
+      setNewPoNcmRole("");
+    }
+  };
+
+  const handleRemovePoNcmRole = (role: string) => {
+    const poNcmRoles = settings.poNcmRoles || [];
+    handleListChange('poNcmRoles', poNcmRoles.filter(r => r !== role));
   };
 
   const handleAddCafDress = () => {
@@ -265,20 +279,42 @@ Thank you!
                             </Card>
                              <Card className="border">
                                 <CardHeader>
-                                    <CardTitle>Manage Staff Roles</CardTitle>
+                                    <CardTitle>Manage Officer Roles</CardTitle>
                                     <CardDescription>Add or remove staff roles, except permanent ones.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex gap-2">
-                                        <Input value={newStaffRole} onChange={(e) => setNewStaffRole(e.target.value)} placeholder="New staff role name"/>
-                                        <Button onClick={handleAddStaffRole}>Add</Button>
+                                        <Input value={newOfficerRole} onChange={(e) => setNewOfficerRole(e.target.value)} placeholder="New officer role name"/>
+                                        <Button onClick={handleAddOfficerRole}>Add</Button>
                                     </div>
                                     <div className="space-y-2 max-h-48 overflow-y-auto">
                                         {(settings.staffRoles || []).map(role => (
                                             <div key={role} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                                 <span>{role}</span>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveStaffRole(role)} disabled={permanentRoles.includes(role)} aria-label={permanentRoles.includes(role) ? "Permanent role" : "Remove role"} >
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRole(role)} disabled={permanentRoles.includes(role)} aria-label={permanentRoles.includes(role) ? "Permanent role" : "Remove role"} >
                                                     <X className={cn("h-4 w-4", permanentRoles.includes(role) && "opacity-30")}/>
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                             <Card className="border">
+                                <CardHeader>
+                                    <CardTitle>Manage PO/NCM Roles</CardTitle>
+                                    <CardDescription>Add or remove roles for PO/NCM staff.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex gap-2">
+                                        <Input value={newPoNcmRole} onChange={(e) => setNewPoNcmRole(e.target.value)} placeholder="New PO/NCM role name"/>
+                                        <Button onClick={handleAddPoNcmRole}>Add</Button>
+                                    </div>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                        {(settings.poNcmRoles || []).map(role => (
+                                            <div key={role} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                                <span>{role}</span>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemovePoNcmRole(role)}>
+                                                    <X className="h-4 w-4"/>
                                                 </Button>
                                             </div>
                                         ))}
