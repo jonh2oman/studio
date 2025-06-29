@@ -4,7 +4,7 @@
 import { PageHeader } from "@/components/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban } from "lucide-react";
 
 export default function InstructionsPage() {
   return (
@@ -48,8 +48,10 @@ export default function InstructionsPage() {
               <li><a href="#cadets"><p className="flex items-center gap-2"><Users className="h-4 w-4" />Cadet Management</p></a></li>
               <li><a href="#asset-management"><p className="flex items-center gap-2"><Building2 className="h-4 w-4" />Asset Management</p></a></li>
               <li><a href="#staff-management"><p className="flex items-center gap-2"><Contact className="h-4 w-4" />Staff Management</p></a></li>
+              <li><a href="#lsa"><p className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" />LSA Wish List</p></a></li>
               <li><a href="#attendance"><p className="flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Attendance</p></a></li>
               <li><a href="#awards"><p className="flex items-center gap-2"><Trophy className="h-4 w-4" />Awards Management</p></a></li>
+              <li><a href="#zto-portal"><p className="flex items-center gap-2"><FolderKanban className="h-4 w-4" />ZTO Plan Review Portal</p></a></li>
               <li><a href="#settings"><p className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Settings</p></a></li>
                <li><a href="#about"><p className="flex items-center gap-2"><Info className="h-4 w-4" />About</p></a></li>
             </ul>
@@ -202,6 +204,19 @@ export default function InstructionsPage() {
               </AccordionContent>
             </AccordionItem>
           </Card>
+          
+           <Card id="lsa">
+            <AccordionItem value="lsa" className="border-b-0">
+              <AccordionTrigger className="p-6 text-xl">
+                 <div className="flex items-center gap-3"><ShoppingCart className="h-6 w-6" />LSA Wish List</div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">Create and manage your annual Local Support Allocation (LSA) request list. This is where you can track items your corps/squadron wishes to purchase, along with quantities, prices, and links.</p>
+                <h4 className="font-semibold">Tracking Items</h4>
+                 <p>Use the form to add items, including names, descriptions, and pricing information. You can also upload a price screenshot for your records. The main table will keep a running total of your requested budget.</p>
+              </AccordionContent>
+            </AccordionItem>
+          </Card>
 
            <Card id="attendance">
             <AccordionItem value="attendance" className="border-b-0">
@@ -239,6 +254,24 @@ export default function InstructionsPage() {
                 <p>From the list of eligible cadets, click the "Select" button to mark a cadet as a winner. You can select multiple winners for corps awards. The winner's name will appear in the award title for easy reference.</p>
                 <h4 className="font-semibold">Managing Awards</h4>
                 <p>You can add, edit, or delete award definitions. Note that award definitions are global across all training years, but winners are specific to each year.</p>
+              </AccordionContent>
+            </AccordionItem>
+          </Card>
+          
+           <Card id="zto-portal">
+            <AccordionItem value="zto-portal" className="border-b-0">
+              <AccordionTrigger className="p-6 text-xl">
+                 <div className="flex items-center gap-3"><FolderKanban className="h-6 w-6" />ZTO Plan Review Portal</div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6 space-y-4">
+                <p className="text-muted-foreground">This module is for Zone Training Officers (ZTOs) or other supervisory staff to review multiple training plans from different corps/squadrons.</p>
+                <h4 className="font-semibold">Importing and Viewing Plans</h4>
+                 <ol className="list-decimal list-inside space-y-1">
+                    <li>Click "Import Plan" to open the import dialog.</li>
+                    <li>Give the plan a recognizable name (e.g., "288 Ardent") and upload the `.json` file provided by the corps/squadron.</li>
+                    <li>Once imported, the plan will appear as a card on the main page.</li>
+                    <li>Click the "View Plan" button on a card to open a full-screen, read-only version of that unit's annual training calendar for review.</li>
+                </ol>
               </AccordionContent>
             </AccordionItem>
           </Card>
