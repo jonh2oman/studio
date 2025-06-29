@@ -25,7 +25,7 @@ const dashboardCategories = [
     {
         title: "Planning",
         items: [
-            { href: "/planner", title: "Corps/Squadron Training Plan - Annual", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
+            { href: "/planner", title: "CSTP - Annual", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
             { href: "/weekends", title: "Weekend Planner", icon: CalendarDays, description: "Plan training weekends with a detailed 9-period schedule." },
             { href: "/lda", title: "LDA Day Planner", icon: CalendarPlus, description: "Plan single ad-hoc training days with a 9-period schedule." },
             { href: "/ada", title: "ADA Planner", icon: ClipboardList, description: "Account for EOs completed at Area Directed Activities." },

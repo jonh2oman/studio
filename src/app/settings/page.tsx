@@ -175,7 +175,9 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
 
     const isSchedulePopulated = useMemo(() => {
         if (!yearIsLoaded || !currentYearData) return false;
-        return Object.keys(currentYearData.schedule || {}).length > 0;
+        const mainScheduleHasItems = Object.keys(currentYearData.schedule || {}).length > 0;
+        const adaHasItems = (currentYearData.adaPlanners || []).some(p => p.eos && p.eos.length > 0);
+        return mainScheduleHasItems || adaHasItems;
     }, [currentYearData, yearIsLoaded]);
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -524,7 +526,7 @@ const DataManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any 
             <CardContent className="space-y-6">
                 <div>
                     <h4 className="text-base font-semibold">Full Application Backup</h4>
-                    <p className="text-sm text-muted-foreground mb-3">Download a single JSON file containing all your data across all training years. This file can only be restored by technical support and should be used for disaster recovery.</p>
+                    <p className="text-sm text-muted-foreground mb-3">Download a single JSON file containing all your data across all training years. This is useful for personal backups and disaster recovery.</p>
                     <Button onClick={handleDownloadFullBackup} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                         Download Full Backup

@@ -39,7 +39,7 @@ const navGroups = [
   {
     title: "Planning",
     items: [
-      { href: "/planner", label: "Corps/Squadron Training Plan - Annual", icon: Calendar },
+      { href: "/planner", label: "CSTP - Annual", icon: Calendar },
       { href: "/weekends", label: "Weekend Planner", icon: CalendarDays },
       { href: "/lda", label: "LDA Day Planner", icon: CalendarPlus },
       { href: "/ada", label: "ADA Planner", icon: ClipboardList },

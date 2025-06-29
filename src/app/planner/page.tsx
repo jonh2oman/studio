@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -37,7 +38,7 @@ export default function PlannerPage() {
             </div>
             
             <div>
-                <h1 className="text-2xl font-bold tracking-tight md:text-3xl font-headline">Corps/Squadron Training Plan - Annual</h1>
+                <h1 className="text-2xl font-bold tracking-tight md:text-3xl font-headline">CSTP - Annual</h1>
                 <p className="text-muted-foreground mt-1">Drag and drop lessons to build your training year schedule.</p>
             </div>
         </div>
