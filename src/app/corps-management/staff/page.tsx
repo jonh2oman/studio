@@ -27,6 +27,7 @@ export default function StaffManagementPage() {
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
 
   const [newOfficerRank, setNewOfficerRank] = useState("");
+  const [newPoNcmRank, setNewPoNcmRank] = useState("");
   const [newStaffRole, setNewStaffRole] = useState("");
   const [newCafDress, setNewCafDress] = useState("");
 
@@ -64,6 +65,19 @@ export default function StaffManagementPage() {
   const handleRemoveOfficerRank = (rank: string) => {
     const officerRanks = settings.officerRanks || [];
     handleListChange('officerRanks', officerRanks.filter(r => r !== rank));
+  };
+  
+  const handleAddPoNcmRank = () => {
+    const cadetRanks = settings.cadetRanks || [];
+    if (newPoNcmRank.trim() && !cadetRanks.includes(newPoNcmRank.trim())) {
+      handleListChange('cadetRanks', [...cadetRanks, newPoNcmRank.trim()]);
+      setNewPoNcmRank("");
+    }
+  };
+
+  const handleRemovePoNcmRank = (rank: string) => {
+    const cadetRanks = settings.cadetRanks || [];
+    handleListChange('cadetRanks', cadetRanks.filter(r => r !== rank));
   };
 
   const handleAddStaffRole = () => {
@@ -212,7 +226,7 @@ Thank you!
                             <Card className="border">
                                 <CardHeader>
                                     <CardTitle>Manage Officer Ranks</CardTitle>
-                                    <CardDescription>Add or remove staff ranks.</CardDescription>
+                                    <CardDescription>Add or remove staff ranks for Officers.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex gap-2">
@@ -224,6 +238,26 @@ Thank you!
                                             <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
                                                 <span>{rank}</span>
                                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveOfficerRank(rank)}><X className="h-4 w-4"/></Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="border">
+                                <CardHeader>
+                                    <CardTitle>Manage PO/NCM Ranks</CardTitle>
+                                    <CardDescription>Add or remove ranks for PO/NCM staff.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex gap-2">
+                                        <Input value={newPoNcmRank} onChange={(e) => setNewPoNcmRank(e.target.value)} placeholder="New PO/NCM rank" />
+                                        <Button onClick={handleAddPoNcmRank}>Add</Button>
+                                    </div>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                        {(settings.cadetRanks || []).map(rank => (
+                                            <div key={rank} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                                <span>{rank}</span>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemovePoNcmRank(rank)}><X className="h-4 w-4"/></Button>
                                             </div>
                                         ))}
                                     </div>
