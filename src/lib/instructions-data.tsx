@@ -185,6 +185,7 @@ export const instructionsData = [
                 <p>This is where you manage your staff roster and duty assignments. This data persists across all training years.</p>
                 <h4 className="font-semibold text-foreground">Staff Roster & Duties</h4>
                  <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
+                 <p>You can also customize the available ranks and roles for both Officers and POs/NCMs using the cards in the "Staff Settings" accordion on this page.</p>
             </CardContent>
         )
     },
