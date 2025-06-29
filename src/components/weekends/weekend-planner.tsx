@@ -185,8 +185,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
         <div className="relative rounded-lg border bg-card">
             {objectivesVisible && <DraggableObjectivesPanel />}
             <div className="rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
-                <div className="flex items-center justify-between p-4 border-b">
-                    <h2 className="text-xl font-bold">Select Weekend Start Date</h2>
+                <div className="flex items-center justify-start gap-4 p-4 border-b">
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -209,6 +208,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                             />
                         </PopoverContent>
                     </Popover>
+                    <h2 className="text-xl font-bold">Select Weekend Start Date</h2>
                 </div>
                 <ScrollArea>
                     <div ref={ref} className="p-4 flex gap-4">
