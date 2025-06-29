@@ -12,7 +12,12 @@ export function HelpButton() {
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Button size="icon" className="shadow-lg" onClick={toggleHelp}>
+                <Button
+                    size="icon"
+                    variant="outline"
+                    className="shadow-lg bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                    onClick={toggleHelp}
+                >
                     <HelpCircle className="h-6 w-6" />
                     <span className="sr-only">Help</span>
                 </Button>
