@@ -60,9 +60,20 @@ export function WroForm() {
   const { control, register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<WroFormData>({
     resolver: zodResolver(wroSchema),
     defaultValues: {
-      upcomingActivities: [],
+      roNumber: '',
+      dutyOfficerName: '',
+      dutyOfficerPhone: '',
+      dutyOfficerEmail: '',
+      dutyPOName: '',
+      dutyPOPhone: '',
+      alternateDutyPO: '',
+      dutyWatch: '',
+      coName: '',
+      announcements: '',
+      notes: '',
       dressCaf: 'DEU 3B',
       dressCadets: 'C-2',
+      upcomingActivities: [],
     }
   });
 

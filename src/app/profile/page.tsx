@@ -34,6 +34,12 @@ export default function ProfilePage() {
 
     const form = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
+        defaultValues: {
+            rank: '',
+            firstName: '',
+            lastName: '',
+            phone: ''
+        }
     });
 
     const staffProfile = settings.staff.find(s => s.email === user?.email);
