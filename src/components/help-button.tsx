@@ -15,7 +15,7 @@ export function HelpButton() {
                 <Button
                     size="icon"
                     variant="outline"
-                    className="shadow-lg bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                    className="shadow-lg bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 animate-subtle-pulse"
                     onClick={toggleHelp}
                 >
                     <HelpCircle className="h-6 w-6" />
