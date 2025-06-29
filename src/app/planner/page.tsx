@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from 'react';
@@ -7,64 +8,69 @@ import { FileDown, Loader2, Menu } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PlannerPage() {
   const [viewMode, setViewMode] = useState('month');
   const [objectivesVisible, setObjectivesVisible] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const plannerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const handleGeneratePdf = async () => {
     const input = plannerRef.current;
-    if (!input) return;
+    if (!input) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not find planner content to capture.' });
+      return;
+    }
 
     setIsGenerating(true);
     const originalViewMode = viewMode;
 
+    // We must switch to year view to capture the whole plan
+    if (originalViewMode !== 'year') {
+      setViewMode('year');
+      // Wait for the next browser frame to render the changes
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+
     try {
-        // Switch to 'year' view for the most comprehensive PDF, if not already there.
-        if (originalViewMode !== 'year') {
-            setViewMode('year');
-            // Give the DOM time to update with the new view mode
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
+      const canvas = await html2canvas(input, {
+        scale: 2,
+        useCORS: true,
+        // Crucially, set width and height to capture the entire scrollable content
+        width: input.scrollWidth,
+        height: input.scrollHeight,
+        windowWidth: input.scrollWidth,
+        windowHeight: input.scrollHeight,
+      });
 
-        const canvas = await html2canvas(input, {
-            scale: 2, // Higher scale for better quality
-            useCORS: true,
-        });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a3',
+      });
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a3',
-        });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(imgData);
+      
+      // Calculate the height of the image in the PDF to maintain aspect ratio
+      const ratio = pdfWidth / imgProps.width;
+      const pdfHeight = imgProps.height * ratio;
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const imgProps = pdf.getImageProperties(imgData);
-        const imgWidth = imgProps.width;
-        const imgHeight = imgProps.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        
-        const finalWidth = imgWidth * ratio;
-        const finalHeight = imgHeight * ratio;
-
-        const xOffset = (pdfWidth - finalWidth) / 2;
-        const yOffset = (pdfHeight - finalHeight) / 2;
-
-        pdf.addImage(imgData, 'PNG', xOffset, yOffset, finalWidth, finalHeight);
-        pdf.save('CSTP-Annual-Plan.pdf');
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('CSTP-Annual-Plan.pdf');
 
     } catch (error) {
-        console.error("Error generating PDF:", error);
+      console.error("Error generating PDF:", error);
+      toast({ variant: 'destructive', title: 'PDF Generation Failed', description: 'There was an error creating the PDF file.' });
     } finally {
-        setIsGenerating(false);
-        // Switch back to the original view mode
-        if (originalViewMode !== 'year') {
-            setViewMode(originalViewMode);
-        }
+      setIsGenerating(false);
+      // Switch back to the original view if we changed it
+      if (originalViewMode !== 'year') {
+        setViewMode(originalViewMode);
+      }
     }
   };
 
