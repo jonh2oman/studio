@@ -18,6 +18,7 @@ export const changelogData: ChangelogEntry[] = [
       "UI Fix: Shortened long menu items (e.g., 'CSTP - Annual') for a cleaner interface.",
       "UI Improvement: Added a frosted glass aesthetic throughout the application for a more modern look.",
       "UX Improvement: The 'Invite Staff' button now opens the user's default email client with a pre-filled message, clarifying the invitation process.",
+      "Critical Fix: Resolved an application crash caused by searching in the Help & Instructions panel.",
     ],
   },
   {
