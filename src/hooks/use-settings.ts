@@ -79,7 +79,21 @@ export function useSettings() {
                 const userDocSnap = await getDoc(userDocRef);
 
                 if (userDocSnap.exists()) {
-                    setUserDocument(userDocSnap.data() as UserDocument);
+                    const loadedData = userDocSnap.data() as UserDocument;
+                    // Deep merge settings with defaults to ensure all keys are present for existing users
+                    const mergedSettings = { 
+                        ...defaultSettings, 
+                        ...loadedData.settings,
+                        ordersOfDress: {
+                            ...defaultSettings.ordersOfDress,
+                            ...(loadedData.settings?.ordersOfDress || {})
+                        },
+                         dashboardCardOrder: {
+                            ...defaultSettings.dashboardCardOrder,
+                            ...(loadedData.settings?.dashboardCardOrder || {})
+                        }
+                    };
+                    setUserDocument({ ...loadedData, settings: mergedSettings });
                 } else {
                     const newUserDoc = defaultUserDocument(user.uid, user.email!);
                     await setDoc(userDocRef, newUserDoc);

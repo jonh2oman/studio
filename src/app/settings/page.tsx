@@ -162,31 +162,29 @@ const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListene
 };
 
 const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
-    const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
-    const [localSettings, setLocalSettings] = useState<Settings>(settings);
+    const { settings, saveSettings } = useSettings();
     const { toast } = useToast();
     const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  
-    useEffect(() => { if (settingsLoaded) { setLocalSettings(settings); } }, [settings, settingsLoaded]);
     
-    const handleSettingChange = useCallback((key: keyof Settings, value: any) => {
-        const newSettings = { ...localSettings, [key]: value };
-        setLocalSettings(newSettings);
-        saveSettings(newSettings);
+    const handleSettingChange = (key: keyof Settings, value: any) => {
+        saveSettings({ [key]: value });
         toast({ title: "Settings Saved" });
-    }, [localSettings, saveSettings, toast]);
+    };
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 500 * 1024) { toast({ variant: "destructive", title: "Image too large" }); return; }
+        if (file.size > 500 * 1024) { 
+            toast({ variant: "destructive", title: "Image too large", description: "Please select an image under 500KB." }); 
+            return; 
+        }
         const reader = new FileReader();
         reader.onload = (event) => { handleSettingChange('corpsLogo', event.target?.result as string); };
         reader.readAsDataURL(file);
     };
 
-    const commandingOfficer = useMemo(() => localSettings.staff.find(s => s.primaryRole === 'Commanding Officer'), [localSettings.staff]);
-    const trainingOfficer = useMemo(() => localSettings.staff.find(s => s.primaryRole === 'Training Officer'), [localSettings.staff]);
+    const commandingOfficer = useMemo(() => settings.staff.find(s => s.primaryRole === 'Commanding Officer'), [settings.staff]);
+    const trainingOfficer = useMemo(() => settings.staff.find(s => s.primaryRole === 'Training Officer'), [settings.staff]);
   
     return (
         <Card className="border">
@@ -199,17 +197,47 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
             </CardHeader>
             <CardContent className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Label htmlFor="corpsName">Corps/Sqn Name</Label><Input id="corpsName" placeholder="e.g., RCSCC 288 ARDENT" defaultValue={localSettings.corpsName} onBlur={(e) => handleSettingChange('corpsName', e.target.value)} /></div>
-                    <div className="space-y-2"><Label>Element</Label><Select value={localSettings.element} onValueChange={(value) => handleSettingChange('element', value as CadetElement)}><SelectTrigger><SelectValue placeholder="Select an element" /></SelectTrigger><SelectContent><SelectItem value="Sea">Sea Cadets</SelectItem><SelectItem value="Army">Army Cadets</SelectItem><SelectItem value="Air">Air Cadets</SelectItem></SelectContent></Select></div>
-                    <div className="space-y-2"><Label>Weekly Training Night</Label><Select value={String(localSettings.trainingDay)} onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}><SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger><SelectContent>{weekDays.map((day, index) => <SelectItem key={index} value={String(index)}>{day}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="space-y-2">
+                        <Label htmlFor="corpsName">Corps/Sqn Name</Label>
+                        <Input id="corpsName" placeholder="e.g., RCSCC 288 ARDENT" defaultValue={settings.corpsName} onBlur={(e) => handleSettingChange('corpsName', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Element</Label>
+                        <Select value={settings.element} onValueChange={(value) => handleSettingChange('element', value as CadetElement)}>
+                            <SelectTrigger><SelectValue placeholder="Select an element" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Sea">Sea Cadets</SelectItem>
+                                <SelectItem value="Army">Army Cadets</SelectItem>
+                                <SelectItem value="Air">Air Cadets</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Weekly Training Night</Label>
+                        <Select value={String(settings.trainingDay)} onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}>
+                            <SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger>
+                            <SelectContent>{weekDays.map((day, index) => <SelectItem key={index} value={String(index)}>{day}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
                     <div className="space-y-2"><Label htmlFor="coDisplay">Commanding Officer</Label><Input id="coDisplay" readOnly value={commandingOfficer ? `${commandingOfficer.rank} ${commandingOfficer.firstName} ${commandingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
                     <div className="space-y-2"><Label htmlFor="toDisplay">Training Officer</Label><Input id="toDisplay" readOnly value={trainingOfficer ? `${trainingOfficer.rank} ${trainingOfficer.firstName} ${trainingOfficer.lastName}` : 'Not Assigned'} className="font-medium"/></div>
                 </div>
-                <div className="space-y-2"><Label>Corps Logo</Label><div className="flex items-center gap-4">{localSettings.corpsLogo ? <img src={localSettings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" /> : <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50"><span className="text-xs text-muted-foreground">No Logo</span></div>}<div className="space-y-2"><Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" /><p className="text-sm text-muted-foreground">Max 500KB.</p>{localSettings.corpsLogo && <Button variant="outline" size="sm" onClick={() => handleSettingChange('corpsLogo', '')}>Remove Logo</Button>}</div></div></div>
+                <div className="space-y-2">
+                    <Label>Corps Logo</Label>
+                    <div className="flex items-center gap-4">
+                        {settings.corpsLogo ? <img src={settings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" /> : <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50"><span className="text-xs text-muted-foreground">No Logo</span></div>}
+                        <div className="space-y-2">
+                            <Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" />
+                            <p className="text-sm text-muted-foreground">Max 500KB.</p>
+                            {settings.corpsLogo && <Button variant="outline" size="sm" onClick={() => handleSettingChange('corpsLogo', '')}>Remove Logo</Button>}
+                        </div>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );
 };
+
 
 const ClassroomsCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { settings, saveSettings } = useSettings();
