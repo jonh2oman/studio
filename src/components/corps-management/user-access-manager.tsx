@@ -24,9 +24,7 @@ type InviteFormData = z.infer<typeof inviteSchema>;
 
 export function UserAccessManager() {
     const { user } = useAuth();
-    const { settings, saveSettings } = useSettings();
-    const { inviteUser } = useTrainingYear();
-    const { toast } = useToast();
+    
 
     const form = useForm<InviteFormData>({
         resolver: zodResolver(inviteSchema),
@@ -37,28 +35,16 @@ export function UserAccessManager() {
     });
 
     const onSubmit = (data: InviteFormData) => {
-        inviteUser(data.email, data.role);
+        
         form.reset();
     };
 
     const handleRoleChange = (userId: string, newRole: 'editor' | 'viewer') => {
-        if (!settings.permissions) return;
-        const currentPermission = settings.permissions[userId];
-        if (currentPermission.role === 'owner') return;
-
-        const updatedPermissions = {
-            ...settings.permissions,
-            [userId]: { ...currentPermission, role: newRole }
-        };
-        saveSettings({ permissions: updatedPermissions });
-        toast({ title: "Permission Updated" });
+        
     };
     
     const handleRemoveUser = (userId: string) => {
-        if (!settings.permissions) return;
-        const { [userId]: _, ...remainingPermissions } = settings.permissions;
-        saveSettings({ permissions: remainingPermissions });
-        toast({ title: "User Removed", variant: "destructive" });
+        
     };
 
     return (
@@ -103,34 +89,7 @@ export function UserAccessManager() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {Object.entries(settings.permissions || {}).map(([userId, permission]) => (
-                                <TableRow key={userId}>
-                                    <TableCell>{permission.email} {userId === user?.uid && "(You)"}</TableCell>
-                                    <TableCell>
-                                        {permission.role === 'owner' ? (
-                                            <span className="font-semibold capitalize">Owner</span>
-                                        ) : (
-                                            <Select value={permission.role} onValueChange={(value) => handleRoleChange(userId, value as 'editor' | 'viewer')}>
-                                                <SelectTrigger className="w-40 h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="editor">Editor</SelectItem>
-                                                    <SelectItem value="viewer">Viewer</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {permission.role !== 'owner' && (
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveUser(userId)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                                <span className="sr-only">Remove User</span>
-                                            </Button>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            
                         </TableBody>
                     </Table>
                 </div>

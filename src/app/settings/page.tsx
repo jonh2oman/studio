@@ -493,16 +493,12 @@ const DataManagementCard = ({ dragHandleListeners }: { dragHandleListeners: any 
 
 const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { toast } = useToast();
-    const { resetUserDocument, userRole } = useSettings();
+    const { resetUserDocument } = useSettings();
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
     const [resetConfirmation, setResetConfirmation] = useState("");
     const [isResetting, setIsResetting] = useState(false);
 
     const handleReset = async () => {
-        if (userRole !== 'owner') {
-            toast({ variant: "destructive", title: "Action Not Allowed", description: "Only the data owner can perform this action."});
-            return;
-        }
         setIsResetting(true);
         await resetUserDocument();
         // The page will reload via the hook, so we don't need to set states back to false.
@@ -518,12 +514,9 @@ const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) =
                 </div>
             </CardHeader>
             <CardContent>
-                <Button variant="destructive" onClick={() => setIsResetDialogOpen(true)} disabled={userRole !== 'owner'}>
+                <Button variant="destructive" onClick={() => setIsResetDialogOpen(true)}>
                     Reset Application
                 </Button>
-                {userRole !== 'owner' && (
-                    <p className="text-xs text-muted-foreground mt-2">Only the data owner can perform this action.</p>
-                )}
             </CardContent>
             <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                 <AlertDialogContent>
@@ -538,7 +531,7 @@ const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) =
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </Card>
+        </>
     );
 };
 
