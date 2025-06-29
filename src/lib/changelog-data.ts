@@ -3,8 +3,22 @@ import type { ChangelogEntry } from './types';
 
 export const changelogData: ChangelogEntry[] = [
   {
-    version: "1.2.0",
+    version: "1.3.0",
     date: "Current Version",
+    changes: [
+      "Major Feature: Added full support for all three cadet elements (Sea, Army, and Air).",
+      "Implemented element-specific terminology (e.g., 'Level' for Air, 'Star Level' for Army) throughout the application.",
+      "Integrated the complete, official training programs for Army and Air Cadets.",
+      "New Feature: Added a safe data export/import system. Users can now export individual training years to share.",
+      "New Feature: Users can now create a new training year by importing a shared file.",
+      "New Feature: Added the ability to delete a training year from the Settings page.",
+      "Fixed a build error related to an incorrect closing tag on the Settings page.",
+      "Resolved a data loading issue where new settings (like the 'Element' selector) would not appear for existing users.",
+    ],
+  },
+  {
+    version: "1.2.0",
+    date: "August 5, 2024",
     changes: [
       "Removed all multi-user collaboration features to improve application stability and simplify the data model.",
       "Re-architected the data layer to be single-user, with all data securely tied to the logged-in user's account.",
