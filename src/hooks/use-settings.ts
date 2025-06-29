@@ -94,10 +94,10 @@ export function useSettings() {
     }, [user, userData?.corpsId, toast]);
 
     const updateCorpsData = useCallback(async (dataUpdate: Partial<Omit<CorpsData, 'id'>>) => {
-        if (!user || !db || !corpsData?.id) return;
+        if (!user || !db || !userData?.corpsId) return;
         
         try {
-            const corpsDocRef = doc(db, 'corps', corpsData.id);
+            const corpsDocRef = doc(db, 'corps', userData.corpsId);
             const dataForFirestore = { ...dataUpdate };
             
             await setDoc(corpsDocRef, dataForFirestore, { merge: true });
@@ -106,19 +106,19 @@ export function useSettings() {
             console.error('Failed to save data to Firestore', error);
             toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save your changes.' });
         }
-    }, [user, db, corpsData?.id, toast]);
+    }, [user, db, userData?.corpsId, toast]);
 
 
     const saveSettings = useCallback(async (settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
-        if (!user || !db || !corpsData?.id) return;
+        if (!user || !db || !userData?.corpsId) return;
 
-        const currentSettings = corpsData.settings || defaultSettings;
+        const currentSettings = corpsData?.settings || defaultSettings;
         const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
         const updatedSettings = { ...currentSettings, ...update };
 
         await updateCorpsData({ settings: updatedSettings });
 
-    }, [user, db, corpsData, updateCorpsData, toast]);
+    }, [user, db, corpsData, updateCorpsData, userData?.corpsId, toast]);
     
     const updateTrainingYears = useCallback((newTrainingYears: CorpsData['trainingYears']) => {
         updateCorpsData({ trainingYears: newTrainingYears });
@@ -129,13 +129,13 @@ export function useSettings() {
     }, [updateCorpsData]);
 
     const resetUserDocument = useCallback(async () => {
-        if (!user || !db || !corpsData?.id) {
+        if (!user || !db || !userData?.corpsId) {
             toast({ variant: "destructive", title: "Error", description: "Cannot reset data. Not authenticated or no corps data found." });
             return;
         }
 
         try {
-            const corpsDocRef = doc(db, 'corps', corpsData.id);
+            const corpsDocRef = doc(db, 'corps', userData.corpsId);
             await setDoc(corpsDocRef, defaultCorpsData);
             
             localStorage.removeItem(`currentTrainingYear_${user.uid}`);
@@ -146,7 +146,7 @@ export function useSettings() {
             console.error("Failed to reset application:", error);
             toast({ variant: "destructive", title: "Reset Failed", description: "Could not reset your data." });
         }
-    }, [db, toast, user, corpsData?.id]);
+    }, [db, toast, user, userData?.corpsId]);
 
 
     return { 

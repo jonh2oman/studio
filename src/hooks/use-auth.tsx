@@ -31,78 +31,86 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!auth || !db) {
+        setLoading(false);
+        return;
+    }
+
     let unsubscribeDoc: (() => void) | null = null;
-    
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (unsubscribeDoc) {
-        unsubscribeDoc();
-        unsubscribeDoc = null;
-      }
+        // Clean up previous user's snapshot listener
+        if (unsubscribeDoc) {
+            unsubscribeDoc();
+            unsubscribeDoc = null;
+        }
 
-      if (user && db) {
-        setUser(user);
-        const userDocRef = doc(db, 'users', user.uid);
-        
-        unsubscribeDoc = onSnapshot(userDocRef, 
-          async (docSnap) => {
-            if (docSnap.exists()) {
-                // User document exists, this is the normal case for a returning user.
-                setUserData(docSnap.data() as UserData);
-                setLoading(false);
-            } else {
-                // User document does not exist. This is a brand new user signing up.
-                // We need to create their associated data.
+        if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+
+            const setupAndListen = async () => {
                 try {
-                    const userEmail = user.email;
-                    if (!userEmail) throw new Error("User email is not available for setup.");
+                    const docSnap = await getDoc(userDocRef);
 
-                    const inviteRef = doc(db, 'invites', userEmail);
-                    const inviteSnap = await getDoc(inviteRef);
+                    if (!docSnap.exists()) {
+                        console.log("New user detected. Running setup...");
+                        const userEmail = user.email;
+                        if (!userEmail) throw new Error("User email is not available for setup.");
 
-                    let finalCorpsId: string;
-                    if (inviteSnap.exists()) {
-                        // User was invited. Link to the existing corps.
-                        finalCorpsId = inviteSnap.data().corpsId;
-                        await deleteDoc(inviteRef); // Consume the invite
-                        toast({ title: "Welcome!", description: "You've been successfully linked to an existing corps." });
-                    } else {
-                        // User was not invited. Create a new corps for them.
-                        const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
-                        finalCorpsId = newCorpsRef.id;
-                        toast({ title: "Welcome!", description: "A new corps has been created for you." });
+                        const inviteRef = doc(db, 'invites', userEmail);
+                        const inviteSnap = await getDoc(inviteRef);
+                        let finalCorpsId: string;
+                        if (inviteSnap.exists()) {
+                            finalCorpsId = inviteSnap.data().corpsId;
+                            await deleteDoc(inviteRef);
+                            toast({ title: "Welcome!", description: "You've been successfully linked to an existing corps." });
+                        } else {
+                            const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
+                            finalCorpsId = newCorpsRef.id;
+                            toast({ title: "Welcome!", description: "A new corps has been created for you." });
+                        }
+                        await setDoc(userDocRef, { email: userEmail, corpsId: finalCorpsId });
                     }
-                    
-                    // Finally, create the user's own document, linking them to a corps.
-                    await setDoc(userDocRef, { email: userEmail, corpsId: finalCorpsId });
-                    // The onSnapshot listener will fire again with the new document, and the `if (docSnap.exists())` block will execute.
                 } catch (error) {
                     console.error("Error during new user setup:", error);
                     toast({ variant: 'destructive', title: 'Account Setup Failed', description: 'Could not set up your account data.' });
                     setLoading(false);
+                    setUser(null);
+                    setUserData(null);
+                    return; // Abort on setup failure
                 }
-            }
-          }, 
-          (error) => {
-            console.error("Error listening to user document:", error);
+
+                // Now that setup is guaranteed to be complete, attach the listener.
+                unsubscribeDoc = onSnapshot(userDocRef, (doc) => {
+                    if (doc.exists()) {
+                        setUserData(doc.data() as UserData);
+                    }
+                    setUser(user);
+                    setLoading(false);
+                }, (error) => {
+                    console.error("Error listening to user document:", error);
+                    setUserData(null);
+                    setUser(null);
+                    setLoading(false);
+                });
+            };
+
+            setupAndListen();
+
+        } else {
+            // No user signed in
+            setUser(null);
             setUserData(null);
             setLoading(false);
-          }
-        );
-
-      } else {
-        setUser(null);
-        setUserData(null);
-        setLoading(false);
-      }
+        }
     });
 
     return () => {
-      unsubscribeAuth();
-      if (unsubscribeDoc) {
-        unsubscribeDoc();
-      }
+        unsubscribeAuth();
+        if (unsubscribeDoc) {
+            unsubscribeDoc();
+        }
     };
-  }, [toast]); // toast is a stable function, so this only runs once.
+}, [toast]);
 
   const logout = useCallback(async () => {
       if (auth) {
