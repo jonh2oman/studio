@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Settings, CorpsData, TrainingYearData, ZtoReviewedPlan } from '@/lib/types';
 import { useAuth } from './use-auth';
-import { doc, getDoc, setDoc, addDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { awardsData } from '@/lib/awards-data';
 import { useToast } from './use-toast';
@@ -59,85 +59,49 @@ export function useSettings() {
     const [corpsData, setCorpsData] = useState<CorpsData | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
     
-    const userRef = useRef(user);
     useEffect(() => {
-        userRef.current = user;
-    }, [user]);
-
-    useEffect(() => {
-        const loadCorpsData = async () => {
-            if (!user || !userData || !db) {
-                setIsLoaded(true);
-                return;
-            };
-
-            setIsLoaded(false);
-
-            try {
-                if (userData.corpsId) {
-                    const corpsDocRef = doc(db, 'corps', userData.corpsId);
-                    const corpsDocSnap = await getDoc(corpsDocRef);
-
-                    if (corpsDocSnap.exists()) {
-                        const loadedData = corpsDocSnap.data() as Omit<CorpsData, 'id'>;
-                        // Deep merge settings with defaults
-                        const mergedSettings = { 
-                            ...defaultSettings, 
-                            ...loadedData.settings,
-                            ordersOfDress: { ...defaultSettings.ordersOfDress, ...(loadedData.settings?.ordersOfDress || {}) },
-                            dashboardCardOrder: { ...defaultSettings.dashboardCardOrder, ...(loadedData.settings?.dashboardCardOrder || {}) }
-                        };
-                        
-                        setCorpsData({ id: corpsDocSnap.id, ...loadedData, settings: mergedSettings });
-
-                    } else {
-                        // Corps ID exists on user but not in corps collection - an error state
-                        console.error("Error: Corps ID points to a non-existent document.");
-                        toast({ variant: 'destructive', title: 'Data Error', description: 'Could not find your corps data. Please contact support.' });
-                    }
-                }
-            } catch (error) {
-                console.error("Fatal error loading settings:", error);
-                toast({ variant: 'destructive', title: 'Failed to load corps data.', description: 'Please check your connection and try refreshing the page.' });
-            } finally {
-                setIsLoaded(true);
-            }
+        if (!user || !userData?.corpsId || !db) {
+            setIsLoaded(true); // Mark as loaded if there's no user/corps to load
+            return;
         }
-        loadCorpsData();
-    }, [user, userData, toast]);
-    
+
+        setIsLoaded(false);
+        const corpsDocRef = doc(db, 'corps', userData.corpsId);
+
+        const unsubscribe = onSnapshot(corpsDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const loadedData = docSnap.data() as Omit<CorpsData, 'id'>;
+                // Deep merge settings with defaults to prevent crashes if new settings are added
+                const mergedSettings = { 
+                    ...defaultSettings, 
+                    ...(loadedData.settings || {}),
+                    ordersOfDress: { ...defaultSettings.ordersOfDress, ...(loadedData.settings?.ordersOfDress || {}) },
+                    dashboardCardOrder: { ...defaultSettings.dashboardCardOrder, ...(loadedData.settings?.dashboardCardOrder || {}) }
+                };
+                
+                setCorpsData({ id: docSnap.id, ...loadedData, settings: mergedSettings });
+            } else {
+                 console.error("Error: Corps ID points to a non-existent document.");
+                 toast({ variant: 'destructive', title: 'Data Error', description: 'Could not find your corps data. Please contact support.' });
+            }
+            setIsLoaded(true);
+        }, (error) => {
+            console.error("Fatal error loading settings:", error);
+            toast({ variant: 'destructive', title: 'Failed to load corps data.', description: 'Please check your connection and try refreshing the page.' });
+            setIsLoaded(true);
+        });
+
+        return () => unsubscribe(); // Cleanup the listener on unmount
+    }, [user, userData?.corpsId, toast]);
+
     const updateCorpsData = useCallback(async (dataUpdate: Partial<Omit<CorpsData, 'id'>>) => {
         if (!user || !db || !corpsData?.id) return;
         
         try {
             const corpsDocRef = doc(db, 'corps', corpsData.id);
             const dataForFirestore = { ...dataUpdate };
-
-            if (dataUpdate.settings?.staff) {
-                const emails = dataUpdate.settings.staff
-                    .map(s => s.email)
-                    .filter((email): email is string => !!email && email.trim() !== '');
-                // @ts-ignore
-                dataForFirestore.staffEmails = emails;
-            }
             
             await setDoc(corpsDocRef, dataForFirestore, { merge: true });
-
-            // Update local state immediately for responsiveness
-            setCorpsData(prevData => {
-                if (!prevData) return null;
-                
-                // A bit of a deep merge needed for settings
-                const newSettings = dataUpdate.settings 
-                    ? { ...prevData.settings, ...dataUpdate.settings } 
-                    : prevData.settings;
-                
-                const newTrainingYears = dataUpdate.trainingYears
-                    ? { ...prevData.trainingYears, ...dataUpdate.trainingYears }
-                    : prevData.trainingYears;
-
-                return { ...prevData, ...dataUpdate, settings: newSettings, trainingYears: newTrainingYears };
-            });
 
         } catch (error) {
             console.error('Failed to save data to Firestore', error);
@@ -152,8 +116,12 @@ export function useSettings() {
         const currentSettings = corpsData.settings || defaultSettings;
         const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
         const updatedSettings = { ...currentSettings, ...update };
+        
+        const staffEmails = updatedSettings.staff
+            .map(s => s.email)
+            .filter((email): email is string => !!email && email.trim() !== '');
 
-        updateCorpsData({ settings: updatedSettings });
+        updateCorpsData({ settings: updatedSettings, staffEmails: staffEmails });
 
     }, [corpsData, updateCorpsData]);
     
@@ -175,7 +143,6 @@ export function useSettings() {
             const corpsDocRef = doc(db, 'corps', corpsData.id);
             await setDoc(corpsDocRef, defaultCorpsData);
             
-            // To be safe, clear local current year storage
             localStorage.removeItem(`currentTrainingYear_${user.uid}`);
 
             toast({ title: "Application Reset", description: "Your data has been successfully reset. The page will now reload." });
@@ -191,6 +158,7 @@ export function useSettings() {
         settings: corpsData?.settings || defaultSettings, 
         allYearsData: corpsData?.trainingYears || defaultTrainingYears,
         ztoReviewedPlans: corpsData?.ztoReviewedPlans || defaultZtoPlans,
+        corpsId: corpsData?.id || null,
         saveSettings, 
         isLoaded,
         resetUserDocument,

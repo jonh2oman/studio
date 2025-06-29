@@ -5,8 +5,8 @@ import { useState, useEffect, createContext, useContext, ReactNode, useMemo, use
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
-import { doc, onSnapshot, setDoc, query, collection, where, getDocs, addDoc } from 'firebase/firestore';
-import type { UserData, CorpsData } from '@/lib/types';
+import { doc, onSnapshot, setDoc, getDoc, addDoc, collection, deleteDoc } from 'firebase/firestore';
+import type { UserData } from '@/lib/types';
 import { defaultCorpsData } from './use-settings';
 import { useToast } from './use-toast';
 
@@ -42,53 +42,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user && db) {
         setUser(user);
         const userDocRef = doc(db, 'users', user.uid);
-        
+
+        // Check if the user document exists. If not, it's a new sign-up.
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
+          // New user flow
+          const userEmail = user.email;
+          if (userEmail) {
+            try {
+              const inviteRef = doc(db, 'invites', userEmail);
+              const inviteSnap = await getDoc(inviteRef);
+
+              if (inviteSnap.exists()) {
+                // User was invited. Link to existing corps.
+                const { corpsId } = inviteSnap.data();
+                await setDoc(userDocRef, { email: userEmail, corpsId });
+                await deleteDoc(inviteRef); // Consume the invite
+                toast({ title: "Welcome!", description: "You've been successfully linked to an existing corps." });
+              } else {
+                // User was not invited. Create a new corps.
+                const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
+                await setDoc(userDocRef, { email: userEmail, corpsId: newCorpsRef.id });
+                toast({ title: "Welcome!", description: "A new corps has been created for you." });
+              }
+            } catch (error) {
+               console.error("Error during new user setup:", error);
+               toast({ variant: 'destructive', title: 'Setup Error', description: 'Could not set up your account data.' });
+               setLoading(false);
+            }
+          }
+        }
+
+        // Attach a real-time listener for all users (new and existing)
+        // This will trigger once the user document is created/updated above.
         unsubscribeDoc = onSnapshot(userDocRef, 
-          async (docSnap) => {
+          (docSnap) => {
             if (docSnap.exists() && docSnap.data().corpsId) {
                 setUserData(docSnap.data() as UserData);
-                setLoading(false);
             } else {
-                // New user or user without a corpsId. Check for invites.
-                const userEmail = user.email;
-                if (!userEmail) {
-                    console.error("User has no email, cannot check for invites.");
-                    setLoading(false);
-                    return;
-                }
-                
-                try {
-                    const corpsQuery = query(collection(db, "corps"), where("staffEmails", "array-contains", userEmail));
-                    const querySnapshot = await getDocs(corpsQuery);
-
-                    if (!querySnapshot.empty) {
-                        // Found an invitation. Link user to this corps.
-                        const corpsDoc = querySnapshot.docs[0];
-                        const corpsId = corpsDoc.id;
-                        await setDoc(userDocRef, { email: userEmail, corpsId: corpsId }, { merge: true });
-                        toast({ title: "Welcome!", description: `You've been successfully linked to ${corpsDoc.data().settings.corpsName}.` });
-                        // The listener will pick up this change and re-run.
-                    } else {
-                        // No invitation found. Create a new corps for them.
-                        const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
-                        await setDoc(userDocRef, { email: userEmail, corpsId: newCorpsRef.id }, { merge: true });
-                        toast({ title: "Welcome!", description: "A new corps has been created for you." });
-                        // The listener will pick up this change and re-run.
-                    }
-                } catch (e) {
-                    console.error("Error during new user setup:", e);
-                    toast({ variant: 'destructive', title: 'Setup Error', description: 'Could not set up your account data.' });
-                    setLoading(false);
-                }
+                // This might be hit briefly for a new user, or if data is inconsistent.
+                setUserData(null);
             }
+            setLoading(false);
           }, 
           (error) => {
             console.error("Error listening to user document:", error);
-            setUser(null);
             setUserData(null);
             setLoading(false);
           }
         );
+
       } else {
         setUser(null);
         setUserData(null);

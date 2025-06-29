@@ -1,38 +1,33 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isNewUser() {
-      // A user is new if their user document doesn't exist or has no corpsId.
-      // This is slightly tricky because the doc might not exist yet during the check.
-      // The client logic handles the "does not exist" part. This rule handles "exists but has no corpsId".
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return userData == null || userData.corpsId == null;
-    }
-
-    function isExistingUserInCorps(corpsId) {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
-    }
-
+    
     match /users/{userId} {
-      // A user can read and write to their own user document.
       allow read, write: if request.auth.uid == userId;
     }
 
     match /corps/{corpsId} {
-      // CREATE: A new user can create a corps document.
-      allow create: if request.auth.uid != null && isNewUser();
+      function isMember() {
+        return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
+      }
+      
+      // Allow create if the user does not have a corpsId yet
+      allow create: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == null;
+      
+      // Allow read/write if the user's corpsId matches this document's ID
+      allow read, update, delete: if isMember();
+    }
 
-      // READ, UPDATE: An existing user can read/update their own corps document.
-      allow read, update: if request.auth.uid != null && isExistingUserInCorps(corpsId);
+    match /invites/{email} {
+      // An existing member of the target corps can create an invite.
+      function isCreatorMember() {
+        return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == request.resource.data.corpsId;
+      }
 
-      // LIST: A new user can perform the lookup query to find their corps.
-      allow list: if request.auth.uid != null && isNewUser();
+      allow create: if isCreatorMember();
 
-      // DELETE: No user can delete a corps document from the client.
-      allow delete: if false;
+      // Only the invited user can read or delete their own invite.
+      allow read, delete: if request.auth != null && request.auth.token.email == email;
     }
   }
 }

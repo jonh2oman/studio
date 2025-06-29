@@ -16,10 +16,12 @@ import { cn } from "@/lib/utils";
 import { AddStaffForm } from "@/components/corps-management/add-staff-form";
 import { StaffList } from "@/components/corps-management/staff-list";
 import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function StaffManagementPage() {
   const { user } = useAuth();
-  const { settings, saveSettings } = useSettings();
+  const { settings, saveSettings, corpsId } = useSettings();
   const { toast } = useToast();
   
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
@@ -99,12 +101,37 @@ export default function StaffManagementPage() {
   };
 
 
-  const handleStaffChange = (newStaff: StaffMember[]) => {
+  const handleStaffChange = async (newStaff: StaffMember[]) => {
+    // Save the updated staff list
     saveSettings({ staff: newStaff });
     toast({
         title: "Staff Roster Updated",
         description: "Your changes have been saved.",
     });
+
+    // Create invites for new members with emails
+    if (db && corpsId) {
+        const oldEmails = new Set(settings.staff.map(s => s.email).filter(Boolean));
+        const newMembersWithEmails = newStaff.filter(s => s.email && !oldEmails.has(s.email));
+
+        for (const member of newMembersWithEmails) {
+            try {
+                const inviteRef = doc(db, 'invites', member.email!);
+                await setDoc(inviteRef, { corpsId: corpsId });
+                 toast({
+                    title: "Invitation Sent",
+                    description: `${member.email} can now sign up to access this corps.`,
+                });
+            } catch (error) {
+                console.error("Error creating invite:", error);
+                 toast({
+                    variant: "destructive",
+                    title: "Invite Failed",
+                    description: `Could not create an invite for ${member.email}.`,
+                });
+            }
+        }
+    }
   };
 
   const handleRemoveStaff = (id: string) => {
