@@ -92,7 +92,7 @@ export default function PlannerPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-shrink-0 border-b bg-background/95 pb-6 backdrop-blur-sm">
+      <div className="flex-shrink-0 border-b bg-background/70 backdrop-blur-xl pb-6">
         <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 print:hidden">
                  <Tooltip>

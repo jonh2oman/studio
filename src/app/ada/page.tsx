@@ -13,7 +13,7 @@ export default function AdaPage() {
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex-shrink-0 border-b bg-background/95 pb-6 backdrop-blur-sm print:hidden">
+            <div className="flex-shrink-0 border-b bg-background/70 backdrop-blur-xl pb-6 print:hidden">
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
                         <Tooltip>
