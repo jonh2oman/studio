@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -10,7 +11,7 @@ import type { StaffMember } from '@/lib/types';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -26,6 +27,7 @@ const staffSchema = z.object({
   email: z.string().optional(),
   primaryRole: z.string().min(1, 'Primary role is required'),
   additionalRoles: z.array(z.string()).optional(),
+  accessLevel: z.enum(['Admin', 'Member']),
 });
 
 type StaffFormData = z.infer<typeof staffSchema>;
@@ -51,6 +53,7 @@ export function AddStaffForm({ staff, onStaffChange, editingStaff, onCancelEdit 
             email: '',
             primaryRole: '',
             additionalRoles: [],
+            accessLevel: 'Member',
         },
     });
 
@@ -71,6 +74,7 @@ export function AddStaffForm({ staff, onStaffChange, editingStaff, onCancelEdit 
                 email: editingStaff.email || '',
                 primaryRole: editingStaff.primaryRole,
                 additionalRoles: editingStaff.additionalRoles,
+                accessLevel: editingStaff.accessLevel || 'Member',
             });
         } else {
             reset({
@@ -82,6 +86,7 @@ export function AddStaffForm({ staff, onStaffChange, editingStaff, onCancelEdit 
                 email: '',
                 primaryRole: '',
                 additionalRoles: [],
+                accessLevel: 'Member',
             });
         }
     }, [editingStaff, reset]);
@@ -175,6 +180,23 @@ export function AddStaffForm({ staff, onStaffChange, editingStaff, onCancelEdit 
                                 <FormField control={control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} type="email"/></FormControl><FormMessage /></FormItem> )} />
                             </div>
                         )}
+                         <FormField
+                            control={control}
+                            name="accessLevel"
+                            render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                <FormLabel>Access Level</FormLabel>
+                                <FormControl>
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex gap-6">
+                                        <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="Admin" /></FormControl><FormLabel className="font-normal">Admin</FormLabel></FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="Member" /></FormControl><FormLabel className="font-normal">Member</FormLabel></FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormDescription>Admin has full access. Member has restricted access to settings.</FormDescription>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                          <div className="flex gap-2 pt-4">
                             <Button type="submit" className="w-full">{editingStaff ? 'Save Changes' : <><UserPlus className="mr-2 h-4 w-4" /> Add Staff Member</>}</Button>
                             {editingStaff && <Button type="button" variant="ghost" onClick={onCancelEdit} className="w-full">Cancel</Button>}

@@ -1,5 +1,6 @@
 
 
+
 export interface EO {
   id: string;
   title: string;
@@ -65,6 +66,7 @@ export interface StaffMember {
   email?: string;
   primaryRole: string;
   additionalRoles: string[];
+  accessLevel: 'Admin' | 'Member';
 }
 
 export interface DutySchedule {
@@ -301,7 +303,6 @@ export interface CorpsData {
         [year: string]: TrainingYearData;
     };
     ztoReviewedPlans?: ZtoReviewedPlan[];
-    staffEmails?: string[];
 }
 
 // Represents the data stored at /users/{userId}

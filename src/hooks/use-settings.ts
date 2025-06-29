@@ -47,7 +47,6 @@ export const defaultCorpsData: Omit<CorpsData, 'id'> = {
     settings: defaultSettings,
     trainingYears: {},
     ztoReviewedPlans: [],
-    staffEmails: [],
 };
 
 const defaultTrainingYears = {};
@@ -117,27 +116,7 @@ export function useSettings() {
         const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
         const updatedSettings = { ...currentSettings, ...update };
 
-        const newStaffEmails = updatedSettings.staff
-            .map(s => s.email)
-            .filter((email): email is string => !!email && email.trim() !== '');
-
-        const oldStaffEmails = new Set((currentSettings.staff || []).map(s => s.email).filter(Boolean));
-        const newlyAddedEmails = newStaffEmails.filter(email => !oldStaffEmails.has(email));
-        
-        if (newlyAddedEmails.length > 0) {
-            for (const email of newlyAddedEmails) {
-                try {
-                    const inviteRef = doc(db, 'invites', email);
-                    await setDoc(inviteRef, { corpsId: corpsData.id });
-                    toast({ title: "Invitation Ready", description: `${email} can now sign up to access this corps.` });
-                } catch (error) {
-                    console.error("Error creating invite:", error);
-                    toast({ variant: 'destructive', title: 'Invite Failed', description: `Could not create invite for ${email}.` });
-                }
-            }
-        }
-
-        await updateCorpsData({ settings: updatedSettings, staffEmails: newStaffEmails });
+        await updateCorpsData({ settings: updatedSettings });
 
     }, [user, db, corpsData, updateCorpsData, toast]);
     

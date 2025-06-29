@@ -11,13 +11,13 @@ import { useState, useMemo, useCallback } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, MailPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddStaffForm } from "@/components/corps-management/add-staff-form";
 import { StaffList } from "@/components/corps-management/staff-list";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 export default function StaffManagementPage() {
   const { user } = useAuth();
@@ -102,7 +102,6 @@ export default function StaffManagementPage() {
 
 
   const handleStaffChange = async (newStaff: StaffMember[]) => {
-    // Save the updated staff list. The `saveSettings` hook now handles invite creation.
     saveSettings({ staff: newStaff });
     toast({
         title: "Staff Roster Updated",
@@ -118,6 +117,33 @@ export default function StaffManagementPage() {
   const handleCancelEdit = () => {
     setEditingStaff(null);
   }
+
+  const handleInviteStaff = async (staffMember: StaffMember) => {
+    if (!staffMember.email) {
+        toast({ variant: "destructive", title: "No Email", description: "Cannot send an invite without an email address." });
+        return;
+    }
+    if (!corpsId || !db) {
+        toast({ variant: "destructive", title: "Error", description: "Corps ID not found. Unable to create invite." });
+        return;
+    }
+
+    try {
+        const inviteRef = doc(db, 'invites', staffMember.email);
+        const docSnap = await getDoc(inviteRef);
+
+        if (docSnap.exists()) {
+            toast({ title: "Invite Already Exists", description: `${staffMember.email} has already been invited.` });
+            return;
+        }
+
+        await setDoc(inviteRef, { corpsId: corpsId });
+        toast({ title: "Invite Sent!", description: `An invitation has been prepared for ${staffMember.email}. They can now sign up to access this corps.` });
+    } catch (error) {
+        console.error("Error creating invite:", error);
+        toast({ variant: "destructive", title: "Invite Failed", description: `Could not create invite for ${staffMember.email}.` });
+    }
+  };
 
   return (
     <>
@@ -145,6 +171,7 @@ export default function StaffManagementPage() {
                           staff={settings.staff || []}
                           onEditStaff={setEditingStaff}
                           onRemoveStaff={handleRemoveStaff}
+                          onInviteStaff={handleInviteStaff}
                       />
                   </CardContent>
               </Card>
