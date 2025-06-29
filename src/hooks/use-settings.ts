@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Settings, UserDocument, LsaWishListItem } from '@/lib/types';
+import type { Settings, UserDocument, LsaWishListItem, ZtoReviewedPlan } from '@/lib/types';
 import { useAuth } from './use-auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -50,7 +50,8 @@ export const defaultUserDocument: (userId: string, email: string) => UserDocumen
     settings: {
         ...defaultSettings,
     },
-    trainingYears: {}
+    trainingYears: {},
+    ztoReviewedPlans: [],
 });
 
 export function useSettings() {
@@ -111,6 +112,7 @@ export function useSettings() {
 
     const settings = userDocument?.settings;
     const allYearsData = userDocument?.trainingYears || {};
+    const ztoReviewedPlans = userDocument?.ztoReviewedPlans || [];
     
     const saveSettings = useCallback((settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
         const currentUser = userRef.current;
@@ -154,6 +156,25 @@ export function useSettings() {
         });
     }, [db, toast]);
 
+     const saveZtoReviewedPlans = useCallback((newPlans: ZtoReviewedPlan[]) => {
+        const currentUser = userRef.current;
+        if (!currentUser || !db) return;
+
+        setUserDocument(prevDoc => {
+            if (!prevDoc) return null;
+            
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            setDoc(userDocRef, { ztoReviewedPlans: newPlans }, { merge: true }).catch(
+              (error) => {
+                console.error('Failed to save ZTO plans to Firestore', error);
+                toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save reviewed plans.' });
+              }
+            );
+
+            return { ...prevDoc, ztoReviewedPlans: newPlans };
+        });
+    }, [db, toast]);
+
     const resetUserDocument = useCallback(async () => {
         const currentUser = userRef.current;
         if (!currentUser || !db) {
@@ -183,5 +204,7 @@ export function useSettings() {
         isLoaded,
         resetUserDocument,
         updateTrainingYears,
+        ztoReviewedPlans,
+        saveZtoReviewedPlans,
     };
 }

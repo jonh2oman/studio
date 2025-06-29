@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -65,6 +65,12 @@ const navGroups = [
     title: "Reporting",
     items: [
        { href: "/reports", label: "Reports", icon: FileText },
+    ]
+  },
+  {
+    title: "ZTO Tools",
+    items: [
+        { href: "/zto-portal", label: "Plan Review Portal", icon: FolderKanban },
     ]
   },
   {

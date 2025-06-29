@@ -284,11 +284,19 @@ export interface TrainingYearData {
     adaPlanners?: AdaPlannerData[];
 }
 
+export interface ZtoReviewedPlan {
+    id: string;
+    corpsName: string;
+    trainingYear: string;
+    planData: TrainingYearData;
+}
+
 export interface UserDocument {
     settings: Settings;
     trainingYears: {
         [year: string]: TrainingYearData;
     };
+    ztoReviewedPlans?: ZtoReviewedPlan[];
     displayName?: string;
 }
 
