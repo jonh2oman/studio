@@ -68,7 +68,7 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
         const dress = metadata.dressOfTheDay || { caf: 'N/A', cadets: 'N/A' };
 
         return (
-            <Card key={dateStr} className="w-[22rem] flex-shrink-0">
+            <Card key={dateStr} className="w-[22rem] flex-shrink-0 bg-background">
                 <CardHeader>
                     <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
                     <div className="grid grid-cols-2 gap-4 pt-2 text-xs">
@@ -81,7 +81,7 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
                         {[1, 2, 3].map(period => (
                             <div key={period} className="space-y-2">
                                 <h4 className="font-semibold text-center text-muted-foreground text-sm">Period {period}</h4>
-                                <div className="space-y-2 rounded-lg bg-background/50 p-2">
+                                <div className="space-y-2 rounded-lg bg-background p-2">
                                     {[1, 2, 3, 4].map(phase => {
                                         const slotId = `${dateStr}-${period}-${phase}`;
                                         const scheduledItem = schedule[slotId];
@@ -89,8 +89,7 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
                                             <div
                                                 key={phase}
                                                 className={cn(
-                                                    "relative p-3 rounded-md min-h-[6rem] border flex flex-col justify-center items-center transition-colors",
-                                                    { "bg-background": scheduledItem, "bg-muted/30": !scheduledItem }
+                                                    "relative p-3 rounded-md min-h-[6rem] border flex flex-col justify-center items-center transition-colors bg-background"
                                                 )}
                                             >
                                                 {scheduledItem ? (
@@ -128,11 +127,11 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
     }, {} as Record<string, Date[]>);
 
     return (
-        <div className="flex flex-col bg-card min-w-0 h-full">
+        <div className="flex flex-col bg-background min-w-0 h-full">
             <div className="p-4 flex flex-wrap gap-4">
                 {Object.entries(groupedByMonth).map(([month, days]) => (
                     <div key={month} className="space-y-4">
-                        <h3 className="text-lg font-bold sticky top-0 bg-background/95 backdrop-blur-sm py-2 px-1 z-10">{month}</h3>
+                        <h3 className="text-lg font-bold sticky top-0 bg-background py-2 px-1 z-10">{month}</h3>
                         <div className="flex flex-wrap gap-4">
                             {days.map(renderTrainingDayCard)}
                         </div>

@@ -94,7 +94,7 @@ export default function ZtoPortalPage() {
                 />
             )}
             
-            <SheetContent className="w-full sm:max-w-full h-full max-h-full flex flex-col p-0">
+            <SheetContent className="w-full sm:max-w-full h-full max-h-full flex flex-col p-0 bg-background">
                 {viewingPlan && (
                     <>
                         <SheetHeader className="p-4 border-b">
