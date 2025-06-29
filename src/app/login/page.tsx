@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Ship } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -65,8 +65,8 @@ export default function LoginPage() {
       <div className="mx-auto grid w-[400px] gap-6 p-6 sm:p-0">
           <div className="grid gap-4 text-center">
               <div className="flex justify-center">
-                  <div className="bg-primary/20 p-3 rounded-full">
-                      <Ship className="w-8 h-8 text-primary" />
+                  <div className="bg-primary/20 p-3 rounded-lg">
+                      <User className="w-8 h-8 text-primary" />
                   </div>
               </div>
               <h1 className="text-3xl font-bold">Corps/Sqn Manager</h1>
