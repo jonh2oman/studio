@@ -506,7 +506,7 @@ const DangerZoneCard = ({ dragHandleListeners }: { dragHandleListeners: any }) =
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </Card>
     );
 };
 
