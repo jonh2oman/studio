@@ -1,61 +1,18 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to check if the requesting user is the owner of the document
-    function isOwner(docId) {
-      return request.auth.uid == docId;
-    }
-
-    // Main collection rules
+    // Users can read/write their own document to manage their link to a corps.
     match /users/{userId} {
-      // Allow a user to create their own document. This happens on first sign-in
-      // or when an invited user without a document logs in.
-      allow create: if isOwner(userId);
-      
-      // Allow a user to read data if any of the following are true:
-      // 1. They are the owner of the document.
-      // 2. They are an invited user whose own document points to this data.
-      // 3. They are listed in the permissions map of the document they are trying to read.
-      allow read: if isOwner(userId)
-                   || (
-                        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-                        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.pointerToCorpsData == userId
-                      )
-                   || (
-                        'settings' in resource.data &&
-                        'permissions' in resource.data.settings &&
-                        request.auth.uid in resource.data.settings.permissions
-                      );
-
-      // Allow a user to update data if any of the following are true:
-      // 1. They are the owner of the document. This is the main case for personal edits and taking ownership.
-      // 2. They are listed as an 'owner' or 'editor' in the permissions map of the document.
-      allow update: if isOwner(userId)
-                    || (
-                        'settings' in resource.data &&
-                        'permissions' in resource.data.settings &&
-                        request.auth.uid in resource.data.settings.permissions &&
-                        resource.data.settings.permissions[request.auth.uid].role in ['owner', 'editor']
-                       );
-      
-      // Deleting a user document is a destructive action and should be disallowed from the client.
-      allow delete: if false;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Rules for the 'invites' collection
-    match /invites/{inviteId} {
-      // Anyone authenticated can read an invite (e.g., to check for pending invites for their email).
-      allow read: if request.auth != null;
-      
-      // Allow a user to create an invite if they are the owner of the data the invite points to.
-      allow create: if request.auth.uid == request.resource.data.corpsDataOwnerId;
-      
-      // Allow an authenticated user to update an invite (e.g., to accept it and create their pointer).
-      allow update: if request.auth != null;
-      
-      // Only the owner of the data can delete an invite.
-      allow delete: if get(/databases/$(database)/documents/invites/$(inviteId)).data.corpsDataOwnerId == request.auth.uid;
+    // Access to a corps document is granted if the user's own document
+    // contains a matching corpsId. This allows multiple users to share one corps' data.
+    match /corps/{corpsId} {
+      allow read, write: if request.auth != null &&
+                          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
     }
   }
 }
