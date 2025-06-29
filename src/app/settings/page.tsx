@@ -183,8 +183,8 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 500 * 1024) { 
-            toast({ variant: "destructive", title: "Image too large", description: "Please select an image under 500KB." }); 
+        if (file.size > 700 * 1024) { 
+            toast({ variant: "destructive", title: "Image too large", description: "Please select an image under 700KB." }); 
             return; 
         }
         const reader = new FileReader();
@@ -256,7 +256,7 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
                         {settings.corpsLogo ? <img src={settings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" /> : <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50"><span className="text-xs text-muted-foreground">No Logo</span></div>}
                         <div className="space-y-2">
                             <Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" />
-                            <p className="text-sm text-muted-foreground">Max 500KB. A .png with a transparent background is recommended.</p>
+                            <p className="text-sm text-muted-foreground">Max 700KB. A .png with a transparent background is recommended.</p>
                             {settings.corpsLogo && <Button variant="outline" size="sm" onClick={() => handleSettingChange('corpsLogo', '')}>Remove Logo</Button>}
                         </div>
                     </div>
