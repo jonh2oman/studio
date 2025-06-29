@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -82,7 +81,7 @@ export function ScoreEntryForm() {
   const watchCompetitionScores = form.watch("competitionScores");
 
   const achievedClassification = getClassificationForGrouping(watchGrouping1, watchGrouping2);
-  const totalCompetitionScore = watchCompetitionScores?.reduce((a, b) => a + b, 0) || 0;
+  const totalCompetitionScore = watchCompetitionScores?.map(Number).reduce((a, b) => a + b, 0) || 0;
 
   return (
     <Card>
