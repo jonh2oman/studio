@@ -256,7 +256,7 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
                         {settings.corpsLogo ? <img src={settings.corpsLogo} alt="Corps Logo" className="h-20 w-20 object-contain rounded-md border p-1 bg-white" /> : <div className="h-20 w-20 rounded-md border flex items-center justify-center bg-muted/50"><span className="text-xs text-muted-foreground">No Logo</span></div>}
                         <div className="space-y-2">
                             <Input id="logo-upload" type="file" accept="image/png, image/jpeg" onChange={handleLogoUpload} className="max-w-xs" />
-                            <p className="text-sm text-muted-foreground">Max 500KB.</p>
+                            <p className="text-sm text-muted-foreground">Max 500KB. A .png with a transparent background is recommended.</p>
                             {settings.corpsLogo && <Button variant="outline" size="sm" onClick={() => handleSettingChange('corpsLogo', '')}>Remove Logo</Button>}
                         </div>
                     </div>
