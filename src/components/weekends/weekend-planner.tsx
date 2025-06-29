@@ -3,7 +3,7 @@
 
 import { useState, useMemo, forwardRef } from 'react';
 import { format, addDays } from 'date-fns';
-import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Trash2 } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
@@ -22,6 +22,8 @@ import { CsarPlanner } from '@/components/csar/csar-planner';
 import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel';
 import { useSettings } from '@/hooks/use-settings';
 import { getPhaseDisplayName } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 interface WeekendPlannerProps {
     objectivesVisible: boolean;
@@ -29,7 +31,7 @@ interface WeekendPlannerProps {
 
 export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({ objectivesVisible }, ref) => {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [activeCsarDay, setActiveCsarDay] = useState<string | null>(null);
     const { settings } = useSettings();
@@ -70,7 +72,28 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
             <Card key={dateStr} className="flex-shrink-0 w-[44rem]">
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
-                        <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+                        <div className="flex items-center gap-4 flex-1">
+                            <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Clear Day
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                         <Sheet open={activeCsarDay === dateStr} onOpenChange={(isOpen) => setActiveCsarDay(isOpen ? dateStr : null)}>
                             <Card className="p-3 bg-muted/50 w-64">
                                 <CardTitle className="text-base mb-2 flex items-center justify-between">
@@ -164,7 +187,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6" onClick={() => removeScheduleItem(slotId)}>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-10" onClick={() => removeScheduleItem(slotId)}>
                                                             <X className="w-4 h-4"/>
                                                         </Button>
                                                     </div>
@@ -220,3 +243,5 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     );
 });
 WeekendPlanner.displayName = "WeekendPlanner";
+
+    

@@ -3,7 +3,7 @@
 
 import { useState, useMemo, forwardRef } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Trash2 } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
@@ -22,6 +22,8 @@ import { CsarPlanner } from '@/components/csar/csar-planner';
 import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel';
 import { useSettings } from '@/hooks/use-settings';
 import { getPhaseDisplayName } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 interface LdaPlannerProps {
     objectivesVisible: boolean;
@@ -29,7 +31,7 @@ interface LdaPlannerProps {
 
 export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objectivesVisible }, ref) => {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [isCsarSheetOpen, setIsCsarSheetOpen] = useState(false);
     const { settings } = useSettings();
@@ -39,7 +41,6 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
         Object.keys(schedule).forEach(slotId => {
             const dateStr = slotId.substring(0, 10);
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-                // Only include dates that are NOT the designated weekly training night
                 const day = new Date(dateStr.replace(/-/g, '/'));
                 if (day.getDay() !== settings.trainingDay) {
                     dates.add(dateStr);
@@ -89,63 +90,86 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
             <Card key={dateStr} className="flex-shrink-0 w-full">
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
-                        <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
-                         <Sheet open={isCsarSheetOpen} onOpenChange={setIsCsarSheetOpen}>
-                            <Card className="p-3 bg-muted/50 w-72">
-                                <CardTitle className="text-base mb-2 flex items-center justify-between">
-                                    <span>CSAR Status</span>
-                                    {metadata.csarApproved ? (
-                                        <Badge variant="outline" className="text-green-600 border-green-600/60 bg-green-50 dark:bg-green-950 dark:text-green-400 dark:border-green-500/60 text-xs">
-                                            <CheckCircle className="mr-1 h-3 w-3" />
-                                            Approved
-                                        </Badge>
-                                    ) : metadata.csarSubmitted ? (
-                                        <Badge variant="outline" className="text-amber-600 border-amber-600/60 bg-amber-50 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-500/60 text-xs">
-                                            <ArrowUpCircle className="mr-1 h-3 w-3" />
-                                            Submitted
-                                        </Badge>
-                                    ) : null}
-                                </CardTitle>
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor={`csar-required-${dateStr}`} className="text-sm">Required?</Label>
-                                        <Switch id={`csar-required-${dateStr}`} checked={metadata.csarRequired} onCheckedChange={(val) => handleCsarChange('csarRequired', val)} />
+                        <div className="flex-1">
+                             <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Clear Day
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                             <Sheet open={isCsarSheetOpen} onOpenChange={setIsCsarSheetOpen}>
+                                <Card className="p-3 bg-muted/50 w-72">
+                                    <CardTitle className="text-base mb-2 flex items-center justify-between">
+                                        <span>CSAR Status</span>
+                                        {metadata.csarApproved ? (
+                                            <Badge variant="outline" className="text-green-600 border-green-600/60 bg-green-50 dark:bg-green-950 dark:text-green-400 dark:border-green-500/60 text-xs">
+                                                <CheckCircle className="mr-1 h-3 w-3" />
+                                                Approved
+                                            </Badge>
+                                        ) : metadata.csarSubmitted ? (
+                                            <Badge variant="outline" className="text-amber-600 border-amber-600/60 bg-amber-50 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-500/60 text-xs">
+                                                <ArrowUpCircle className="mr-1 h-3 w-3" />
+                                                Submitted
+                                            </Badge>
+                                        ) : null}
+                                    </CardTitle>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor={`csar-required-${dateStr}`} className="text-sm">Required?</Label>
+                                            <Switch id={`csar-required-${dateStr}`} checked={metadata.csarRequired} onCheckedChange={(val) => handleCsarChange('csarRequired', val)} />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor={`csar-submitted-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Submitted?</Label>
+                                            <Switch id={`csar-submitted-${dateStr}`} checked={metadata.csarSubmitted} onCheckedChange={(val) => handleCsarChange('csarSubmitted', val)} disabled={!metadata.csarRequired} />
+                                        </div>
+                                         <div className="flex items-center justify-between">
+                                            <Label htmlFor={`csar-approved-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Approved?</Label>
+                                            <Switch id={`csar-approved-${dateStr}`} checked={metadata.csarApproved} onCheckedChange={(val) => handleCsarChange('csarApproved', val)} disabled={!metadata.csarRequired} />
+                                        </div>
+                                        {metadata.csarRequired && (
+                                            <>
+                                                <div className="border-t pt-2 mt-2" />
+                                                <SheetTrigger asChild>
+                                                    <Button className="w-full">Plan CSAR</Button>
+                                                </SheetTrigger>
+                                            </>
+                                        )}
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor={`csar-submitted-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Submitted?</Label>
-                                        <Switch id={`csar-submitted-${dateStr}`} checked={metadata.csarSubmitted} onCheckedChange={(val) => handleCsarChange('csarSubmitted', val)} disabled={!metadata.csarRequired} />
-                                    </div>
-                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor={`csar-approved-${dateStr}`} className={cn("text-sm", !metadata.csarRequired && "text-muted-foreground")}>Approved?</Label>
-                                        <Switch id={`csar-approved-${dateStr}`} checked={metadata.csarApproved} onCheckedChange={(val) => handleCsarChange('csarApproved', val)} disabled={!metadata.csarRequired} />
-                                    </div>
-                                    {metadata.csarRequired && (
-                                        <>
-                                            <div className="border-t pt-2 mt-2" />
-                                            <SheetTrigger asChild>
-                                                <Button className="w-full">Plan CSAR</Button>
-                                            </SheetTrigger>
-                                        </>
-                                    )}
-                                </div>
-                            </Card>
-                            <SheetContent className="w-full sm:max-w-4xl p-0">
-                                <SheetHeader className="p-6 border-b">
-                                   <SheetTitle>CSAR Planner for {format(day, "PPP")}</SheetTitle>
-                                </SheetHeader>
-                               {metadata.csarDetails ? (
-                                   <CsarPlanner
-                                       initialData={metadata.csarDetails}
-                                       onSave={(data) => handleSaveCsar(dateStr, data)}
-                                       onClose={() => setIsCsarSheetOpen(false)}
-                                       startDate={format(day, "PPP")}
-                                       endDate={format(day, "PPP")}
-                                   />
-                               ) : (
-                                   <div className="p-6">Loading CSAR data or no CSAR required...</div>
-                               )}
-                           </SheetContent>
-                        </Sheet>
+                                </Card>
+                                <SheetContent className="w-full sm:max-w-4xl p-0">
+                                    <SheetHeader className="p-6 border-b">
+                                       <SheetTitle>CSAR Planner for {format(day, "PPP")}</SheetTitle>
+                                    </SheetHeader>
+                                   {metadata.csarDetails ? (
+                                       <CsarPlanner
+                                           initialData={metadata.csarDetails}
+                                           onSave={(data) => handleSaveCsar(dateStr, data)}
+                                           onClose={() => setIsCsarSheetOpen(false)}
+                                           startDate={format(day, "PPP")}
+                                           endDate={format(day, "PPP")}
+                                       />
+                                   ) : (
+                                       <div className="p-6">Loading CSAR data or no CSAR required...</div>
+                                   )}
+                               </SheetContent>
+                            </Sheet>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -183,7 +207,7 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6" onClick={() => removeScheduleItem(slotId)}>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-10" onClick={() => removeScheduleItem(slotId)}>
                                                             <X className="w-4 h-4"/>
                                                         </Button>
                                                     </div>
@@ -266,3 +290,5 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
     );
 });
 LdaPlanner.displayName = "LdaPlanner";
+
+    

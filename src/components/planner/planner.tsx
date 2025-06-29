@@ -14,7 +14,7 @@ interface PlannerProps {
 
 const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
   ({ viewMode, objectivesVisible, setViewMode }, ref) => {
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, clearDaySchedule } = useSchedule();
 
     const handleDrop = (date: string, period: number, phase: number, eo: EO) => {
         const slotId = `${date}-${period}-${phase}`;
@@ -33,6 +33,7 @@ const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
                     viewMode={viewMode}
                     dayMetadata={dayMetadata}
                     updateDayMetadata={updateDayMetadata}
+                    clearDaySchedule={clearDaySchedule}
                 />
             </div>
         </div>
@@ -42,3 +43,5 @@ const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
 Planner.displayName = "Planner";
 
 export default Planner;
+
+    

@@ -5,6 +5,7 @@ import { useCallback } from 'react';
 import type { Schedule, EO, ScheduledItem, DayMetadata, CsarDetails } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { useTrainingYear } from './use-training-year';
+import { format } from 'date-fns';
 
 export function useSchedule() {
     const { currentYear, currentYearData, updateCurrentYearData, isLoaded } = useTrainingYear();
@@ -14,17 +15,8 @@ export function useSchedule() {
     const dayMetadata = currentYearData?.dayMetadata || {};
     const defaultCsarDetails = currentYearData?.csarDetails || {};
 
-    const saveSchedule = useCallback((newSchedule: Schedule) => {
-        if (!currentYear) return;
-        updateCurrentYearData({ schedule: newSchedule });
-    }, [currentYear, updateCurrentYearData]);
-
-     const saveDayMetadata = useCallback((newDayMetadata: { [date: string]: DayMetadata }) => {
-        if (!currentYear) return;
-        updateCurrentYearData({ dayMetadata: newDayMetadata });
-    }, [currentYear, updateCurrentYearData]);
-
     const addScheduleItem = useCallback((slotId: string, eo: EO) => {
+        if (!currentYear) return;
         const newSchedule = { 
             ...schedule, 
             [slotId]: {
@@ -33,10 +25,11 @@ export function useSchedule() {
                 classroom: ''
             }
         };
-        saveSchedule(newSchedule);
-    }, [schedule, saveSchedule]);
+        updateCurrentYearData({ schedule: newSchedule });
+    }, [schedule, currentYear, updateCurrentYearData]);
 
     const updateScheduleItem = useCallback((slotId: string, details: Partial<Omit<ScheduledItem, 'eo'>>) => {
+        if (!currentYear) return;
         const [date, periodStr] = slotId.split('-').slice(0, 2);
         const period = parseInt(periodStr, 10);
 
@@ -71,16 +64,18 @@ export function useSchedule() {
 
         const updatedItem = { ...existingItem, ...details };
         const newSchedule = { ...schedule, [slotId]: updatedItem };
-        saveSchedule(newSchedule);
-    }, [schedule, saveSchedule, toast]);
+        updateCurrentYearData({ schedule: newSchedule });
+    }, [schedule, currentYear, updateCurrentYearData, toast]);
 
     const removeScheduleItem = useCallback((slotId: string) => {
+        if (!currentYear) return;
         const newSchedule = { ...schedule };
         delete newSchedule[slotId];
-        saveSchedule(newSchedule);
-    }, [schedule, saveSchedule]);
+        updateCurrentYearData({ schedule: newSchedule });
+    }, [schedule, currentYear, updateCurrentYearData]);
 
     const updateDayMetadata = useCallback((date: string, metadataUpdate: Partial<DayMetadata>) => {
+        if (!currentYear) return;
         const currentMetadata = dayMetadata[date] || { csarRequired: false, csarSubmitted: false, csarApproved: false };
         let updatedMetadata: DayMetadata = { ...currentMetadata, ...metadataUpdate };
         
@@ -92,18 +87,44 @@ export function useSchedule() {
             ...dayMetadata,
             [date]: updatedMetadata,
         };
-        saveDayMetadata(newDayMetadataState);
-    }, [dayMetadata, saveDayMetadata, defaultCsarDetails]);
+        updateCurrentYearData({ dayMetadata: newDayMetadataState });
+    }, [dayMetadata, currentYear, updateCurrentYearData, defaultCsarDetails]);
 
     const updateCsarDetails = useCallback((date: string, newDetails: CsarDetails) => {
+        if (!currentYear) return;
         const currentMetadata = dayMetadata[date];
         if (!currentMetadata) return;
 
         const updatedMetadata = { ...currentMetadata, csarDetails: newDetails };
         
         const newDayMetadataState = { ...dayMetadata, [date]: updatedMetadata };
-        saveDayMetadata(newDayMetadataState);
-    }, [dayMetadata, saveDayMetadata]);
+        updateCurrentYearData({ dayMetadata: newDayMetadataState });
+    }, [dayMetadata, currentYear, updateCurrentYearData]);
+    
+    const clearDaySchedule = useCallback((dateStr: string) => {
+        if (!currentYear) return;
 
-    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails };
+        const newSchedule = { ...schedule };
+        Object.keys(newSchedule).forEach(slotId => {
+            if (slotId.startsWith(dateStr)) {
+                delete newSchedule[slotId];
+            }
+        });
+
+        const newDayMetadata = { ...dayMetadata };
+        if (newDayMetadata[dateStr]) {
+            delete newDayMetadata[dateStr];
+        }
+        
+        updateCurrentYearData({
+            schedule: newSchedule,
+            dayMetadata: newDayMetadata
+        });
+        
+        toast({ title: "Day Cleared", description: `All plans for ${format(new Date(dateStr.replace(/-/g, '/')), 'PPP')} have been removed.` });
+    }, [currentYear, schedule, dayMetadata, updateCurrentYearData, toast]);
+
+    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule };
 }
+
+    

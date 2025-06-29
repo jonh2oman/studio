@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, addMonths, startOfMonth, eachDayOfInterval, getYear, addDays, addWeeks, startOfWeek, endOfWeek, addYears, getMonth } from "date-fns";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import type { Schedule, EO, DayMetadataState, DayMetadata } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { getPhaseDisplayName } from "@/lib/utils";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
 
 interface CalendarViewProps {
   schedule: Schedule;
@@ -24,6 +26,7 @@ interface CalendarViewProps {
   viewMode: string;
   dayMetadata: DayMetadataState;
   updateDayMetadata: (date: string, metadataUpdate: Partial<DayMetadata>) => void;
+  clearDaySchedule: (date: string) => void;
 }
 
 const nightSchedule = [
@@ -37,7 +40,7 @@ const nightSchedule = [
   { time: "2115", event: "Dismissal" },
 ];
 
-export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, dayMetadata, updateDayMetadata }: CalendarViewProps) {
+export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, dayMetadata, updateDayMetadata, clearDaySchedule }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [trainingYear, setTrainingYear] = useState<{ start: Date; end: Date } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
@@ -132,7 +135,28 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
     return (
       <Card key={dateStr} className={cn("overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", (viewMode === 'year' || viewMode === 'month') && "w-[44rem] flex-shrink-0")}>
         <CardHeader>
-          <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                        <Trash2 className="mr-2 h-4 w-4" /> Clear Day
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+          </div>
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div>
                 <Label className="text-xs text-muted-foreground">CAF Dress</Label>
@@ -192,7 +216,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                                         </div>
                                     </button>
                                 </ScheduleDialog>
-                                 <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6" onClick={() => onRemove(slotId)}>
+                                 <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-10" onClick={() => onRemove(slotId)}>
                                     <X className="w-4 h-4"/>
                                 </Button>
                             </div>
@@ -207,7 +231,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
         </CardContent>
       </Card>
     );
-  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove, dayMetadata, updateDayMetadata, settings.ordersOfDress, settings.element]);
+  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove, dayMetadata, updateDayMetadata, settings.ordersOfDress, settings.element, clearDaySchedule]);
   
   if (!isLoaded || !currentDate || !trainingYear) {
     return <div className="flex items-center justify-center h-full"><p>Loading calendar...</p></div>;
@@ -271,3 +295,5 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
     </div>
   );
 }
+
+    
