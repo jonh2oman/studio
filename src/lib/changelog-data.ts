@@ -16,6 +16,8 @@ export const changelogData: ChangelogEntry[] = [
       "Enhancement: The application now automatically migrates older data structures to include the 'element' property, ensuring compatibility with new features.",
       "UI Fix: Corrected a bug that could cause a crash when editing a scheduled lesson without an assigned instructor/classroom.",
       "UI Fix: Shortened long menu items (e.g., 'CSTP - Annual') for a cleaner interface.",
+      "UI Improvement: Added a frosted glass aesthetic throughout the application for a more modern look.",
+      "UX Improvement: The 'Invite Staff' button now opens the user's default email client with a pre-filled message, clarifying the invitation process.",
     ],
   },
   {
