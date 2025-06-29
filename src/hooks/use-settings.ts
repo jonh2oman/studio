@@ -47,6 +47,7 @@ export const defaultCorpsData: Omit<CorpsData, 'id'> = {
     settings: defaultSettings,
     trainingYears: {},
     ztoReviewedPlans: [],
+    staffEmails: [],
 };
 
 const defaultTrainingYears = {};
@@ -94,15 +95,7 @@ export function useSettings() {
                         console.error("Error: Corps ID points to a non-existent document.");
                         toast({ variant: 'destructive', title: 'Data Error', description: 'Could not find your corps data. Please contact support.' });
                     }
-                } else {
-                    // New user with no corpsId, create a new corps for them.
-                    const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
-                    const userDocRef = doc(db, 'users', user.uid);
-                    await setDoc(userDocRef, { corpsId: newCorpsRef.id }, { merge: true });
-                    setCorpsData({ id: newCorpsRef.id, ...defaultCorpsData });
-                    toast({ title: "Welcome!", description: "A new corps has been created for you." });
                 }
-
             } catch (error) {
                 console.error("Fatal error loading settings:", error);
                 toast({ variant: 'destructive', title: 'Failed to load corps data.', description: 'Please check your connection and try refreshing the page.' });
@@ -118,7 +111,17 @@ export function useSettings() {
         
         try {
             const corpsDocRef = doc(db, 'corps', corpsData.id);
-            await setDoc(corpsDocRef, dataUpdate, { merge: true });
+            const dataForFirestore = { ...dataUpdate };
+
+            if (dataUpdate.settings?.staff) {
+                const emails = dataUpdate.settings.staff
+                    .map(s => s.email)
+                    .filter((email): email is string => !!email && email.trim() !== '');
+                // @ts-ignore
+                dataForFirestore.staffEmails = emails;
+            }
+            
+            await setDoc(corpsDocRef, dataForFirestore, { merge: true });
 
             // Update local state immediately for responsiveness
             setCorpsData(prevData => {

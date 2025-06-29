@@ -301,6 +301,7 @@ export interface CorpsData {
         [year: string]: TrainingYearData;
     };
     ztoReviewedPlans?: ZtoReviewedPlan[];
+    staffEmails?: string[];
 }
 
 // Represents the data stored at /users/{userId}

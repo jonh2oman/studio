@@ -5,8 +5,10 @@ import { useState, useEffect, createContext, useContext, ReactNode, useMemo, use
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import type { UserData } from '@/lib/types';
+import { doc, onSnapshot, setDoc, query, collection, where, getDocs, addDoc } from 'firebase/firestore';
+import type { UserData, CorpsData } from '@/lib/types';
+import { defaultCorpsData } from './use-settings';
+import { useToast } from './use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -26,12 +28,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     let unsubscribeDoc: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      // Unsubscribe from previous user's document listener
       if (unsubscribeDoc) {
         unsubscribeDoc();
         unsubscribeDoc = null;
@@ -40,22 +42,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user && db) {
         setUser(user);
         const userDocRef = doc(db, 'users', user.uid);
-
-        // Set up a real-time listener for the user's document
+        
         unsubscribeDoc = onSnapshot(userDocRef, 
-          (docSnap) => {
-            if (docSnap.exists()) {
-              setUserData(docSnap.data() as UserData);
+          async (docSnap) => {
+            if (docSnap.exists() && docSnap.data().corpsId) {
+                setUserData(docSnap.data() as UserData);
+                setLoading(false);
             } else {
-              // This case handles a brand new user whose doc hasn't been created yet.
-              const newUserData: UserData = { email: user.email!, corpsId: null };
-              setDoc(userDocRef, newUserData)
-                .then(() => {
-                  // The listener will automatically pick up this change and set the state.
-                })
-                .catch(error => console.error("Error creating user document:", error));
+                // New user or user without a corpsId. Check for invites.
+                const userEmail = user.email;
+                if (!userEmail) {
+                    console.error("User has no email, cannot check for invites.");
+                    setLoading(false);
+                    return;
+                }
+                
+                try {
+                    const corpsQuery = query(collection(db, "corps"), where("staffEmails", "array-contains", userEmail));
+                    const querySnapshot = await getDocs(corpsQuery);
+
+                    if (!querySnapshot.empty) {
+                        // Found an invitation. Link user to this corps.
+                        const corpsDoc = querySnapshot.docs[0];
+                        const corpsId = corpsDoc.id;
+                        await setDoc(userDocRef, { email: userEmail, corpsId: corpsId }, { merge: true });
+                        toast({ title: "Welcome!", description: `You've been successfully linked to ${corpsDoc.data().settings.corpsName}.` });
+                        // The listener will pick up this change and re-run.
+                    } else {
+                        // No invitation found. Create a new corps for them.
+                        const newCorpsRef = await addDoc(collection(db, "corps"), defaultCorpsData);
+                        await setDoc(userDocRef, { email: userEmail, corpsId: newCorpsRef.id }, { merge: true });
+                        toast({ title: "Welcome!", description: "A new corps has been created for you." });
+                        // The listener will pick up this change and re-run.
+                    }
+                } catch (e) {
+                    console.error("Error during new user setup:", e);
+                    toast({ variant: 'destructive', title: 'Setup Error', description: 'Could not set up your account data.' });
+                    setLoading(false);
+                }
             }
-            setLoading(false);
           }, 
           (error) => {
             console.error("Error listening to user document:", error);
@@ -65,7 +90,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         );
       } else {
-        // User logged out or db not available
         setUser(null);
         setUserData(null);
         setLoading(false);
@@ -78,7 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         unsubscribeDoc();
       }
     };
-  }, []);
+  }, [toast]);
 
   const logout = useCallback(async () => {
       if (auth) {

@@ -4,17 +4,35 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isNewUser() {
+      // A user is new if their user document doesn't exist or has no corpsId.
+      // This is slightly tricky because the doc might not exist yet during the check.
+      // The client logic handles the "does not exist" part. This rule handles "exists but has no corpsId".
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return userData == null || userData.corpsId == null;
+    }
+
+    function isExistingUserInCorps(corpsId) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
+    }
+
     match /users/{userId} {
+      // A user can read and write to their own user document.
       allow read, write: if request.auth.uid == userId;
     }
 
     match /corps/{corpsId} {
-      // Allow a user to read/update/delete a corps document if their profile is linked to it.
-      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == corpsId;
+      // CREATE: A new user can create a corps document.
+      allow create: if request.auth.uid != null && isNewUser();
 
-      // Allow a user to create a corps document ONLY if they don't already have one.
-      // This prevents users from creating multiple corps.
-      allow create: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.corpsId == null;
+      // READ, UPDATE: An existing user can read/update their own corps document.
+      allow read, update: if request.auth.uid != null && isExistingUserInCorps(corpsId);
+
+      // LIST: A new user can perform the lookup query to find their corps.
+      allow list: if request.auth.uid != null && isNewUser();
+
+      // DELETE: No user can delete a corps document from the client.
+      allow delete: if false;
     }
   }
 }
