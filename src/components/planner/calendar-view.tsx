@@ -122,27 +122,24 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, date: string, period: number, phase: number) => {
     e.preventDefault();
     setDragOverSlot(null);
-
     const targetSlotId = `${date}-${period}-${phase}`;
 
-    const moveDataString = e.dataTransfer.getData("application/json+move");
-    if (moveDataString) {
-        const { sourceSlotId } = JSON.parse(moveDataString);
-        if (sourceSlotId !== targetSlotId) {
-            onMove(sourceSlotId, targetSlotId);
+    try {
+        const data = JSON.parse(e.dataTransfer.getData("application/json"));
+        if (data.type === 'move') {
+            if (data.sourceSlotId !== targetSlotId) {
+                onMove(data.sourceSlotId, targetSlotId);
+            }
+        } else if (data.type === 'new') {
+            onDrop(date, period, phase, data.eo);
         }
-    } else {
-        const eo = JSON.parse(e.dataTransfer.getData("application/json"));
-        onDrop(date, period, phase, eo);
+    } catch (error) {
+        console.error("Failed to handle drop:", error);
     }
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, slotId: string, item: ScheduledItem) => {
-    const moveData = {
-        ...item,
-        sourceSlotId: slotId,
-    };
-    e.dataTransfer.setData("application/json+move", JSON.stringify(moveData));
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: "move", sourceSlotId: slotId }));
     e.dataTransfer.effectAllowed = "move";
   };
 
@@ -159,7 +156,6 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
     const dress = metadata.dressOfTheDay || { caf: '', cadets: '' };
 
     const handleDressChange = (type: 'caf' | 'cadets', value: string) => {
-        const newDress = { ...dress, [type]: value };
         updateDayMetadata(dateStr, { dressOfTheDay: newDress });
     };
 
@@ -223,11 +219,19 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
                       >
                         {scheduledItem ? (
                             <div 
-                                className="relative group w-full h-full cursor-grab active:cursor-grabbing"
+                                className="relative group w-full h-full"
                                 draggable
                                 onDragStart={(e) => handleDragStart(e, slotId, scheduledItem)}
                             >
-                                <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => onRemove(slotId)}>
+                                <Button
+                                    variant="ghost" size="icon"
+                                    className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onRemove(slotId);
+                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                >
                                     <X className="w-4 h-4"/>
                                 </Button>
                                 <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => onUpdate(slotId, details)} >
@@ -270,7 +274,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
 
   return (
     <>
-        <div className="flex flex-col bg-card min-w-0 print:h-auto">
+        <div className="flex flex-col bg-card min-w-0 print:h-auto print:overflow-visible">
             <header className="flex items-center justify-between p-4 border-b print:hidden">
                 <h2 className="text-xl font-bold">{headerText}</h2>
                 <div className="flex items-center gap-2">

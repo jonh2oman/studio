@@ -29,7 +29,7 @@ export function ObjectivesList() {
   const trainingData = elementalTrainingData[settings.element] || [];
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, eo: EO) => {
-    e.dataTransfer.setData("application/json", JSON.stringify(eo));
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: 'new', eo: eo }));
     e.dataTransfer.effectAllowed = "move";
   };
   
@@ -40,7 +40,7 @@ export function ObjectivesList() {
         type: 'complimentary',
         poId: 'CS'
     };
-    e.dataTransfer.setData("application/json", JSON.stringify(eoForDrag));
+    e.dataTransfer.setData("application/json", JSON.stringify({ type: 'new', eo: eoForDrag }));
     e.dataTransfer.effectAllowed = "move";
   };
 
