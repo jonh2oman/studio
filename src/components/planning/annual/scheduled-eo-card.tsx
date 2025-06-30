@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { useSchedule } from "@/hooks/use-schedule";
 import { useSettings } from "@/hooks/use-settings";
 import type { ScheduledItem } from "@/lib/types";
 import { X } from "lucide-react";
-import { useMemo, useState, useCallback, ChangeEvent } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { useDebounce } from 'use-debounce';
 
 interface ScheduledEoCardProps {
@@ -80,4 +79,3 @@ export function ScheduledEoCard({ item, slotId, onRemove }: ScheduledEoCardProps
         </div>
     );
 }
-
