@@ -184,6 +184,9 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                             >
                                                 {scheduledItem ? (
                                                     <>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => removeScheduleItem(slotId)}>
+                                                            <X className="w-4 h-4"/>
+                                                        </Button>
                                                         <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => updateScheduleItem(slotId, details)} >
                                                             <button className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
                                                                 <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
@@ -195,9 +198,6 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => removeScheduleItem(slotId)}>
-                                                            <X className="w-4 h-4"/>
-                                                        </Button>
                                                     </>
                                                 ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
                                             </div>
@@ -289,3 +289,4 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
     );
 });
 LdaPlanner.displayName = "LdaPlanner";
+
