@@ -34,7 +34,7 @@ const dashboardCategories = [
             { href: "/cadets", title: "Cadet Management", icon: Users, description: "Add, view, and manage your corps' cadet roster." },
             { href: "/attendance", title: "Attendance Management", icon: ClipboardCheck, description: "Mark and track attendance for training nights." },
             { href: "/awards", title: "Awards Management", icon: Trophy, description: "Manage corps awards and track eligible cadets." },
-            { href: "/marksmanship", title: "Marksmanship/Biathlon", icon: Target, description: "Enter cadet scores and track their achievements." },
+            { href: "/marksmanship", title: "Marksmanship / Biathlon", icon: Target, description: "Enter cadet scores and track their achievements." },
         ]
     },
     {
