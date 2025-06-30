@@ -23,7 +23,7 @@ interface PlannedCsar {
 }
 
 export default function CsarPage() {
-    const { dayMetadata, updateDayMetadata, isLoaded: scheduleLoaded } = useSchedule();
+    const { dayMetadata, updateDayMetadata } = useSchedule();
     const { currentYearData, updateCurrentYearData, isLoaded: yearLoaded } = useTrainingYear();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [editingCsar, setEditingCsar] = useState<PlannedCsar | null>(null);
@@ -70,25 +70,35 @@ export default function CsarPage() {
     const handleDeleteCsar = (date: string) => {
         const dayData = dayMetadata[date];
         if (!dayData || !dayData.csarDetails) return;
-
+    
         const csarName = dayData.csarDetails.activityName;
-        const { csarDetails, ...restOfDayData } = dayData;
-
-        const newDayMetadata = { ...dayMetadata }; // Create a shallow copy
-
-        if (Object.keys(restOfDayData).length > 0) {
-            // If other data exists for the day, just update that day's entry
-            newDayMetadata[date] = restOfDayData;
-        } else {
-            // If csarDetails was the only property, remove the whole day's entry
-            delete newDayMetadata[date];
-        }
-        
-        updateCurrentYearData({ dayMetadata: newDayMetadata });
+    
+        // Use a functional update to prevent race conditions and stale state.
+        updateCurrentYearData(prevData => {
+            const currentDayMetadata = prevData.dayMetadata || {};
+            
+            // Make a mutable copy for this operation
+            const newDayMetadata = { ...currentDayMetadata };
+            const dayToUpdate = newDayMetadata[date];
+    
+            if (dayToUpdate) {
+                // Remove the csarDetails property
+                delete dayToUpdate.csarDetails;
+    
+                // If the day object is now empty, remove the day itself
+                if (Object.keys(dayToUpdate).length === 0) {
+                    delete newDayMetadata[date];
+                }
+            }
+            
+            // Return the updated state for the entire training year
+            return { ...prevData, dayMetadata: newDayMetadata };
+        });
+    
         toast({ variant: 'destructive', title: 'CSAR Deleted', description: `The plan for "${csarName}" has been deleted.`});
     };
     
-    const isLoading = !scheduleLoaded || !yearLoaded;
+    const isLoading = !yearLoaded;
 
     return (
         <>
