@@ -25,8 +25,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 // Internal component for a draggable, scheduled EO card
 function ScheduledEoCard({ slotId, item }: { slotId: string; item: ScheduledItem }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: slotId,
-        data: { slotId, eo: item.eo },
+        id: `drag-${slotId}`, // Unique ID for dragging
+        data: { 
+            type: 'scheduled-item',
+            slotId: slotId, 
+            eo: item.eo 
+        },
     });
     const { updateScheduleItem, removeScheduleItem } = useSchedule();
     const [instructor, setInstructor] = useState(item.instructor);
@@ -79,23 +83,27 @@ export default function DayPlannerPage() {
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
-        const targetSlotId = over?.id as string;
 
-        if (!targetSlotId) return;
+        if (!over) {
+            return;
+        }
 
-        const sourceSlotId = active.data.current?.slotId;
-        if (sourceSlotId) {
+        const targetSlotId = over.id as string;
+        const activeData = active.data.current;
+        
+        if (activeData?.type === 'scheduled-item') {
+            const sourceSlotId = activeData.slotId as string;
             if (sourceSlotId !== targetSlotId) {
                 moveScheduleItem(sourceSlotId, targetSlotId);
             }
-            return;
-        }
-        
-        const eo = active.data.current?.eo as EO | undefined;
-        if (eo) {
-            addScheduleItem(targetSlotId, eo);
+        } else if (activeData?.type === 'new-eo') {
+            const eo = activeData.eo as EO | undefined;
+            if (eo) {
+                addScheduleItem(targetSlotId, eo);
+            }
         }
     };
+
 
     const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : '';
     const metadata = dateStr ? dayMetadata[dateStr] || {} : {};

@@ -9,7 +9,10 @@ import { GripVertical } from 'lucide-react';
 export function DraggableEoItem({ eo }: { eo: EO }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: eo.id,
-        data: { eo },
+        data: { 
+            type: 'new-eo',
+            eo 
+        },
     });
 
     const style = transform ? {
