@@ -1,14 +1,14 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Loader2, PlusCircle, Edit, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useSchedule } from '@/hooks/use-schedule';
 import { useTrainingYear } from '@/hooks/use-training-year';
-import { CsarPlanner } from '@/components/csar/csar-planner';
+import { CsarPlanner, CsarPlannerRef } from '@/components/csar/csar-planner';
 import type { CsarDetails, DayMetadata } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,7 @@ export default function CsarPage() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [editingCsar, setEditingCsar] = useState<PlannedCsar | null>(null);
     const { toast } = useToast();
+    const plannerRef = useRef<CsarPlannerRef>(null);
 
     const plannedCsars = useMemo<PlannedCsar[]>(() => {
         if (!dayMetadata) return [];
@@ -146,12 +147,21 @@ export default function CsarPage() {
                     {editingCsar && (
                         <>
                             <SheetHeader className="p-6 border-b flex-shrink-0">
-                                <SheetTitle>Editing CSAR: {editingCsar.details.activityName}</SheetTitle>
-                                <SheetDescription>
-                                    {format(new Date(editingCsar.date.replace(/-/g, '/')), 'EEEE, MMMM dd, yyyy')}
-                                </SheetDescription>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <SheetTitle>Editing CSAR: {editingCsar.details.activityName}</SheetTitle>
+                                        <SheetDescription>
+                                            {format(new Date(editingCsar.date.replace(/-/g, '/')), 'EEEE, MMMM dd, yyyy')}
+                                        </SheetDescription>
+                                    </div>
+                                     <Button onClick={() => plannerRef.current?.submit()}>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Save Changes
+                                    </Button>
+                                </div>
                             </SheetHeader>
                             <CsarPlanner
+                                ref={plannerRef}
                                 key={editingCsar.date} // Force re-render on selection change
                                 initialData={editingCsar.details}
                                 onSave={(data) => handleSaveCsar(editingCsar.date, data)}

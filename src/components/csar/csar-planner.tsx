@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Calendar as CalendarIcon, CheckCircle } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, forwardRef, useImperativeHandle } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
@@ -94,7 +94,11 @@ interface CsarPlannerProps {
   endDate: string;
 }
 
-export function CsarPlanner({ initialData, onSave, startDate, endDate }: CsarPlannerProps) {
+export interface CsarPlannerRef {
+  submit: () => void;
+}
+
+export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initialData, onSave, startDate, endDate }, ref) => {
   const form = useForm<CsarDetails>({
     resolver: zodResolver(csarDetailsSchema),
     defaultValues: initialData || defaultYearData.csarDetails,
@@ -118,6 +122,12 @@ export function CsarPlanner({ initialData, onSave, startDate, endDate }: CsarPla
   const onSubmit = (data: CsarDetails) => {
     onSave(data);
   };
+
+  useImperativeHandle(ref, () => ({
+    submit: () => {
+      form.handleSubmit(onSubmit)();
+    }
+  }));
 
   return (
     <Form {...form}>
@@ -325,10 +335,9 @@ export function CsarPlanner({ initialData, onSave, startDate, endDate }: CsarPla
             </Tabs>
           </ScrollArea>
         </div>
-        <div className="p-4 border-t flex justify-end gap-2 bg-transparent">
-            <Button type="submit">Save Changes</Button>
-        </div>
       </form>
     </Form>
   );
-}
+});
+
+CsarPlanner.displayName = "CsarPlanner";
