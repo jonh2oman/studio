@@ -18,7 +18,6 @@ export function useSchedule() {
     const addScheduleItem = useCallback((slotId: string, eo: EO) => {
         if (!currentYear) return;
         
-        // Prevent adding to an occupied slot
         if (schedule[slotId]) {
             toast({ variant: "destructive", title: "Slot Occupied", description: "This slot already has a lesson planned." });
             return;
@@ -76,8 +75,13 @@ export function useSchedule() {
 
     const removeScheduleItem = useCallback((slotId: string) => {
         if (!currentYear) return;
-        const { [slotId]: _, ...rest } = schedule; // Use destructuring to omit the key
-        updateCurrentYearData({ schedule: rest });
+        const newSchedule = Object.keys(schedule).reduce((acc, key) => {
+            if (key !== slotId) {
+                acc[key] = schedule[key];
+            }
+            return acc;
+        }, {} as Schedule);
+        updateCurrentYearData({ schedule: newSchedule });
     }, [schedule, currentYear, updateCurrentYearData]);
     
     const moveScheduleItem = useCallback((sourceSlotId: string, targetSlotId: string) => {
@@ -89,8 +93,14 @@ export function useSchedule() {
         }
 
         const itemToMove = schedule[sourceSlotId];
-        const { [sourceSlotId]: _, ...restOfSchedule } = schedule; // Omit the source
-        const newSchedule = { ...restOfSchedule, [targetSlotId]: itemToMove }; // Add the target
+        const newSchedule = Object.keys(schedule).reduce((acc, key) => {
+            if (key !== sourceSlotId) {
+                acc[key] = schedule[key];
+            }
+            return acc;
+        }, {} as Schedule);
+
+        newSchedule[targetSlotId] = itemToMove;
 
         updateCurrentYearData({ schedule: newSchedule });
 

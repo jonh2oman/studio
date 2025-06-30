@@ -50,14 +50,14 @@ export const instructionsData = [
                 <p>This planner is designed for scheduling single-day or multi-day training events that are not part of your regular weekly parade nights, such as weekend exercises or Local Directed Activities (LDAs).</p>
                 <h4 className="font-semibold text-foreground">The Objectives Panel</h4>
                 <p>This panel on the left is your palette of lessons. It contains all official EOs for your selected element, plus any custom EOs you've created in Settings. Use the search bar to quickly find what you need.</p>
-                <h4 className="font-semibold text-foreground">Core Mechanic: Drag & Drop</h4>
+                <h4 className="font-semibold text-foreground">Core Mechanic: Click-to-Add</h4>
                 <ol className="list-decimal list-inside space-y-1">
                     <li>Use the calendar to select a date to plan.</li>
-                    <li>The planning grid for that day will appear.</li>
-                    <li>Find the lesson (EO) you want to schedule in the "Training Objectives" panel.</li>
-                    <li>Click and drag the lesson from the list.</li>
-                    <li>Drop it onto the desired Phase / Level / Star Level slot for a specific Period on the grid.</li>
-                    <li>Once an EO is scheduled, click on it to assign an Instructor and a Classroom. The app will warn you if you create a scheduling conflict.</li>
+                    <li>The planning grid for that day will appear, showing 9 periods.</li>
+                    <li>Click on an empty planning slot in the grid. It will become highlighted to indicate it is your target.</li>
+                    <li>In the "Training Objectives" panel, find the lesson (EO) you want to schedule and click the "+" button next to it.</li>
+                    <li>The lesson will instantly appear in your selected slot.</li>
+                    <li>Once an EO is scheduled, you can assign an Instructor and Classroom, or click the 'X' button to remove it from the schedule.</li>
                 </ol>
                 <h4 className="font-semibold text-foreground">CSAR Status Tracking</h4>
                 <p>The planner includes toggles for "CSAR Required?", "Submitted," and "Approved." These are for your visual reference only and help you keep track of the administrative status of an event. They do not link to the main CSAR Planning module.</p>
