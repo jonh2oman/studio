@@ -68,19 +68,26 @@ export default function CsarPage() {
     };
 
     const handleDeleteCsar = (date: string) => {
+        const dayData = dayMetadata[date];
+        if (!dayData || !dayData.csarDetails) return;
+
+        const csarName = dayData.csarDetails.activityName;
+        // Create a new object for the day, omitting csarDetails
+        const { csarDetails, ...restOfDayData } = dayData;
+
+        // Create a new copy of the entire dayMetadata object
         const newDayMetadata = { ...dayMetadata };
-        if (newDayMetadata[date]) {
-            const csarName = newDayMetadata[date].csarDetails?.activityName;
-            delete newDayMetadata[date].csarDetails;
-            // If the metadata object is now empty, remove the whole date entry
-            if (Object.keys(newDayMetadata[date]).length === 0) {
-                delete newDayMetadata[date];
-            }
-            if (updateCurrentYearData) {
-                updateCurrentYearData({ dayMetadata: newDayMetadata });
-                toast({ variant: 'destructive', title: 'CSAR Deleted', description: `The plan for "${csarName}" has been deleted.`});
-            }
+
+        if (Object.keys(restOfDayData).length > 0) {
+            // If there are other properties for that day (e.g., dress), update the day
+            newDayMetadata[date] = restOfDayData;
+        } else {
+            // If csarDetails was the only property, remove the entire day entry
+            delete newDayMetadata[date];
         }
+        
+        updateCurrentYearData({ dayMetadata: newDayMetadata });
+        toast({ variant: 'destructive', title: 'CSAR Deleted', description: `The plan for "${csarName}" has been deleted.`});
     };
     
     const isLoading = !scheduleLoaded || !yearLoaded;
