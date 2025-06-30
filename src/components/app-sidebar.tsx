@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban, Target } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban, Target, ClipboardEdit } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -41,6 +41,7 @@ const navGroups = [
       { href: "/planner", label: "CSTP - Annual", icon: Calendar },
       { href: "/weekends", label: "Weekend Planner", icon: CalendarDays },
       { href: "/lda", label: "LDA Day Planner", icon: CalendarPlus },
+      { href: "/csar", label: "CSAR Planning", icon: ClipboardEdit },
       { href: "/ada", label: "ADA Planner", icon: ClipboardList },
     ]
   },

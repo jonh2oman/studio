@@ -9,7 +9,7 @@ import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
 import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord } from '@/lib/types';
 import { useSettings } from './use-settings';
 
-const defaultYearData: TrainingYearData = {
+export const defaultYearData: TrainingYearData = {
     firstTrainingNight: '',
     element: 'Sea',
     dutySchedule: {},

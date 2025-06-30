@@ -22,6 +22,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 import { Badge } from "@/components/ui/badge";
+import { defaultYearData } from "@/hooks/use-training-year";
+import { useToast } from "@/hooks/use-toast";
 
 const j4ItemSchema = z.object({
   id: z.string(),
@@ -86,25 +88,16 @@ const csarDetailsSchema = z.object({
 });
 
 interface CsarPlannerProps {
-  initialData: CsarDetails;
+  initialData?: CsarDetails;
   onSave: (data: CsarDetails) => void;
-  onClose: () => void;
   startDate: string;
   endDate: string;
 }
 
-export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }: CsarPlannerProps) {
-  const processedInitialData = {
-    ...initialData,
-    mealPlan: (initialData.mealPlan || []).map(item => ({
-        ...item,
-        dateRequired: new Date(item.dateRequired),
-    }))
-  };
-
+export function CsarPlanner({ initialData, onSave, startDate, endDate }: CsarPlannerProps) {
   const form = useForm<CsarDetails>({
     resolver: zodResolver(csarDetailsSchema),
-    defaultValues: processedInitialData,
+    defaultValues: initialData || defaultYearData.csarDetails,
   });
 
   const { fields: j4Fields, append: appendJ4, remove: removeJ4 } = useFieldArray({
@@ -124,14 +117,13 @@ export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }
 
   const onSubmit = (data: CsarDetails) => {
     onSave(data);
-    onClose();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full bg-background">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full bg-transparent">
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full p-6">
+          <ScrollArea className="h-full pr-4 -mr-4">
             <Tabs defaultValue="details">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">CSAR Details</TabsTrigger>
@@ -333,9 +325,8 @@ export function CsarPlanner({ initialData, onSave, onClose, startDate, endDate }
             </Tabs>
           </ScrollArea>
         </div>
-        <div className="p-4 border-t flex justify-end gap-2 bg-background">
-            <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button type="submit">Save CSAR Plan</Button>
+        <div className="p-4 border-t flex justify-end gap-2 bg-transparent">
+            <Button type="submit">Save Changes</Button>
         </div>
       </form>
     </Form>

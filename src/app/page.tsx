@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban, Target } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban, Target, ClipboardEdit } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { elementalTrainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -28,6 +28,7 @@ const dashboardCategories = [
             { href: "/planner", title: "CSTP - Annual", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
             { href: "/weekends", title: "Weekend Planner", icon: CalendarDays, description: "Plan training weekends with a detailed 9-period schedule." },
             { href: "/lda", title: "LDA Day Planner", icon: CalendarPlus, description: "Plan single ad-hoc training days with a 9-period schedule." },
+            { href: "/csar", title: "CSAR Planning", icon: ClipboardEdit, description: "Create and manage Cadet Support and Activity Requests." },
             { href: "/ada", title: "ADA Planner", icon: ClipboardList, description: "Account for EOs completed at Area Directed Activities." },
         ]
     },
