@@ -22,7 +22,7 @@ import { CsarPlanner } from '@/components/csar/csar-planner';
 import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel';
 import { useSettings } from '@/hooks/use-settings';
 import { getPhaseDisplayName } from '@/lib/utils';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 interface WeekendPlannerProps {
@@ -34,7 +34,6 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [activeCsarDay, setActiveCsarDay] = useState<string | null>(null);
-    const [dayToDelete, setDayToDelete] = useState<string | null>(null);
     const { settings } = useSettings();
 
     const weekendDays = useMemo(() => {
@@ -61,13 +60,6 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
         updateCsarDetails(dateStr, data);
     };
     
-    const handleDeleteConfirmation = () => {
-        if (dayToDelete) {
-            clearDaySchedule(dayToDelete);
-            setDayToDelete(null);
-        }
-    };
-
     const renderDayCard = (day: Date, index: number) => {
         const dateStr = format(day, "yyyy-MM-dd");
         const metadata = dayMetadata[dateStr] || { csarRequired: false, csarSubmitted: false, csarApproved: false };
@@ -80,12 +72,33 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
             <Card key={dateStr} className="flex-shrink-0 w-[44rem] relative">
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
-                        <div className="flex items-center gap-2 flex-1">
+                         <div className="flex items-center gap-2 flex-1">
                             <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
-                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => setDayToDelete(dateStr)}>
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Clear Day</span>
-                            </Button>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                                        <Trash2 className="h-4 w-4" />
+                                        <span className="sr-only">Clear Day</span>
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will permanently delete all planned lessons for {format(day, 'PPP')}. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            variant="destructive"
+                                            onClick={() => clearDaySchedule(dateStr)}
+                                        >
+                                            Delete
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
                         <Sheet open={activeCsarDay === dateStr} onOpenChange={(isOpen) => setActiveCsarDay(isOpen ? dateStr : null)}>
                             <Card className="p-3 bg-muted/50 w-64 relative">
@@ -234,20 +247,6 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                     </ScrollArea>
                 </div>
             </div>
-             <Dialog open={!!dayToDelete} onOpenChange={(open) => !open && setDayToDelete(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Are you sure?</DialogTitle>
-                        <DialogDescription>
-                            This will permanently delete all planned lessons for {dayToDelete ? format(new Date(dayToDelete.replace(/-/g, '/')), 'PPP') : ''}. This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setDayToDelete(null)}>Cancel</Button>
-                        <Button variant="destructive" onClick={handleDeleteConfirmation}>Delete</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </>
     );
 });

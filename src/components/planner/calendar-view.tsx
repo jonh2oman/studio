@@ -15,7 +15,7 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { getPhaseDisplayName } from "@/lib/utils";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
 interface CalendarViewProps {
@@ -44,7 +44,6 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [trainingYear, setTrainingYear] = useState<{ start: Date; end: Date } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
-  const [dayToDelete, setDayToDelete] = useState<string | null>(null);
   const { settings, isLoaded } = useSettings();
   const { currentYearData, isLoaded: yearLoaded } = useTrainingYear();
 
@@ -122,13 +121,6 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
     onDrop(date, period, phase, eo);
     setDragOverSlot(null);
   };
-  
-  const handleDeleteConfirmation = () => {
-    if (dayToDelete) {
-        clearDaySchedule(dayToDelete);
-        setDayToDelete(null);
-    }
-  };
 
   const renderTrainingDayCard = useCallback((day: Date) => {
     const dateStr = format(day, "yyyy-MM-dd");
@@ -146,10 +138,31 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
                 <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => setDayToDelete(dateStr)}>
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Clear Day</span>
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Clear Day</span>
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will permanently delete all planned lessons for {format(day, 'PPP')}. This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                variant="destructive"
+                                onClick={() => clearDaySchedule(dateStr)}
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 pt-2">
@@ -211,7 +224,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                                         </div>
                                     </button>
                                 </ScheduleDialog>
-                                 <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-50" onClick={() => onRemove(slotId)}>
+                                 <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-10" onClick={() => onRemove(slotId)}>
                                     <X className="w-4 h-4"/>
                                 </Button>
                             </div>
@@ -289,20 +302,6 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                 </div>
             )}
         </div>
-         <Dialog open={!!dayToDelete} onOpenChange={(open) => !open && setDayToDelete(null)}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Are you sure?</DialogTitle>
-                    <DialogDescription>
-                        This will permanently delete all planned lessons for {dayToDelete ? format(new Date(dayToDelete.replace(/-/g, '/')), 'PPP') : ''}. This action cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="ghost" onClick={() => setDayToDelete(null)}>Cancel</Button>
-                    <Button variant="destructive" onClick={handleDeleteConfirmation}>Delete</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     </>
   );
 }
