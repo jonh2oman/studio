@@ -76,9 +76,8 @@ export function useSchedule() {
 
     const removeScheduleItem = useCallback((slotId: string) => {
         if (!currentYear) return;
-        const newSchedule = { ...schedule };
-        delete newSchedule[slotId];
-        updateCurrentYearData({ schedule: newSchedule });
+        const { [slotId]: _, ...rest } = schedule; // Use destructuring to omit the key
+        updateCurrentYearData({ schedule: rest });
     }, [schedule, currentYear, updateCurrentYearData]);
     
     const moveScheduleItem = useCallback((sourceSlotId: string, targetSlotId: string) => {
@@ -90,9 +89,8 @@ export function useSchedule() {
         }
 
         const itemToMove = schedule[sourceSlotId];
-        const newSchedule = { ...schedule };
-        delete newSchedule[sourceSlotId];
-        newSchedule[targetSlotId] = itemToMove;
+        const { [sourceSlotId]: _, ...restOfSchedule } = schedule; // Omit the source
+        const newSchedule = { ...restOfSchedule, [targetSlotId]: itemToMove }; // Add the target
 
         updateCurrentYearData({ schedule: newSchedule });
 
