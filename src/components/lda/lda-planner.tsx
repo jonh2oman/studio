@@ -22,7 +22,7 @@ import { CsarPlanner } from '@/components/csar/csar-planner';
 import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel';
 import { useSettings } from '@/hooks/use-settings';
 import { getPhaseDisplayName } from '@/lib/utils';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
 interface LdaPlannerProps {
@@ -34,6 +34,7 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [isCsarSheetOpen, setIsCsarSheetOpen] = useState(false);
+    const [dayToDelete, setDayToDelete] = useState<string | null>(null);
     const { settings } = useSettings();
 
     const plannedDates = useMemo(() => {
@@ -52,6 +53,13 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
 
     const handleDateLinkClick = (dateStr: string) => {
         setSelectedDate(new Date(dateStr.replace(/-/g, '/')));
+    };
+    
+    const handleDeleteConfirmation = () => {
+        if (dayToDelete) {
+            clearDaySchedule(dayToDelete);
+            setDayToDelete(null);
+        }
     };
 
     const dayToPlan = useMemo(() => {
@@ -170,7 +178,7 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                                 onDragLeave={handleDragLeave}
                                                 onDrop={(e) => handleDrop(e, dateStr, period, phase)}
                                                 className={cn(
-                                                    "relative p-2 rounded-md min-h-[5rem] border-2 border-dashed flex flex-col justify-center items-center transition-colors",
+                                                    "relative group p-2 rounded-md min-h-[5rem] border-2 border-dashed flex flex-col justify-center items-center transition-colors",
                                                     dragOverSlot === slotId ? "border-primary bg-primary/10" : "border-muted-foreground/20 hover:border-primary/50",
                                                     { "border-solid bg-background p-3": scheduledItem }
                                                 )}
@@ -188,7 +196,7 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-50" onClick={() => removeScheduleItem(slotId)}>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-10" onClick={() => removeScheduleItem(slotId)}>
                                                             <X className="w-4 h-4"/>
                                                         </Button>
                                                     </div>
@@ -206,94 +214,98 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
     };
 
     return (
-        <div className="relative rounded-lg border bg-card">
-            {objectivesVisible && <DraggableObjectivesPanel />}
-            <div className="rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
-                <div className="flex items-center justify-between p-4 border-b">
-                    <h2 className="text-xl font-bold">Select a Date to Plan</h2>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-[280px] justify-start text-left font-normal",
-                                !selectedDate && "text-muted-foreground"
-                            )}
-                            >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-                
-                {plannedDates.length > 0 && (
-                    <div className="p-4 border-b">
-                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">Jump to a Planned Day</h3>
-                        <ScrollArea className="h-24">
-                            <div className="flex flex-wrap gap-2">
-                                {plannedDates.map(dateStr => {
-                                    const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
-                                    return (
-                                        <div key={dateStr} className="relative group">
-                                            <Button 
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleDateLinkClick(dateStr)}
-                                                className={cn("pr-7", isSelected && "border-primary text-primary")}
-                                            >
-                                                {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="absolute top-1/2 right-0 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            This will permanently delete all planned lessons for {format(new Date(dateStr.replace(/-/g, '/')), 'PPP')}. This action cannot be undone.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </ScrollArea>
+        <>
+            <div className="relative rounded-lg border bg-card">
+                {objectivesVisible && <DraggableObjectivesPanel />}
+                <div className="rounded-lg bg-card text-card-foreground overflow-hidden flex flex-col">
+                    <div className="flex items-center justify-between p-4 border-b">
+                        <h2 className="text-xl font-bold">Select a Date to Plan</h2>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-[280px] justify-start text-left font-normal",
+                                    !selectedDate && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={setSelectedDate}
+                                initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
-                )}
-                
-                <div ref={ref} className="p-4">
-                    {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
-                        <div className="text-center text-muted-foreground py-16">
-                            Please select a date to start planning.
+                    
+                    {plannedDates.length > 0 && (
+                        <div className="p-4 border-b">
+                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Jump to a Planned Day</h3>
+                            <ScrollArea className="h-24">
+                                <div className="flex flex-wrap gap-2">
+                                    {plannedDates.map(dateStr => {
+                                        const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
+                                        return (
+                                            <div key={dateStr} className="relative group">
+                                                <Button 
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleDateLinkClick(dateStr)}
+                                                    className={cn("pr-7", isSelected && "border-primary text-primary")}
+                                                >
+                                                    {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute top-1/2 right-0 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setDayToDelete(dateStr);
+                                                    }}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </ScrollArea>
                         </div>
                     )}
+                    
+                    <div ref={ref} className="p-4">
+                        {dayToPlan.length > 0 ? dayToPlan.map(renderDayCard) : (
+                            <div className="text-center text-muted-foreground py-16">
+                                Please select a date to start planning.
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+             <Dialog open={!!dayToDelete} onOpenChange={(open) => !open && setDayToDelete(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Are you sure?</DialogTitle>
+                        <DialogDescription>
+                            This will permanently delete all planned lessons for {dayToDelete ? format(new Date(dayToDelete.replace(/-/g, '/')), 'PPP') : ''}. This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setDayToDelete(null)}>Cancel</Button>
+                        <Button variant="destructive" onClick={handleDeleteConfirmation}>Delete</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 });
 LdaPlanner.displayName = "LdaPlanner";
 
+    
