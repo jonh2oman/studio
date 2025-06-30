@@ -73,6 +73,23 @@ export function useSchedule() {
         delete newSchedule[slotId];
         updateCurrentYearData({ schedule: newSchedule });
     }, [schedule, currentYear, updateCurrentYearData]);
+    
+    const moveScheduleItem = useCallback((sourceSlotId: string, targetSlotId: string) => {
+        if (!currentYear || !schedule[sourceSlotId]) return;
+
+        if (schedule[targetSlotId]) {
+            toast({ variant: "destructive", title: "Cannot Move", description: "Target slot is already occupied. Please move to an empty slot." });
+            return;
+        }
+
+        const itemToMove = schedule[sourceSlotId];
+        const newSchedule = { ...schedule };
+        delete newSchedule[sourceSlotId];
+        newSchedule[targetSlotId] = itemToMove;
+
+        updateCurrentYearData({ schedule: newSchedule });
+
+    }, [schedule, currentYear, updateCurrentYearData, toast]);
 
     const updateDayMetadata = useCallback((date: string, metadataUpdate: Partial<DayMetadata>) => {
         if (!currentYear) return;
@@ -124,7 +141,7 @@ export function useSchedule() {
         toast({ title: "Day Cleared", description: `All plans for ${format(new Date(dateStr.replace(/-/g, '/')), 'PPP')} have been removed.` });
     }, [currentYear, schedule, dayMetadata, updateCurrentYearData, toast]);
 
-    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule };
+    return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, moveScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule };
 }
 
     

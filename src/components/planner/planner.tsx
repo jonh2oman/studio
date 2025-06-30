@@ -2,7 +2,7 @@
 "use client";
 import React from "react";
 import { CalendarView } from "@/components/planner/calendar-view";
-import type { EO } from "@/lib/types";
+import type { EO, ScheduledItem } from "@/lib/types";
 import { useSchedule } from "@/hooks/use-schedule";
 import { DraggableObjectivesPanel } from "./draggable-objectives-panel";
 
@@ -14,11 +14,15 @@ interface PlannerProps {
 
 const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
   ({ viewMode, objectivesVisible, setViewMode }, ref) => {
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, clearDaySchedule } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, moveScheduleItem, dayMetadata, updateDayMetadata, clearDaySchedule } = useSchedule();
 
     const handleDrop = (date: string, period: number, phase: number, eo: EO) => {
         const slotId = `${date}-${period}-${phase}`;
         addScheduleItem(slotId, eo);
+    };
+
+    const handleMove = (sourceSlotId: string, targetSlotId: string) => {
+        moveScheduleItem(sourceSlotId, targetSlotId);
     };
 
     return (
@@ -30,6 +34,7 @@ const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
                     onDrop={handleDrop} 
                     onUpdate={updateScheduleItem}
                     onRemove={removeScheduleItem}
+                    onMove={handleMove}
                     viewMode={viewMode}
                     dayMetadata={dayMetadata}
                     updateDayMetadata={updateDayMetadata}

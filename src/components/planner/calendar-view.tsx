@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, addMonths, startOfMonth, eachDayOfInterval, getYear, addDays, addWeeks, startOfWeek, endOfWeek, addYears, getMonth } from "date-fns";
 import { ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
-import type { Schedule, EO, DayMetadataState, DayMetadata } from "@/lib/types";
+import type { Schedule, EO, DayMetadataState, DayMetadata, ScheduledItem } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScheduleDialog } from "./schedule-dialog";
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { getPhaseDisplayName } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DialogTrigger } from "../ui/dialog";
 
 
 interface CalendarViewProps {
@@ -23,6 +24,7 @@ interface CalendarViewProps {
   onDrop: (date: string, period: number, phase: number, eo: EO) => void;
   onUpdate: (slotId: string, details: { instructor?: string; classroom?: string }) => void;
   onRemove: (slotId: string) => void;
+  onMove: (sourceSlotId: string, targetSlotId: string) => void;
   viewMode: string;
   dayMetadata: DayMetadataState;
   updateDayMetadata: (date: string, metadataUpdate: Partial<DayMetadata>) => void;
@@ -40,7 +42,7 @@ const nightSchedule = [
   { time: "2115", event: "Dismissal" },
 ];
 
-export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, dayMetadata, updateDayMetadata, clearDaySchedule }: CalendarViewProps) {
+export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, viewMode, dayMetadata, updateDayMetadata, clearDaySchedule }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [trainingYear, setTrainingYear] = useState<{ start: Date; end: Date } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
@@ -116,11 +118,32 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
     e.preventDefault(); setDragOverSlot(slotId);
   };
   const handleDragLeave = () => setDragOverSlot(null);
+  
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, date: string, period: number, phase: number) => {
     e.preventDefault();
-    const eo = JSON.parse(e.dataTransfer.getData("application/json"));
-    onDrop(date, period, phase, eo);
     setDragOverSlot(null);
+
+    const targetSlotId = `${date}-${period}-${phase}`;
+
+    const moveDataString = e.dataTransfer.getData("application/json+move");
+    if (moveDataString) {
+        const { sourceSlotId } = JSON.parse(moveDataString);
+        if (sourceSlotId !== targetSlotId) {
+            onMove(sourceSlotId, targetSlotId);
+        }
+    } else {
+        const eo = JSON.parse(e.dataTransfer.getData("application/json"));
+        onDrop(date, period, phase, eo);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, slotId: string, item: ScheduledItem) => {
+    const moveData = {
+        ...item,
+        sourceSlotId: slotId,
+    };
+    e.dataTransfer.setData("application/json+move", JSON.stringify(moveData));
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const handleConfirmDelete = () => {
@@ -199,22 +222,28 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                         )}
                       >
                         {scheduledItem ? (
-                            <>
-                                <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => onUpdate(slotId, details)} >
-                                    <button className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
-                                        <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
-                                        <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
-                                        <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
-                                        <div className="text-xs space-y-0.5">
-                                            <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor?.trim() ? scheduledItem.instructor : 'N/A'}</p>
-                                            <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom?.trim() ? scheduledItem.classroom : 'N/A'}</p>
-                                        </div>
-                                    </button>
-                                </ScheduleDialog>
-                                 <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => onRemove(slotId)}>
+                            <div 
+                                className="relative group w-full h-full cursor-grab active:cursor-grabbing"
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, slotId, scheduledItem)}
+                            >
+                                <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => onRemove(slotId)}>
                                     <X className="w-4 h-4"/>
                                 </Button>
-                            </>
+                                <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => onUpdate(slotId, details)} >
+                                    <DialogTrigger asChild>
+                                        <div className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1 cursor-pointer">
+                                            <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
+                                            <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
+                                            <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
+                                            <div className="text-xs space-y-0.5">
+                                                <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor?.trim() ? scheduledItem.instructor : 'N/A'}</p>
+                                                <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom?.trim() ? scheduledItem.classroom : 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                    </DialogTrigger>
+                                </ScheduleDialog>
+                            </div>
                         ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
                       </div>
                     );
@@ -226,7 +255,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
         </CardContent>
       </Card>
     );
-  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove, dayMetadata, updateDayMetadata, settings.ordersOfDress, settings.element]);
+  }, [schedule, dragOverSlot, viewMode, onDrop, onUpdate, onRemove, onMove, dayMetadata, updateDayMetadata, settings.ordersOfDress, settings.element]);
   
   if (!isLoaded || !currentDate || !trainingYear) {
     return <div className="flex items-center justify-center h-full"><p>Loading calendar...</p></div>;
