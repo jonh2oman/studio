@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,10 +16,11 @@ interface IssuedListProps {
   cadets: Cadet[];
   onReturn: (issuedItemId: string) => void;
   onPrintLoanCard: (issuedItem: IssuedUniformItem, cadet: Cadet, uniformItem: UniformItem) => void;
+  onPrintAllForCadet: (cadetId: string) => void;
   isLoaded: boolean;
 }
 
-export function IssuedList({ issuedItems, inventory, cadets, onReturn, onPrintLoanCard, isLoaded }: IssuedListProps) {
+export function IssuedList({ issuedItems, inventory, cadets, onReturn, onPrintLoanCard, onPrintAllForCadet, isLoaded }: IssuedListProps) {
   
   const enrichedIssuedItems = useMemo(() => {
     return issuedItems.map(issued => {
@@ -77,7 +77,10 @@ export function IssuedList({ issuedItems, inventory, cadets, onReturn, onPrintLo
                     <Card key={cadetId} className="border">
                         <AccordionItem value={cadetId} className="border-b-0">
                             <AccordionTrigger className="p-4 hover:no-underline">
-                                <span className="font-semibold">{cadetName} ({items.length} items)</span>
+                                <div className="flex justify-between w-full items-center pr-2">
+                                    <span className="font-semibold">{cadetName} ({items.length} items)</span>
+                                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onPrintAllForCadet(cadetId); }}><Printer className="mr-2 h-4 w-4" />Print All</Button>
+                                </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-4 pb-4">
                                 <div className="border rounded-md">

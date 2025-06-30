@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback, useRef } from "react";
@@ -17,6 +16,13 @@ import { UniformIssueForm } from "@/components/corps-management/uniforms/uniform
 import { IssuedList } from "@/components/corps-management/uniforms/issued-list";
 import { PrintableUniformLoanCard } from "@/components/corps-management/uniforms/printable-uniform-loan-card";
 
+// New state structure for printing
+interface ItemToPrint {
+  cadet: Cadet;
+  issuedItemsWithData: { issuedItem: IssuedUniformItem; uniformItem: UniformItem }[];
+}
+
+
 export default function UniformSupplyPage() {
   const { settings, saveSettings, isLoaded } = useSettings();
   const { cadets, isLoaded: cadetsLoaded } = useCadets();
@@ -24,7 +30,7 @@ export default function UniformSupplyPage() {
   
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<UniformItem | null>(null);
-  const [itemToPrint, setItemToPrint] = useState<{ issuedItem: IssuedUniformItem; cadet: Cadet; uniformItem: UniformItem; } | null>(null);
+  const [itemToPrint, setItemToPrint] = useState<ItemToPrint | null>(null); // Updated state
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const inventory = settings.uniformInventory || [];
@@ -38,11 +44,9 @@ export default function UniformSupplyPage() {
   const handleSaveItem = useCallback((itemData: Omit<UniformItem, "id"> | UniformItem) => {
     let updatedInventory: UniformItem[];
     if ("id" in itemData) {
-      // Editing existing item
       updatedInventory = inventory.map(i => i.id === itemData.id ? itemData : i);
       toast({ title: "Item Updated" });
     } else {
-      // Adding new item
       const newItem = { ...itemData, id: crypto.randomUUID() };
       updatedInventory = [...inventory, newItem];
       toast({ title: "Item Added", description: `"${newItem.name}" added to inventory.` });
@@ -99,26 +103,54 @@ export default function UniformSupplyPage() {
      toast({ title: "Item Returned", description: `"${originalItem?.name || 'Item'}" returned to stock.` });
 
   }, [inventory, issuedItems, saveSettings, toast]);
+  
+  const generatePdf = useCallback(() => {
+    const input = pdfRef.current;
+    if (!input) return;
+
+    html2canvas(input, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', [127, 203]); // 5x8 inches
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`Uniform-Card-${itemToPrint?.cadet.lastName}-${new Date().toISOString().split('T')[0]}.pdf`);
+        setItemToPrint(null);
+    });
+  }, [itemToPrint]);
 
   const handlePrintLoanCard = useCallback((issuedItem: IssuedUniformItem, cadet: Cadet, uniformItem: UniformItem) => {
-    setItemToPrint({ issuedItem, cadet, uniformItem });
+    setItemToPrint({
+      cadet,
+      issuedItemsWithData: [{ issuedItem, uniformItem }],
+    });
 
-    setTimeout(() => {
-        const input = pdfRef.current;
-        if (!input) return;
+    setTimeout(() => generatePdf(), 100);
+  }, [generatePdf]);
+  
+  const handlePrintAllForCadet = useCallback((cadetId: string) => {
+    const cadet = cadets.find(c => c.id === cadetId);
+    if (!cadet) return;
+    
+    const cadetIssuedItems = issuedItems.filter(item => item.cadetId === cadetId);
+    const issuedItemsWithData = cadetIssuedItems.map(issuedItem => {
+        const uniformItem = inventory.find(inv => inv.id === issuedItem.uniformItemId);
+        return uniformItem ? { issuedItem, uniformItem } : null;
+    }).filter((item): item is { issuedItem: IssuedUniformItem; uniformItem: UniformItem } => item !== null);
 
-        html2canvas(input, { scale: 2 }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', [127, 203]); // 5x8 inches
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Uniform-Card-${cadet.lastName}-${uniformItem.name}.pdf`);
-            setItemToPrint(null);
-        });
-    }, 100);
-  }, []);
+    if (issuedItemsWithData.length === 0) {
+      toast({ title: "No items to print." });
+      return;
+    }
+
+    setItemToPrint({
+      cadet,
+      issuedItemsWithData,
+    });
+    
+    setTimeout(() => generatePdf(), 100);
+  }, [cadets, issuedItems, inventory, generatePdf, toast]);
 
   return (
     <>
@@ -141,6 +173,7 @@ export default function UniformSupplyPage() {
                 cadets={cadets}
                 onReturn={handleReturnItem}
                 onPrintLoanCard={handlePrintLoanCard}
+                onPrintAllForCadet={handlePrintAllForCadet}
                 isLoaded={isLoaded && cadetsLoaded}
             />
         </div>
@@ -168,9 +201,8 @@ export default function UniformSupplyPage() {
         {itemToPrint && (
             <PrintableUniformLoanCard 
                 ref={pdfRef}
-                issuedItem={itemToPrint.issuedItem}
                 cadet={itemToPrint.cadet}
-                uniformItem={itemToPrint.uniformItem}
+                issuedItemsWithData={itemToPrint.issuedItemsWithData}
                 corpsName={settings.corpsName}
                 corpsLogo={settings.corpsLogo}
             />
