@@ -10,7 +10,7 @@ import { useToast } from './use-toast';
 interface StoreContextType {
   inventory: StoreItem[];
   transactions: Transaction[];
-  addStoreItem: (item: Omit<StoreItem, 'id'>) => void;
+  addStoreItem: (item: Omit<StoreItem, "id">) => void;
   updateStoreItem: (item: StoreItem) => void;
   removeStoreItem: (itemId: string) => void;
   addTransaction: (cadetId: string, amount: number, reason: string) => void;
@@ -28,7 +28,11 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
     const transactions = useMemo(() => currentYearData?.transactions || [], [currentYearData]);
 
     const addStoreItem = useCallback((itemData: Omit<StoreItem, 'id'>) => {
-        const newItem: StoreItem = { ...itemData, id: crypto.randomUUID() };
+        const newItem: StoreItem = {
+            ...itemData,
+            description: itemData.description || '', // Ensure description is a string
+            id: crypto.randomUUID(),
+        };
         updateCurrentYearData(prevData => ({
             ...prevData,
             storeInventory: [...(prevData.storeInventory || []), newItem]
@@ -37,9 +41,13 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
     }, [updateCurrentYearData, toast]);
 
     const updateStoreItem = useCallback((updatedItem: StoreItem) => {
+        const cleanedItem: StoreItem = {
+            ...updatedItem,
+            description: updatedItem.description || '', // Ensure description is a string
+        };
         updateCurrentYearData(prevData => ({
             ...prevData,
-            storeInventory: (prevData.storeInventory || []).map(item => item.id === updatedItem.id ? updatedItem : item)
+            storeInventory: (prevData.storeInventory || []).map(item => item.id === cleanedItem.id ? cleanedItem : item)
         }));
         toast({ title: "Item Updated" });
     }, [updateCurrentYearData, toast]);
