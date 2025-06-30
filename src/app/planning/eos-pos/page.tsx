@@ -90,19 +90,21 @@ export default function EosPosPage() {
                                                                     <TableHead>EO Title</TableHead>
                                                                     <TableHead className="w-[150px]">Type</TableHead>
                                                                     <TableHead className="w-[100px] text-right">Periods</TableHead>
+                                                                    <TableHead className="w-[120px] text-right">Periods Planned</TableHead>
                                                                     <TableHead className="w-[100px] text-center">Status</TableHead>
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>
                                                                 {po.enablingObjectives.length === 0 && (
                                                                     <TableRow>
-                                                                        <TableCell colSpan={5} className="h-16 text-center text-muted-foreground">
+                                                                        <TableCell colSpan={6} className="h-16 text-center text-muted-foreground">
                                                                             No Enabling Objectives for this PO.
                                                                         </TableCell>
                                                                     </TableRow>
                                                                 )}
                                                                 {po.enablingObjectives.map((eo) => {
-                                                                    const isEoComplete = (scheduledEoCounts[eo.id] || 0) >= eo.periods;
+                                                                    const scheduledCount = scheduledEoCounts[eo.id] || 0;
+                                                                    const isEoComplete = scheduledCount >= eo.periods;
                                                                     return (
                                                                         <TableRow key={eo.id}>
                                                                             <TableCell className="font-mono text-xs">{eo.id.split('-').slice(1).join('-')}</TableCell>
@@ -113,6 +115,7 @@ export default function EosPosPage() {
                                                                                 </Badge>
                                                                             </TableCell>
                                                                             <TableCell className="text-right">{eo.periods}</TableCell>
+                                                                            <TableCell className="text-right">{scheduledCount}</TableCell>
                                                                             <TableCell className="text-center">
                                                                                 {isEoComplete && <CheckCircle className="h-5 w-5 text-green-600 mx-auto" />}
                                                                             </TableCell>
