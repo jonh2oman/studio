@@ -1,3 +1,4 @@
+
 "use client";
 
 import { forwardRef } from 'react';
@@ -65,7 +66,6 @@ export const PrintableUniformLoanCard = forwardRef<HTMLDivElement, PrintableUnif
                 <p className="text-xs text-gray-700 leading-relaxed">
                     I, the undersigned cadet, acknowledge receipt of the uniform item(s) listed above. I understand that these items are the property of the Department of National Defence and are on loan to me for the purpose of my training with the Canadian Cadet Organizations.
                     I agree to take all reasonable measures to care for and maintain these items. I will report any damage or loss to the corps/squadron Supply Officer immediately.
-                    I understand that I am financially responsible for the replacement cost of any item if it is lost, stolen, or damaged beyond normal wear and tear due to my own negligence.
                     I agree to return all items in good condition upon my departure from the cadet program or when requested to do so by the corps/squadron staff.
                 </p>
             </div>

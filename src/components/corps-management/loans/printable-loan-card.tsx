@@ -57,7 +57,6 @@ export const PrintableLoanCard = forwardRef<HTMLDivElement, PrintableLoanCardPro
                 <p className="text-xs text-gray-700 leading-relaxed">
                     I, the undersigned cadet, acknowledge receipt of the asset listed above. I understand that this item is the property of the Department of National Defence and is on loan to me for the purpose of my training with the Canadian Cadet Organizations.
                     I agree to take all reasonable measures to care for and maintain this item. I will report any damage or loss to the corps/squadron Supply Officer immediately.
-                    I understand that I am financially responsible for the replacement cost of the item if it is lost, stolen, or damaged beyond normal wear and tear due to my own negligence.
                     I agree to return the item in good condition on or before the specified return date.
                 </p>
             </div>
