@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, forwardRef } from 'react';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Trash2 } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
@@ -252,27 +252,23 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                     {plannedDates.map(dateStr => {
                                         const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
                                         return (
-                                            <div key={dateStr} className="relative group inline-flex items-center rounded-md">
-                                                <div 
+                                            <div key={dateStr} className="inline-flex items-center rounded-md border">
+                                                <Button
+                                                    variant={isSelected ? 'secondary' : 'ghost'}
+                                                    size="sm"
+                                                    className="rounded-r-none border-r h-8"
                                                     onClick={() => handleDateLinkClick(dateStr)}
-                                                    className={cn(
-                                                        buttonVariants({ variant: 'outline', size: 'sm' }),
-                                                        "pr-8 cursor-pointer z-0",
-                                                        isSelected && "border-primary text-primary"
-                                                    )}
                                                 >
                                                     {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
-                                                </div>
+                                                </Button>
                                                 <Button
                                                     variant="ghost"
-                                                    size="icon"
-                                                    className="absolute top-0 right-0 h-full w-7 rounded-l-none text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setDayToDelete(dateStr);
-                                                    }}
+                                                    size="sm"
+                                                    className="rounded-l-none p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8"
+                                                    onClick={() => setDayToDelete(dateStr)}
                                                 >
-                                                    <Trash2 className="h-3 w-3" />
+                                                    <Trash2 className="h-4 w-4" />
+                                                    <span className="sr-only">Delete {dateStr}</span>
                                                 </Button>
                                             </div>
                                         );

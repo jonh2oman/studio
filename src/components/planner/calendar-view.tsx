@@ -15,7 +15,7 @@ import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { getPhaseDisplayName } from "@/lib/utils";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 
 interface CalendarViewProps {
@@ -44,6 +44,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [trainingYear, setTrainingYear] = useState<{ start: Date; end: Date } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
+  const [dayToDelete, setDayToDelete] = useState<string | null>(null);
   const { settings, isLoaded } = useSettings();
   const { currentYearData, isLoaded: yearLoaded } = useTrainingYear();
 
@@ -121,6 +122,13 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
     onDrop(date, period, phase, eo);
     setDragOverSlot(null);
   };
+  
+  const handleDeleteConfirmation = () => {
+    if (dayToDelete) {
+        clearDaySchedule(dayToDelete);
+        setDayToDelete(null);
+    }
+  };
 
   const renderTrainingDayCard = useCallback((day: Date) => {
     const dateStr = format(day, "yyyy-MM-dd");
@@ -134,30 +142,15 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
 
     return (
       <Card key={dateStr} className={cn("relative overflow-hidden print:shadow-none print:border print:border-gray-300 print:break-inside-avoid", (viewMode === 'year' || viewMode === 'month') && "w-[44rem] flex-shrink-0")}>
-        <AlertDialog>
-            <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 text-destructive hover:bg-destructive/10 hover:text-destructive print:hidden">
-                    <Trash2 className="h-5 w-5" />
-                    <span className="sr-only">Clear Day</span>
-                </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+            <div className="flex items-center gap-2">
+                <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => setDayToDelete(dateStr)}>
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Clear Day</span>
+                </Button>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div>
@@ -200,7 +193,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, dateStr, period, phase)}
                         className={cn(
-                          "relative p-2 rounded-md min-h-[6rem] border-2 border-dashed flex flex-col justify-center items-center transition-colors",
+                          "relative group p-2 rounded-md min-h-[6rem] border-2 border-dashed flex flex-col justify-center items-center transition-colors",
                           dragOverSlot === slotId ? "border-primary bg-primary/10" : "border-muted-foreground/20 hover:border-primary/50",
                           { "border-solid bg-background p-3": scheduledItem }
                         )}
@@ -247,54 +240,70 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
   }, {} as Record<string, Date[]>);
 
   return (
-    <div className="flex flex-col bg-card min-w-0 print:h-auto">
-      <header className="flex items-center justify-between p-4 border-b print:hidden">
-        <h2 className="text-xl font-bold">{headerText}</h2>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => changeDate(-1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => changeDate(1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </header>
-      
-      {viewMode === 'year' ? (
-        <div className="p-4 print:h-auto print:overflow-visible">
-            <div className="flex gap-8 print:block">
-              {Object.entries(groupedByMonth).map(([month, days]) => (
-                <div key={month} className="space-y-4 print:break-after-page">
-                  <h3 className="text-lg font-bold sticky left-0">{month}</h3>
-                  <div className="flex gap-4 print:flex-wrap">
-                    {days.map(renderTrainingDayCard)}
-                  </div>
+    <>
+        <div className="flex flex-col bg-card min-w-0 print:h-auto">
+            <header className="flex items-center justify-between p-4 border-b print:hidden">
+                <h2 className="text-xl font-bold">{headerText}</h2>
+                <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={() => changeDate(-1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => changeDate(1)}>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
                 </div>
-              ))}
-            </div>
+            </header>
+            
+            {viewMode === 'year' ? (
+                <div className="p-4 print:h-auto print:overflow-visible">
+                    <div className="flex gap-8 print:block">
+                    {Object.entries(groupedByMonth).map(([month, days]) => (
+                        <div key={month} className="space-y-4 print:break-after-page">
+                        <h3 className="text-lg font-bold sticky left-0">{month}</h3>
+                        <div className="flex gap-4 print:flex-wrap">
+                            {days.map(renderTrainingDayCard)}
+                        </div>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+            ) : viewMode === 'month' ? (
+                <div className="p-4 flex flex-wrap gap-4 print:h-auto print:overflow-visible">
+                {trainingDaysToShow.length > 0 ? (
+                    trainingDaysToShow.map(renderTrainingDayCard)
+                ) : (
+                    <div className="text-center text-muted-foreground py-16 w-full">
+                    No training days scheduled for this {viewMode}.
+                    </div>
+                )}
+                </div>
+            ) : (
+                <div className="p-4 space-y-8 print:h-auto print:overflow-visible">
+                {trainingDaysToShow.length > 0 ? (
+                    trainingDaysToShow.map(renderTrainingDayCard)
+                ) : (
+                    <div className="text-center text-muted-foreground py-16">
+                    No training days scheduled for this {viewMode}.
+                    </div>
+                )}
+                </div>
+            )}
         </div>
-      ) : viewMode === 'month' ? (
-        <div className="p-4 flex flex-wrap gap-4 print:h-auto print:overflow-visible">
-          {trainingDaysToShow.length > 0 ? (
-            trainingDaysToShow.map(renderTrainingDayCard)
-          ) : (
-            <div className="text-center text-muted-foreground py-16 w-full">
-              No training days scheduled for this {viewMode}.
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="p-4 space-y-8 print:h-auto print:overflow-visible">
-          {trainingDaysToShow.length > 0 ? (
-            trainingDaysToShow.map(renderTrainingDayCard)
-          ) : (
-            <div className="text-center text-muted-foreground py-16">
-              No training days scheduled for this {viewMode}.
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+         <Dialog open={!!dayToDelete} onOpenChange={(open) => !open && setDayToDelete(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Are you sure?</DialogTitle>
+                    <DialogDescription>
+                        This will permanently delete all planned lessons for {dayToDelete ? format(new Date(dayToDelete.replace(/-/g, '/')), 'PPP') : ''}. This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={() => setDayToDelete(null)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleDeleteConfirmation}>Delete</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    </>
   );
 }
 

@@ -80,15 +80,15 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
             <Card key={dateStr} className="flex-shrink-0 w-[44rem] relative">
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
-                        <div className="flex items-center gap-4 flex-1">
+                        <div className="flex items-center gap-2 flex-1">
                             <CardTitle className="text-base">{format(day, "EEEE, MMMM do")}</CardTitle>
+                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => setDayToDelete(dateStr)}>
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Clear Day</span>
+                            </Button>
                         </div>
                         <Sheet open={activeCsarDay === dateStr} onOpenChange={(isOpen) => setActiveCsarDay(isOpen ? dateStr : null)}>
                             <Card className="p-3 bg-muted/50 w-64 relative">
-                                <Button variant="ghost" size="icon" className="absolute -top-1 -right-1 z-10 h-6 w-6 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDayToDelete(dateStr); }}>
-                                    <Trash2 className="h-4 w-4" />
-                                    <span className="sr-only">Clear Day</span>
-                                </Button>
                                 <CardTitle className="text-base mb-2 flex items-center justify-between">
                                     <span>CSAR Status</span>
                                     {metadata.csarApproved ? (
