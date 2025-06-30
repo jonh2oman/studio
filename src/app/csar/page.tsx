@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { useSchedule } from '@/hooks/use-schedule';
 import { useTrainingYear } from '@/hooks/use-training-year';
@@ -14,7 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { CreateCsarDialog } from '@/components/csar/create-csar-dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface PlannedCsar {
     date: string;
@@ -24,7 +25,7 @@ interface PlannedCsar {
 
 export default function CsarPage() {
     const { dayMetadata, updateDayMetadata } = useSchedule();
-    const { currentYearData, updateCurrentYearData, isLoaded: yearLoaded } = useTrainingYear();
+    const { isLoaded: yearLoaded } = useTrainingYear();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [editingCsar, setEditingCsar] = useState<PlannedCsar | null>(null);
     const { toast } = useToast();
@@ -34,7 +35,7 @@ export default function CsarPage() {
         return Object.entries(dayMetadata)
             .filter(([, meta]) => meta.csarDetails)
             .map(([date, meta]) => ({ date, details: meta.csarDetails!, metadata: meta }))
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [dayMetadata]);
 
     const handleCreateCsar = (name: string, date: Date) => {
@@ -45,8 +46,25 @@ export default function CsarPage() {
         }
 
         const newCsarDetails: CsarDetails = {
-            ...(currentYearData?.csarDetails || {}), // Start with default CSAR structure
             activityName: name,
+            activityLocation: '',
+            startTime: '09:00',
+            endTime: '17:00',
+            isMultiUnit: false,
+            numCadetsMale: 0,
+            numCadetsFemale: 0,
+            numStaffMale: 0,
+            numStaffFemale: 0,
+            transportRequired: false,
+            transportation: { schoolBus44: 0, cruiser55: 0 },
+            supportVehiclesRequired: false,
+            supportVehicles: { van8: 0, crewCab: 0, cubeVan: 0, miniVan7: 0, panelVan: 0, staffCar: 0 },
+            fuelCardRequired: false,
+            accommodationsRequired: false,
+            accommodation: { cost: 0 },
+            mealsRequired: false,
+            mealPlan: [],
+            j4Plan: { submitted: false, approved: false, items: [] },
         };
 
         const currentMetadata = dayMetadata[dateStr] || {};
@@ -67,37 +85,6 @@ export default function CsarPage() {
         toast({ title: "CSAR Saved", description: `Changes for ${format(new Date(date.replace(/-/g,'/')), 'PPP')} have been saved.`});
     };
 
-    const handleDeleteCsar = (date: string) => {
-        const dayData = dayMetadata[date];
-        if (!dayData || !dayData.csarDetails) return;
-    
-        const csarName = dayData.csarDetails.activityName;
-    
-        // Use a functional update to prevent race conditions and stale state.
-        updateCurrentYearData(prevData => {
-            const currentDayMetadata = prevData.dayMetadata || {};
-            
-            // Make a mutable copy for this operation
-            const newDayMetadata = { ...currentDayMetadata };
-            const dayToUpdate = newDayMetadata[date];
-    
-            if (dayToUpdate) {
-                // Remove the csarDetails property
-                delete dayToUpdate.csarDetails;
-    
-                // If the day object is now empty, remove the day itself
-                if (Object.keys(dayToUpdate).length === 0) {
-                    delete newDayMetadata[date];
-                }
-            }
-            
-            // Return the updated state for the entire training year
-            return { ...prevData, dayMetadata: newDayMetadata };
-        });
-    
-        toast({ variant: 'destructive', title: 'CSAR Deleted', description: `The plan for "${csarName}" has been deleted.`});
-    };
-    
     const isLoading = !yearLoaded;
 
     return (
@@ -133,26 +120,20 @@ export default function CsarPage() {
                                         <CardDescription>{format(new Date(csar.date.replace(/-/g, '/')), 'EEEE, MMMM dd, yyyy')}</CardDescription>
                                     </CardHeader>
                                     <CardContent className="flex-grow">
-                                        {/* Future summary content can go here */}
+                                        <div className="flex flex-wrap gap-2">
+                                            {csar.metadata.csarSubmitted && (
+                                                <Badge variant={csar.metadata.csarApproved ? "default" : "secondary"} className={cn(csar.metadata.csarApproved && "bg-green-600 hover:bg-green-600/90")}>
+                                                    CSAR {csar.metadata.csarApproved ? 'Approved' : 'Submitted'}
+                                                </Badge>
+                                            )}
+                                            {csar.details.j4Plan.submitted && (
+                                                <Badge variant={csar.details.j4Plan.approved ? "default" : "secondary"} className={cn(csar.details.j4Plan.approved && "bg-green-600 hover:bg-green-600/90")}>
+                                                    J4 {csar.details.j4Plan.approved ? 'Approved' : 'Submitted'}
+                                                </Badge>
+                                            )}
+                                        </div>
                                     </CardContent>
-                                    <CardFooter className="flex justify-between">
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4" /> Delete</Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This will permanently delete the CSAR for "{csar.details.activityName}". This action cannot be undone.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDeleteCsar(csar.date)}>Delete</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                    <CardFooter className="flex justify-end">
                                         <Button onClick={() => setEditingCsar(csar)}><Edit className="mr-2 h-4 w-4"/> Edit Plan</Button>
                                     </CardFooter>
                                 </Card>
