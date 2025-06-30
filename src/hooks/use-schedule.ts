@@ -34,7 +34,7 @@ export function useSchedule() {
         const period = parseInt(periodStr, 10);
 
         let conflict = false;
-        if (details.instructor || details.classroom) {
+        if (details.instructor?.trim() || details.classroom?.trim()) {
             for (const otherSlotId in schedule) {
                 if (otherSlotId === slotId) continue;
                 
@@ -43,12 +43,12 @@ export function useSchedule() {
 
                 const [otherDate, otherPeriodStr] = otherSlotId.split('-').slice(0, 2);
                 if (date === otherDate && period === parseInt(otherPeriodStr, 10)) {
-                    if (details.instructor && otherItem.instructor && details.instructor === otherItem.instructor) {
+                    if (details.instructor?.trim() && otherItem.instructor?.trim() && details.instructor.trim() === otherItem.instructor.trim()) {
                         toast({ variant: "destructive", title: "Conflict Detected", description: `Instructor ${details.instructor} is already busy during this period.` });
                         conflict = true;
                         break;
                     }
-                    if (details.classroom && otherItem.classroom && details.classroom === otherItem.classroom) {
+                    if (details.classroom?.trim() && otherItem.classroom?.trim() && details.classroom.trim() === otherItem.classroom.trim()) {
                         toast({ variant: "destructive", title: "Conflict Detected", description: `Classroom ${details.classroom} is already occupied during this period.` });
                         conflict = true;
                         break;

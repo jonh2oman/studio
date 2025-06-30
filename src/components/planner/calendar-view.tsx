@@ -119,7 +119,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
   };
   const handleDragLeave = () => setDragOverSlot(null);
   
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, date: string, period: number, phase: number) => {
+  const handleDropOnSlot = (e: React.DragEvent<HTMLDivElement>, date: string, period: number, phase: number) => {
     e.preventDefault();
     setDragOverSlot(null);
     const targetSlotId = `${date}-${period}-${phase}`;
@@ -138,7 +138,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
     }
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, slotId: string) => {
+  const handleDragStartOnCard = (e: React.DragEvent<HTMLDivElement>, slotId: string) => {
     e.dataTransfer.setData("application/json", JSON.stringify({ type: "move", sourceSlotId: slotId }));
     e.dataTransfer.effectAllowed = "move";
   };
@@ -211,7 +211,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
                         key={phase}
                         onDragOver={(e) => handleDragOver(e, slotId)}
                         onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, dateStr, period, phase)}
+                        onDrop={(e) => handleDropOnSlot(e, dateStr, period, phase)}
                         className={cn(
                           "relative group p-2 rounded-md min-h-[6rem] border-2 border-dashed flex flex-col justify-center items-center transition-colors",
                           dragOverSlot === slotId ? "border-primary bg-primary/10" : "border-muted-foreground/20 hover:border-primary/50",
@@ -225,8 +225,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
                                 </Button>
                                 <div
                                     draggable
-                                    onDragStart={(e) => handleDragStart(e, slotId)}
-                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onDragStart={(e) => handleDragStartOnCard(e, slotId)}
                                     className="absolute top-1 left-1 p-1 cursor-grab opacity-0 group-hover:opacity-100 z-10"
                                 >
                                     <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -235,7 +234,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
                                     <DialogTrigger asChild>
                                         <div className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1 cursor-pointer">
                                             <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
-                                            <p className="font-bold text-sm">{scheduledItem.eo?.id ? scheduledItem.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
+                                            <p className="font-bold text-sm">{scheduledItem.eo?.id?.split('-').slice(1).join('-') || 'Invalid EO'}</p>
                                             <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo?.title || 'No Title'}</p>
                                             <div className="text-xs space-y-0.5">
                                                 <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor?.trim() ? scheduledItem.instructor : 'N/A'}</p>

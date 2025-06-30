@@ -3,8 +3,7 @@
 
 import { forwardRef } from 'react';
 import { format } from 'date-fns';
-import { trainingData } from '@/lib/data';
-import type { Schedule, Settings } from '@/lib/types';
+import type { Schedule } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface WroPreviewProps {
@@ -84,7 +83,7 @@ export const WroPreview = forwardRef<HTMLDivElement, WroPreviewProps>(({ data, l
                                        <TableCell key={phase} className="text-black">
                                            {item ? (
                                                <div>
-                                                   <p className="font-bold">{item.eo?.id ? item.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
+                                                   <p className="font-bold">{item.eo?.id?.split('-').slice(1).join('-') || 'Invalid EO'}</p>
                                                    <p className="text-xs">{item.eo?.title || 'No Title'}</p>
                                                    <p className="text-xs italic">Inst: {item.instructor || 'TBA'}</p>
                                                    <p className="text-xs italic">Loc: {item.classroom || 'TBA'}</p>

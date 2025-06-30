@@ -16,12 +16,12 @@ const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
   ({ viewMode, objectivesVisible, setViewMode }, ref) => {
     const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, moveScheduleItem, dayMetadata, updateDayMetadata, clearDaySchedule } = useSchedule();
 
-    const handleDrop = (date: string, period: number, phase: number, eo: EO) => {
+    const handleAddNewItem = (date: string, period: number, phase: number, eo: EO) => {
         const slotId = `${date}-${period}-${phase}`;
         addScheduleItem(slotId, eo);
     };
 
-    const handleMove = (sourceSlotId: string, targetSlotId: string) => {
+    const handleMoveItem = (sourceSlotId: string, targetSlotId: string) => {
         moveScheduleItem(sourceSlotId, targetSlotId);
     };
 
@@ -31,10 +31,10 @@ const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
             <div>
                 <CalendarView 
                     schedule={schedule} 
-                    onDrop={handleDrop} 
+                    onDrop={handleAddNewItem} 
                     onUpdate={updateScheduleItem}
                     onRemove={removeScheduleItem}
-                    onMove={handleMove}
+                    onMove={handleMoveItem}
                     viewMode={viewMode}
                     dayMetadata={dayMetadata}
                     updateDayMetadata={updateDayMetadata}
