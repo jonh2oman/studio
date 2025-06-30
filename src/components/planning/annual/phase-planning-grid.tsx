@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import { useSchedule } from "@/hooks/use-schedule";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface PhasePlanningGridProps {
   date: Date;
@@ -45,11 +47,11 @@ export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSel
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                         <div className="flex flex-wrap gap-4">
                              <div>
-                                <label className="text-xs font-medium text-muted-foreground">CAF Dress</label>
+                                <Label className="text-xs font-medium text-muted-foreground">CAF Dress</Label>
                                 <Input value={metadata.dressOfTheDay?.caf || ''} onChange={e => handleDressChange('caf', e.target.value)} className="h-8"/>
                              </div>
                              <div>
-                                <label className="text-xs font-medium text-muted-foreground">Cadet Dress</label>
+                                <Label className="text-xs font-medium text-muted-foreground">Cadet Dress</Label>
                                 <Input value={metadata.dressOfTheDay?.cadets || ''} onChange={e => handleDressChange('cadets', e.target.value)} className="h-8"/>
                              </div>
                         </div>
