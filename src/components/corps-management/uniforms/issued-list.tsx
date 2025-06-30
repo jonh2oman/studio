@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMemo } from "react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface IssuedListProps {
   issuedItems: IssuedUniformItem[];
@@ -31,6 +32,19 @@ export function IssuedList({ issuedItems, inventory, cadets, onReturn, isLoaded 
         };
     }).sort((a, b) => a.cadetName.localeCompare(b.cadetName) || a.itemName.localeCompare(b.itemName));
   }, [issuedItems, cadets, inventory]);
+
+  const groupedByCadet = useMemo(() => {
+    return enrichedIssuedItems.reduce((acc, item) => {
+        if (!acc[item.cadetId]) {
+            acc[item.cadetId] = {
+                cadetName: item.cadetName,
+                items: []
+            };
+        }
+        acc[item.cadetId].items.push(item);
+        return acc;
+    }, {} as Record<string, { cadetName: string; items: typeof enrichedIssuedItems }>);
+  }, [enrichedIssuedItems]);
   
   if (!isLoaded) {
     return (
@@ -47,7 +61,7 @@ export function IssuedList({ issuedItems, inventory, cadets, onReturn, isLoaded 
     <Card>
       <CardHeader>
         <CardTitle>Issued Items</CardTitle>
-        <CardDescription>All uniform parts currently issued to cadets.</CardDescription>
+        <CardDescription>All uniform parts currently issued to cadets, grouped by cadet.</CardDescription>
       </CardHeader>
       <CardContent>
         {issuedItems.length === 0 ? (
@@ -56,33 +70,44 @@ export function IssuedList({ issuedItems, inventory, cadets, onReturn, isLoaded 
           </div>
         ) : (
           <ScrollArea className="h-96">
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Issued To</TableHead>
-                            <TableHead>Item</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {enrichedIssuedItems.map((item) => (
-                            <TableRow key={item.id}>
-                                <TableCell className="font-medium">{item.cadetName}</TableCell>
-                                <TableCell>
-                                    <p>{item.itemName}</p>
-                                    <p className="text-xs text-muted-foreground">Size: {item.itemSize} | Issued: {format(new Date(item.issueDate), 'dd MMM yyyy')}</p>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="outline" size="sm" onClick={() => onReturn(item.id)}>
-                                        <RotateCcw className="mr-2 h-4 w-4" /> Return
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
+            <Accordion type="multiple" className="w-full space-y-2">
+                {Object.entries(groupedByCadet).map(([cadetId, { cadetName, items }]) => (
+                    <Card key={cadetId} className="border">
+                        <AccordionItem value={cadetId} className="border-b-0">
+                            <AccordionTrigger className="p-4 hover:no-underline">
+                                <span className="font-semibold">{cadetName} ({items.length} items)</span>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-4 pb-4">
+                                <div className="border rounded-md">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Item</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {items.map((item) => (
+                                                <TableRow key={item.id}>
+                                                    <TableCell>
+                                                        <p>{item.itemName}</p>
+                                                        <p className="text-xs text-muted-foreground">Size: {item.itemSize} | Issued: {format(new Date(item.issueDate), 'dd MMM yyyy')}</p>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button variant="outline" size="sm" onClick={() => onReturn(item.id)}>
+                                                            <RotateCcw className="mr-2 h-4 w-4" /> Return
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Card>
+                ))}
+            </Accordion>
           </ScrollArea>
         )}
       </CardContent>
