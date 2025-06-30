@@ -10,6 +10,7 @@ import { Trash2, Edit, Check, X } from 'lucide-react';
 import type { AdaPlannerData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 
 export function AdaDropzone({ planner }: { planner: AdaPlannerData }) {
     const { setNodeRef, isOver } = useDroppable({
@@ -71,8 +72,11 @@ export function AdaDropzone({ planner }: { planner: AdaPlannerData }) {
                 <div className="p-4 border-2 border-dashed rounded-lg min-h-[10rem] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                     {planner.eos.map((eo, index) => (
                         <div key={`${eo.id}-${index}`} className="relative p-2 rounded-md border bg-background/50 text-sm">
-                            <p className="font-semibold pr-6">{eo.id.split('-').slice(1).join('-')}</p>
-                            <p className="text-xs text-muted-foreground pr-6">{eo.title}</p>
+                            <div className="flex justify-between items-start pr-6">
+                                <p className="font-semibold">{eo.id.split('-').slice(1).join('-')}</p>
+                                <Badge variant="secondary">{eo.periods} {eo.periods > 1 ? 'Periods' : 'Period'}</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground pr-6 mt-1">{eo.title}</p>
                             <Button 
                                 size="icon" 
                                 variant="ghost" 
