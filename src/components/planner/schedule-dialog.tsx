@@ -47,11 +47,13 @@ export function ScheduleDialog({ children, scheduledItem, onUpdate }: ScheduleDi
         </DialogHeader>
         <div className="py-4 space-y-4">
             <div className='p-4 rounded-md border bg-muted'>
-                <p className="font-bold text-lg">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
-                <p className="text-sm text-muted-foreground">{scheduledItem.eo.title}</p>
-                <Badge variant={scheduledItem.eo.type === 'mandatory' ? 'default' : 'secondary'} className="mt-2">
-                    {scheduledItem.eo.type}
-                </Badge>
+                <p className="font-bold text-lg">{scheduledItem.eo?.id ? scheduledItem.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
+                <p className="text-sm text-muted-foreground">{scheduledItem.eo?.title || 'No Title'}</p>
+                {scheduledItem.eo && (
+                    <Badge variant={scheduledItem.eo.type === 'mandatory' ? 'default' : 'secondary'} className="mt-2">
+                        {scheduledItem.eo.type}
+                    </Badge>
+                )}
             </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="instructor" className="text-right">
