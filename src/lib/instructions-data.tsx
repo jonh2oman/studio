@@ -47,20 +47,16 @@ export const instructionsData = [
         icon: CalendarDays, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>This planner is designed for scheduling single-day or multi-day training events that are not part of your regular weekly parade nights, such as weekend exercises or Local Directed Activities (LDAs).</p>
-                <h4 className="font-semibold text-foreground">The Objectives Panel</h4>
-                <p>This panel on the left is your palette of lessons. It contains all official EOs for your selected element, plus any custom EOs you've created in Settings. Use the search bar to quickly find what you need.</p>
-                <h4 className="font-semibold text-foreground">Core Mechanic: Click-to-Add</h4>
+                <p>This planner is for scheduling any training that happens outside your regular parade nights, such as weekend exercises, single-day training events, or community service.</p>
+                <h4 className="font-semibold text-foreground">How It Works</h4>
                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Use the calendar to select a date to plan.</li>
-                    <li>The planning grid for that day will appear, showing 9 periods.</li>
-                    <li>Click on an empty planning slot in the grid. It will become highlighted to indicate it is your target.</li>
-                    <li>In the "Training Objectives" panel, find the lesson (EO) you want to schedule and click the "+" button next to it.</li>
-                    <li>The lesson will instantly appear in your selected slot.</li>
-                    <li>Once an EO is scheduled, you can assign an Instructor and Classroom, or click the 'X' button to remove it from the schedule.</li>
+                    <li>Click the "Add Day" button.</li>
+                    <li>In the dialog, give the event a name (e.g., "Fall FTX Day 1", "Drill Team Practice") and select the correct date.</li>
+                    <li>A new planner card will appear for that day.</li>
+                    <li>Drag Enabling Objectives (EOs) from the left-hand "Training Objectives" panel and drop them into the day's planner card.</li>
+                    <li>To plan a full weekend, simply create a separate day plan for Saturday and Sunday.</li>
                 </ol>
-                <h4 className="font-semibold text-foreground">CSAR Status Tracking</h4>
-                <p>The planner includes toggles for "CSAR Required?", "Submitted," and "Approved." These are for your visual reference only and help you keep track of the administrative status of an event. They do not link to the main CSAR Planning module.</p>
+                <p className="mt-2">This system provides a flexible way to account for all training, ensuring that any mandatory EOs completed on these days are counted towards your overall progress on the Dashboard.</p>
             </CardContent>
         )
     },

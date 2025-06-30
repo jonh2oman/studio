@@ -350,6 +350,13 @@ export interface AdaPlannerData {
     eos: EO[];
 }
 
+export interface DayPlannerData {
+    id: string;
+    name: string;
+    date: string; // YYYY-MM-DD
+    eos: EO[];
+}
+
 export interface TrainingYearData {
     firstTrainingNight: string;
     element: CadetElement;
@@ -360,6 +367,7 @@ export interface TrainingYearData {
     awardWinners: AwardWinner;
     csarDetails: CsarDetails;
     adaPlanners?: AdaPlannerData[];
+    dayPlanners?: DayPlannerData[];
     marksmanshipRecords?: MarksmanshipRecord[];
     biathlonResults?: BiathlonResult[];
     storeInventory?: StoreItem[];

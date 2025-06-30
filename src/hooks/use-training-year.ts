@@ -7,7 +7,7 @@ import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult, StoreItem, Transaction } from '@/lib/types';
+import type { TrainingYearData, DutySchedule, AdaPlannerData, DayPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult, StoreItem, Transaction } from '@/lib/types';
 import { useSettings } from './use-settings';
 
 export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
@@ -18,11 +18,6 @@ export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
     dayMetadata: {},
     attendance: {},
     awardWinners: {},
-    adaPlanners: [],
-    marksmanshipRecords: [],
-    biathlonResults: [],
-    storeInventory: [],
-    transactions: [],
     csarDetails: {
         activityName: '',
         activityType: '',
@@ -52,6 +47,7 @@ export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
 
 const defaultDutySchedule: DutySchedule = {};
 const defaultAdaPlanners: AdaPlannerData[] = [];
+const defaultDayPlanners: DayPlannerData[] = [];
 
 export function useTrainingYear() {
     const { user } = useAuth();
@@ -195,6 +191,7 @@ export function useTrainingYear() {
     }, [currentYearData, updateCurrentYearData]);
 
     const adaPlanners = currentYearData?.adaPlanners || defaultAdaPlanners;
+    const dayPlanners = currentYearData?.dayPlanners || defaultDayPlanners;
 
     const addAdaPlanner = useCallback((name: string) => {
         if (!name.trim()) {
@@ -262,6 +259,73 @@ export function useTrainingYear() {
         });
     }, [updateCurrentYearData]);
 
+    const addDayPlanner = useCallback((name: string, date: string) => {
+        if (!name.trim()) {
+            toast({ variant: "destructive", title: "Invalid Name", description: "Day planner name cannot be empty." });
+            return;
+        }
+        if (!currentYear) {
+            toast({ variant: "destructive", title: "Error", description: "No active training year." });
+            return;
+        }
+        updateCurrentYearData(prevData => {
+            const newPlanner: DayPlannerData = {
+                id: crypto.randomUUID(),
+                name,
+                date,
+                eos: []
+            };
+            const updatedPlanners = [...(prevData.dayPlanners || []), newPlanner];
+            return { ...prevData, dayPlanners: updatedPlanners };
+        });
+        toast({ title: "Day Plan Added" });
+    }, [currentYear, updateCurrentYearData, toast]);
+
+    const removeDayPlanner = useCallback((id: string) => {
+        updateCurrentYearData(prevData => {
+            const updatedPlanners = (prevData.dayPlanners || []).filter(p => p.id !== id);
+            return { ...prevData, dayPlanners: updatedPlanners };
+        });
+        toast({ title: "Day Plan Removed", variant: "destructive" });
+    }, [updateCurrentYearData, toast]);
+
+    const updateDayPlanner = useCallback((id: string, name: string, date: string) => {
+        updateCurrentYearData(prevData => {
+            const updatedPlanners = (prevData.dayPlanners || []).map(p => p.id === id ? { ...p, name, date } : p);
+            return { ...prevData, dayPlanners: updatedPlanners };
+        });
+    }, [updateCurrentYearData]);
+
+    const addEoToDayPlanner = useCallback((plannerId: string, eo: EO) => {
+        updateCurrentYearData(prevData => {
+            const updatedPlanners = (prevData.dayPlanners || []).map(p => {
+                if (p.id === plannerId) {
+                    if (p.eos.length >= 60) {
+                        toast({ title: "Planner Full", description: "A day planner cannot exceed 60 EOs.", variant: "destructive" });
+                        return p;
+                    }
+                    return { ...p, eos: [...p.eos, eo] };
+                }
+                return p;
+            });
+            return { ...prevData, dayPlanners: updatedPlanners };
+        });
+    }, [updateCurrentYearData, toast]);
+
+    const removeEoFromDayPlanner = useCallback((plannerId: string, eoIndex: number) => {
+        updateCurrentYearData(prevData => {
+            const updatedPlanners = (prevData.dayPlanners || []).map(p => {
+                if (p.id === plannerId) {
+                    const newEos = [...p.eos];
+                    newEos.splice(eoIndex, 1);
+                    return { ...p, eos: newEos };
+                }
+                return p;
+            });
+            return { ...prevData, dayPlanners: updatedPlanners };
+        });
+    }, [updateCurrentYearData]);
+
     return { 
         trainingYears, 
         currentYear, 
@@ -281,5 +345,11 @@ export function useTrainingYear() {
         updateAdaPlannerName,
         addEoToAda,
         removeEoFromAda,
+        dayPlanners,
+        addDayPlanner,
+        removeDayPlanner,
+        updateDayPlanner,
+        addEoToDayPlanner,
+        removeEoFromDayPlanner,
     };
 }

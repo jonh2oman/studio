@@ -1,207 +1,63 @@
-
-"use client";
-
+'use client';
 import { useState } from 'react';
+import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { PageHeader } from '@/components/page-header';
-import { ObjectivesPanel } from '@/components/planning/objectives-panel';
-import { useSchedule } from '@/hooks/use-schedule';
-import { useSettings } from '@/hooks/use-settings';
-import type { ScheduledItem, EO } from '@/lib/types';
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { format } from 'date-fns';
-import { getPhaseDisplayName } from '@/lib/utils';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { X, AlertTriangle } from 'lucide-react';
+import { ObjectivesPanel } from '@/components/planning/objectives-panel';
+import { DayPlannerDropzone } from '@/components/planning/day-planner-dropzone';
+import { useTrainingYear } from '@/hooks/use-training-year';
+import { PlusCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-
-function ScheduledEoCard({ slotId, item, onRemove, onUpdate }: { 
-    slotId: string; 
-    item: ScheduledItem; 
-    onRemove: (slotId: string) => void;
-    onUpdate: (slotId: string, details: Partial<Omit<ScheduledItem, 'eo'>>) => void;
-}) {
-    const [instructor, setInstructor] = useState(item.instructor);
-    const [classroom, setClassroom] = useState(item.classroom);
-
-    return (
-        <div className="relative p-3 rounded-md min-h-[6rem] border flex flex-col justify-center transition-colors bg-background/80 shadow-sm">
-            <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-7 w-7" onClick={(e) => { e.stopPropagation(); onRemove(slotId); }}>
-                <X className="h-4 w-4" />
-            </Button>
-            <p className="font-bold text-sm pr-4">{item.eo?.id ? item.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
-            <p className="text-xs text-muted-foreground leading-tight mb-2 pr-4">{item.eo?.title || 'No Title'}</p>
-            <div className="text-xs space-y-1 mt-auto">
-                <Input 
-                    value={instructor} 
-                    onChange={(e) => setInstructor(e.target.value)} 
-                    onBlur={() => onUpdate(slotId, { instructor })} 
-                    className="h-6 text-xs" 
-                    placeholder="Instructor" 
-                    onClick={(e) => e.stopPropagation()} 
-                />
-                <Input 
-                    value={classroom} 
-                    onChange={(e) => setClassroom(e.target.value)} 
-                    onBlur={() => onUpdate(slotId, { classroom })} 
-                    className="h-6 text-xs" 
-                    placeholder="Location" 
-                    onClick={(e) => e.stopPropagation()} 
-                />
-            </div>
-        </div>
-    );
-}
-
-function PlannerSlot({ slotId, item, isSelected, onSelect, onRemove, onUpdate }: { 
-    slotId: string; 
-    item?: ScheduledItem; 
-    isSelected: boolean; 
-    onSelect: () => void; 
-    onRemove: (slotId: string) => void;
-    onUpdate: (slotId: string, details: Partial<Omit<ScheduledItem, 'eo'>>) => void;
-}) {
-    return (
-        <div 
-            className={cn(
-                "relative p-3 rounded-md min-h-[6rem] border flex flex-col justify-center items-center transition-colors text-center cursor-pointer",
-                isSelected && "ring-2 ring-primary ring-offset-2",
-                item ? "bg-background" : "bg-muted/30 border-dashed hover:bg-primary/10"
-            )}
-            onClick={onSelect}
-        >
-            {item ? (
-                 <div className="w-full">
-                    <ScheduledEoCard slotId={slotId} item={item} onRemove={onRemove} onUpdate={onUpdate} />
-                 </div>
-            ) : (
-                <span className="text-xs text-muted-foreground">Click to select slot</span>
-            )}
-        </div>
-    );
-}
+import { AddDayPlannerDialog } from '@/components/planning/add-day-planner-dialog';
+import type { EO } from '@/lib/types';
 
 export default function DayPlannerPage() {
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-    const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-    const { schedule, dayMetadata, updateDayMetadata, removeScheduleItem, updateScheduleItem, addScheduleItem } = useSchedule();
-    const { settings } = useSettings();
-    const { toast } = useToast();
+    const { dayPlanners, addEoToDayPlanner } = useTrainingYear();
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-    const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : '';
-    const metadata = dateStr ? dayMetadata[dateStr] || {} : {};
-
-    const handleAddEo = (eo: EO) => {
-        if (selectedSlotId) {
-            addScheduleItem(selectedSlotId, eo);
-        } else {
-            toast({
-                title: "No Slot Selected",
-                description: "Please click on an empty slot in the planner to add a lesson.",
-                variant: 'destructive',
-            });
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { over, active } = event;
+        if (over && active.data.current?.eo) {
+            const plannerId = over.id as string;
+            const eo = active.data.current.eo as EO;
+            addEoToDayPlanner(plannerId, eo);
         }
     };
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] gap-8">
-            <ObjectivesPanel interactionMode="add" onEoAdd={handleAddEo} />
-            <div className="flex-1 flex flex-col">
-                <PageHeader title="Day / Weekend Planner" description="Plan training for non-parade nights. Click a slot, then add an EO." />
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6 flex-1">
-                    <div className="lg:col-span-1">
-                            <Card>
-                            <CardHeader>
-                                <CardTitle>Select a Date</CardTitle>
-                                <CardDescription>Pick a date to start planning.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex justify-center">
-                                <Calendar
-                                    mode="single"
-                                    selected={selectedDate}
-                                    onSelect={(date) => {
-                                        setSelectedDate(date);
-                                        setSelectedSlotId(null);
-                                    }}
-                                />
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div className="lg:col-span-2">
-                            <ScrollArea className="h-full pr-4 -mr-4">
-                            {selectedDate ? (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>{format(selectedDate, "EEEE, MMMM dd, yyyy")}</CardTitle>
-                                            <Alert className="mt-4">
-                                            <AlertTriangle className="h-4 w-4" />
-                                            <AlertTitle>CSAR Status</AlertTitle>
-                                            <AlertDescription>
-                                                Use these toggles for visual tracking. For detailed planning, please use the main CSAR Planning module.
-                                            </AlertDescription>
-                                        </Alert>
-                                        <div className="flex flex-wrap gap-x-8 gap-y-4 pt-4">
-                                            <div className="flex items-center space-x-2">
-                                                <Switch id="csar-required" checked={metadata.csarRequired} onCheckedChange={(checked) => updateDayMetadata(dateStr, { csarRequired: checked })} />
-                                                <Label htmlFor="csar-required">CSAR Required?</Label>
-                                            </div>
-                                            {metadata.csarRequired && (
-                                                <>
-                                                    <div className="flex items-center space-x-2">
-                                                        <Switch id="csar-submitted" checked={metadata.csarSubmitted} onCheckedChange={(checked) => updateDayMetadata(dateStr, { csarSubmitted: checked })} />
-                                                        <Label htmlFor="csar-submitted">CSAR Submitted</Label>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <Switch id="csar-approved" checked={metadata.csarApproved} onCheckedChange={(checked) => updateDayMetadata(dateStr, { csarApproved: checked })} />
-                                                        <Label htmlFor="csar-approved">CSAR Approved</Label>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(period => (
-                                                <div key={period} className="space-y-2">
-                                                    <h4 className="font-semibold text-center text-muted-foreground text-sm">Period {period}</h4>
-                                                    <div className="space-y-2 rounded-lg bg-background p-2">
-                                                        {[1, 2, 3, 4].map(phase => {
-                                                            const slotId = `${dateStr}-${period}-${phase}`;
-                                                            return (
-                                                                <div key={phase}>
-                                                                    <p className="font-medium text-sm mb-1">{getPhaseDisplayName(settings.element, phase)}</p>
-                                                                    <PlannerSlot 
-                                                                        slotId={slotId}
-                                                                        item={schedule[slotId]}
-                                                                        isSelected={selectedSlotId === slotId}
-                                                                        onSelect={() => setSelectedSlotId(slotId)}
-                                                                        onRemove={removeScheduleItem}
-                                                                        onUpdate={updateScheduleItem}
-                                                                    />
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <div className="h-full flex items-center justify-center border-2 border-dashed rounded-lg">
-                                    <p className="text-muted-foreground">Select a date from the calendar to begin planning.</p>
+        <DndContext onDragEnd={handleDragEnd}>
+            <div className="flex h-[calc(100vh-8rem)] gap-8">
+                <ObjectivesPanel interactionMode="drag" />
+                <div className="flex-1 flex flex-col">
+                    <PageHeader
+                        title="Day / Weekend Planner"
+                        description="Plan training for non-parade nights. For a weekend, simply add multiple days."
+                    >
+                        <Button onClick={() => setIsAddDialogOpen(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Day
+                        </Button>
+                    </PageHeader>
+                     <ScrollArea className="mt-6 flex-1 pr-2">
+                        <div className="space-y-6">
+                            {dayPlanners.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(planner => (
+                                <DayPlannerDropzone key={planner.id} planner={planner} />
+                            ))}
+                            {dayPlanners.length === 0 && (
+                                <div className="text-center text-muted-foreground border-2 border-dashed rounded-lg p-12">
+                                    <p>No day plans created yet.</p>
+                                    <p>Click "Add Day" to get started.</p>
                                 </div>
                             )}
-                            </ScrollArea>
-                    </div>
+                        </div>
+                    </ScrollArea>
                 </div>
             </div>
-        </div>
+            {isAddDialogOpen && (
+                <AddDayPlannerDialog 
+                    isOpen={isAddDialogOpen}
+                    onOpenChange={setIsAddDialogOpen}
+                />
+            )}
+        </DndContext>
     );
 }
