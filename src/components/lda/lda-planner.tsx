@@ -8,7 +8,7 @@ import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Trash2 } from 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
 import { ScheduleDialog } from '@/components/planner/schedule-dialog';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -252,19 +252,21 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                     {plannedDates.map(dateStr => {
                                         const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
                                         return (
-                                            <div key={dateStr} className="relative group">
-                                                <Button 
-                                                    variant="outline"
-                                                    size="sm"
+                                            <div key={dateStr} className="relative group inline-flex items-center rounded-md">
+                                                <div 
                                                     onClick={() => handleDateLinkClick(dateStr)}
-                                                    className={cn("pr-7", isSelected && "border-primary text-primary")}
+                                                    className={cn(
+                                                        buttonVariants({ variant: 'outline', size: 'sm' }),
+                                                        "pr-8 cursor-pointer z-0",
+                                                        isSelected && "border-primary text-primary"
+                                                    )}
                                                 >
                                                     {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
-                                                </Button>
+                                                </div>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="absolute top-1/2 right-0 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="absolute top-0 right-0 h-full w-7 rounded-l-none text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setDayToDelete(dateStr);
