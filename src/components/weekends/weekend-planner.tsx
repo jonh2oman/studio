@@ -23,6 +23,7 @@ import { DraggableObjectivesPanel } from '../planner/draggable-objectives-panel'
 import { useSettings } from '@/hooks/use-settings';
 import { getPhaseDisplayName } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DialogTrigger } from "@/components/ui/dialog";
 
 
 interface WeekendPlannerProps {
