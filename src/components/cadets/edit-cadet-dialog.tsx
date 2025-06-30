@@ -6,20 +6,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSettings } from "@/hooks/use-settings";
 import type { Cadet } from "@/lib/types";
 import { getPhaseDisplayName, getPhaseLabel } from "@/lib/utils";
+import { Switch } from "../ui/switch";
 
 const cadetSchema = z.object({
   id: z.string(),
   rank: z.string().min(1, "Rank is required"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
+  dateOfBirth: z.string().optional(),
   phase: z.coerce.number().min(1).max(5),
   role: z.string().optional(),
+  isBiathlonTeamMember: z.boolean().optional(),
 });
 
 interface EditCadetDialogProps {
@@ -32,7 +35,11 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
   const { settings } = useSettings();
   const form = useForm<z.infer<typeof cadetSchema>>({
     resolver: zodResolver(cadetSchema),
-    defaultValues: cadet,
+    defaultValues: {
+        ...cadet,
+        dateOfBirth: cadet.dateOfBirth || '',
+        isBiathlonTeamMember: cadet.isBiathlonTeamMember || false,
+    },
   });
 
   const onSubmit = (data: z.infer<typeof cadetSchema>) => {
@@ -100,6 +107,19 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
                     </FormItem>
                     )}
                 />
+                <FormField
+                    control={form.control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
                  <FormField
                     control={form.control}
                     name="phase"
@@ -146,6 +166,21 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
                         </Select>
                         <FormMessage />
                     </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="isBiathlonTeamMember"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Biathlon Team Member</FormLabel>
+                                <FormDescription>Mark if this cadet is on the biathlon team.</FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                        </FormItem>
                     )}
                 />
                 <DialogFooter>

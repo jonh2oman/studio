@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -6,7 +7,7 @@ import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord } from '@/lib/types';
+import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult } from '@/lib/types';
 import { useSettings } from './use-settings';
 
 export const defaultYearData: TrainingYearData = {
@@ -20,6 +21,7 @@ export const defaultYearData: TrainingYearData = {
     awardWinners: {},
     adaPlanners: [],
     marksmanshipRecords: [],
+    biathlonResults: [],
     csarDetails: {
         activityName: '',
         activityType: '',

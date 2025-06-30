@@ -1,6 +1,5 @@
 
 
-
 export interface EO {
   id: string;
   title: string;
@@ -149,6 +148,8 @@ export interface Cadet {
     lastName: string;
     phase: number;
     role?: string;
+    dateOfBirth?: string; // YYYY-MM-DD
+    isBiathlonTeamMember?: boolean;
 }
 
 export interface CadetWithAttendance extends Cadet {
@@ -179,6 +180,22 @@ export interface MarksmanshipRecord {
     grouping2_cm?: number;
     competitionScores?: number[]; // Array of 10 scores
     notes?: string;
+}
+
+export type BiathlonCategory = 'Junior' | 'Senior' | 'Youth' | 'N/A';
+export type BiathlonRaceType = 'Individual' | 'Sprint' | 'Pursuit' | 'Mass Start' | 'Relay' | 'Patrol' | 'Short Sprint' | 'Team Sprint';
+
+export interface BiathlonResult {
+  id: string;
+  cadetId: string;
+  competitionName: string;
+  date: string; // YYYY-MM-DD
+  raceType: BiathlonRaceType;
+  skiTime: string; // "MM:SS" format
+  proneScores: string; // comma-separated hits, e.g. "5, 4, 3"
+  standingScores: string; // comma-separated hits, e.g. "2, 1, 0"
+  finalRank?: number;
+  notes?: string;
 }
 
 export interface MealPlanItem {
@@ -300,6 +317,7 @@ export interface TrainingYearData {
     csarDetails: CsarDetails;
     adaPlanners?: AdaPlannerData[];
     marksmanshipRecords?: MarksmanshipRecord[];
+    biathlonResults?: BiathlonResult[];
 }
 
 export interface ZtoReviewedPlan {
