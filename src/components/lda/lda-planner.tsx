@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -50,10 +49,6 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
         });
         return Array.from(dates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     }, [schedule, settings.trainingDay]);
-
-    const handleDateLinkClick = (dateStr: string) => {
-        setSelectedDate(new Date(dateStr.replace(/-/g, '/')));
-    };
 
     const dayToPlan = useMemo(() => {
         if (!selectedDate) return [];
@@ -250,35 +245,15 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                     
                     {plannedDates.length > 0 && (
                         <div className="p-4 border-b">
-                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Jump to a Planned Day</h3>
-                            <ScrollArea className="h-24">
-                                <div className="flex flex-wrap gap-2">
-                                    {plannedDates.map(dateStr => {
-                                        const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
-                                        return (
-                                            <div key={dateStr} className="inline-flex items-center rounded-md border">
-                                                <Button
-                                                    variant={isSelected ? 'secondary' : 'ghost'}
-                                                    size="sm"
-                                                    className="rounded-r-none border-r h-8"
-                                                    onClick={() => handleDateLinkClick(dateStr)}
-                                                >
-                                                    {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="rounded-l-none p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8"
-                                                    onClick={() => setDayToDelete(dateStr)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                    <span className="sr-only">Delete {dateStr}</span>
-                                                </Button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </ScrollArea>
+                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Currently Planned Days</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {plannedDates.map(dateStr => (
+                                    <Badge key={dateStr} variant="secondary">
+                                        {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
+                                    </Badge>
+                                ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">Use the calendar picker above to navigate to these dates.</p>
                         </div>
                     )}
                     
