@@ -219,25 +219,21 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
                         )}
                       >
                         {scheduledItem ? (
-                            <div className="relative group w-full h-full">
-                                <Button
-                                    variant="ghost" size="icon"
-                                    className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100"
-                                    onClick={() => onRemove(slotId)}
-                                >
+                           <>
+                                <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => onRemove(slotId)}>
                                     <X className="w-4 h-4"/>
                                 </Button>
+                                <div
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, slotId)}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    className="absolute top-1 left-1 p-1 cursor-grab opacity-0 group-hover:opacity-100 z-10"
+                                >
+                                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                </div>
                                 <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => onUpdate(slotId, details)} >
                                     <DialogTrigger asChild>
                                         <div className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1 cursor-pointer">
-                                            <div
-                                                draggable
-                                                onDragStart={(e) => handleDragStart(e, slotId)}
-                                                onMouseDown={(e) => e.stopPropagation()}
-                                                className="absolute top-1 left-1 p-1 cursor-grab opacity-0 group-hover:opacity-100 z-10"
-                                            >
-                                                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                            </div>
                                             <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
                                             <p className="font-bold text-sm">{scheduledItem.eo?.id ? scheduledItem.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
                                             <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo?.title || 'No Title'}</p>
@@ -248,7 +244,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
                                         </div>
                                     </DialogTrigger>
                                 </ScheduleDialog>
-                            </div>
+                            </>
                         ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
                       </div>
                     );

@@ -1,8 +1,9 @@
+
 "use client";
 
-import { useState, useMemo, forwardRef } from 'react';
+import { useState, useMemo, forwardRef, useCallback } from 'react';
 import { format, addDays } from 'date-fns';
-import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, X, CheckCircle, ArrowUpCircle, Trash2, GripVertical } from 'lucide-react';
 
 import { useSchedule } from '@/hooks/use-schedule';
 import type { EO, DayMetadata, CsarDetails } from '@/lib/types';
@@ -30,7 +31,7 @@ interface WeekendPlannerProps {
 
 export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({ objectivesVisible }, ref) => {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule } = useSchedule();
+    const { schedule, addScheduleItem, updateScheduleItem, removeScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule, moveScheduleItem } = useSchedule();
     const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
     const [activeCsarDay, setActiveCsarDay] = useState<string | null>(null);
     const [dayToDelete, setDayToDelete] = useState<string | null>(null);
@@ -50,10 +51,25 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, date: string, period: number, phase: number) => {
         e.preventDefault();
-        const eo = JSON.parse(e.dataTransfer.getData("application/json"));
-        const slotId = `${date}-${period}-${phase}`;
-        addScheduleItem(slotId, eo);
         setDragOverSlot(null);
+        const targetSlotId = `${date}-${period}-${phase}`;
+        try {
+            const data = JSON.parse(e.dataTransfer.getData("application/json"));
+            if (data.type === 'move') {
+                if (data.sourceSlotId !== targetSlotId) {
+                    moveScheduleItem(data.sourceSlotId, targetSlotId);
+                }
+            } else if (data.type === 'new') {
+                addScheduleItem(targetSlotId, data.eo);
+            }
+        } catch (error) {
+            console.error("Failed to handle drop:", error);
+        }
+    };
+    
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, slotId: string) => {
+        e.dataTransfer.setData("application/json", JSON.stringify({ type: "move", sourceSlotId: slotId }));
+        e.dataTransfer.effectAllowed = "move";
     };
 
     const handleSaveCsar = (dateStr: string, data: CsarDetails) => {
@@ -171,8 +187,16 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                         <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => removeScheduleItem(slotId)}>
                                                             <X className="w-4 h-4"/>
                                                         </Button>
+                                                         <div
+                                                            draggable
+                                                            onDragStart={(e) => handleDragStart(e, slotId)}
+                                                            onMouseDown={(e) => e.stopPropagation()}
+                                                            className="absolute top-1 left-1 p-1 cursor-grab opacity-0 group-hover:opacity-100 z-10"
+                                                        >
+                                                            <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                                        </div>
                                                         <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => updateScheduleItem(slotId, details)} >
-                                                            <button className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
+                                                            <div className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1 cursor-pointer">
                                                                 <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
                                                                 <p className="font-bold text-sm">{scheduledItem.eo?.id ? scheduledItem.eo.id.split('-').slice(1).join('-') : "Invalid EO"}</p>
                                                                 <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo?.title || 'No Title'}</p>
@@ -180,7 +204,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                                     <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor?.trim() ? scheduledItem.instructor : 'N/A'}</p>
                                                                     <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom?.trim() ? scheduledItem.classroom : 'N/A'}</p>
                                                                 </div>
-                                                            </button>
+                                                            </div>
                                                         </ScheduleDialog>
                                                     </>
                                                 ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
