@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { PageHeader } from "@/components/page-header";
 import { AddCadetForm } from "@/components/cadets/add-cadet-form";
 import { CadetList } from "@/components/cadets/cadet-list";
@@ -12,7 +12,7 @@ import type { Cadet } from "@/lib/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { X, GripVertical } from "lucide-react";
+import { X, GripVertical, Printer } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import {
   DndContext,
@@ -32,6 +32,10 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import * as React from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { PrintableCadetIdCard } from "@/components/cadets/printable-cadet-id-card";
+import { useTrainingYear } from "@/hooks/use-training-year";
 
 function SortableSubCard({ id, children, className }: { id: string, children: React.ReactNode, className?: string }) {
     const {
@@ -132,12 +136,37 @@ export default function CadetsPage() {
   const { cadets, addCadet, updateCadet, removeCadet, isLoaded } = useCadets();
   const [editingCadet, setEditingCadet] = useState<Cadet | null>(null);
   const { settings, saveSettings } = useSettings();
+  const { currentYear } = useTrainingYear();
   const defaultOrder = ['cadetRoles', 'cadetRanks', 'cadetDress'];
   const [cardOrder, setCardOrder] = useState<string[]>([]);
   
+  const [printingCadet, setPrintingCadet] = useState<Cadet | null>(null);
+  const idCardRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setCardOrder(settings.cadetSettingsCardOrder || defaultOrder);
   }, [settings.cadetSettingsCardOrder]);
+  
+  useEffect(() => {
+    if (printingCadet && idCardRef.current) {
+        const input = idCardRef.current;
+        html2canvas(input, {
+            scale: 3,
+            useCORS: true,
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            // Standard ID card size CR80 is 85.6mm x 53.98mm
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: [85.6, 54]
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54);
+            pdf.save(`Cadet-ID-${printingCadet.lastName}-${printingCadet.firstName}.pdf`);
+            setPrintingCadet(null); // Reset after printing
+        });
+    }
+  }, [printingCadet]);
   
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
   
@@ -160,9 +189,12 @@ export default function CadetsPage() {
       cadetDress: CadetDressCard,
   };
 
-
   const handleEdit = (cadet: Cadet) => {
     setEditingCadet(cadet);
+  };
+  
+  const handlePrintIdCard = (cadet: Cadet) => {
+    setPrintingCadet(cadet);
   };
 
   const handleUpdateCadet = (updatedCadet: Cadet) => {
@@ -192,6 +224,7 @@ export default function CadetsPage() {
                               cadets={cadets} 
                               onRemoveCadet={removeCadet} 
                               onEditCadet={handleEdit}
+                              onPrintIdCard={handlePrintIdCard}
                           />
                       ) : (
                           <p>Loading cadets...</p>
@@ -232,6 +265,18 @@ export default function CadetsPage() {
             onOpenChange={(isOpen) => !isOpen && setEditingCadet(null)}
         />
       )}
+
+      <div className="absolute -top-[9999px] -left-[9999px]">
+            {printingCadet && (
+                <PrintableCadetIdCard
+                    ref={idCardRef}
+                    cadet={printingCadet}
+                    corpsName={settings.corpsName}
+                    corpsLogo={settings.corpsLogo}
+                    trainingYear={currentYear || ''}
+                />
+            )}
+        </div>
     </>
   );
 }

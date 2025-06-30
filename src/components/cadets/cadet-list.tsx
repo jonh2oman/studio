@@ -3,7 +3,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { X, Pencil, Snowflake, Target } from "lucide-react";
+import { X, Pencil, Snowflake, Target, Printer } from "lucide-react";
 import type { Cadet } from "@/lib/types";
 import { Badge } from "../ui/badge";
 import { useSettings } from "@/hooks/use-settings";
@@ -13,9 +13,10 @@ interface CadetListProps {
   cadets: Cadet[];
   onRemoveCadet: (id: string) => void;
   onEditCadet: (cadet: Cadet) => void;
+  onPrintIdCard: (cadet: Cadet) => void;
 }
 
-export function CadetList({ cadets, onRemoveCadet, onEditCadet }: CadetListProps) {
+export function CadetList({ cadets, onRemoveCadet, onEditCadet, onPrintIdCard }: CadetListProps) {
   const { settings } = useSettings();
   
   if (cadets.length === 0) {
@@ -59,6 +60,10 @@ export function CadetList({ cadets, onRemoveCadet, onEditCadet }: CadetListProps
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => onPrintIdCard(cadet)}>
+                        <Printer className="h-4 w-4" />
+                        <span className="sr-only">Print ID Card</span>
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => onEditCadet(cadet)}>
                         <Pencil className="h-4 w-4" />
                         <span className="sr-only">Edit Cadet</span>
