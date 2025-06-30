@@ -1,7 +1,7 @@
 "use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Loader2, RotateCcw, Printer } from "lucide-react";
 import type { IssuedUniformItem, UniformItem, Cadet } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 interface IssuedListProps {
   issuedItems: IssuedUniformItem[];
@@ -79,7 +80,12 @@ export function IssuedList({ issuedItems, inventory, cadets, onReturn, onPrintLo
                             <AccordionTrigger className="p-4 hover:no-underline">
                                 <div className="flex justify-between w-full items-center pr-2">
                                     <span className="font-semibold">{cadetName} ({items.length} items)</span>
-                                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onPrintAllForCadet(cadetId); }}><Printer className="mr-2 h-4 w-4" />Print All</Button>
+                                    <div
+                                      className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                                      onClick={(e) => { e.stopPropagation(); onPrintAllForCadet(cadetId); }}
+                                    >
+                                      <Printer className="mr-2 h-4 w-4" />Print All
+                                    </div>
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-4 pb-4">
