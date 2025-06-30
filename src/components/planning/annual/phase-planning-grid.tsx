@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ScheduledEoCard } from "./scheduled-eo-card";
-import type { Schedule, ScheduledItem } from "@/lib/types";
+import type { Schedule } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useSchedule } from "@/hooks/use-schedule";
@@ -25,6 +25,7 @@ interface PhasePlanningGridProps {
 }
 
 const periods = [1, 2, 3];
+const phases = [1, 2, 3, 4];
 
 export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSelect, onRemoveItem }: PhasePlanningGridProps) {
     const { settings } = useSettings();
@@ -72,39 +73,35 @@ export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSel
                         </AlertDialog>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {[1, 2, 3, 4].map(phaseId => (
-                            <div key={phaseId}>
-                                <h4 className="font-semibold text-center mb-2">{getPhaseDisplayName(settings.element, phaseId)}</h4>
-                                <div className="space-y-2 rounded-lg bg-muted/50 p-2">
-                                    {periods.map(period => {
+                    <div className="space-y-4">
+                        {periods.map(period => (
+                            <div key={period}>
+                                <h4 className="font-semibold mb-2 ml-1">Period {period}</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {phases.map(phaseId => {
                                         const slotId = `${dateStr}-${period}-${phaseId}`;
                                         const scheduledItem = scheduleForDate[slotId];
                                         const isActive = activeSlot === slotId;
 
                                         return (
-                                            <div
-                                                key={slotId}
-                                                className={cn(
+                                            <div key={slotId} className="rounded-lg bg-muted/50 p-2">
+                                                <h5 className="font-medium text-center text-sm mb-1">{getPhaseDisplayName(settings.element, phaseId)}</h5>
+                                                <div className={cn(
                                                     "relative rounded-md min-h-[6rem] border-2 border-dashed border-transparent transition-colors",
                                                     isActive && "border-primary"
-                                                )}
-                                            >
-                                                {scheduledItem ? (
-                                                    <ScheduledEoCard
-                                                        item={scheduledItem}
-                                                        slotId={slotId}
-                                                        onRemove={onRemoveItem}
-                                                    />
-                                                ) : (
-                                                    <button
-                                                        onClick={() => onSlotSelect(slotId)}
-                                                        className="w-full h-full flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                                                        aria-label={`Plan Period ${period} for Phase ${phaseId}`}
-                                                    >
-                                                       Period {period}
-                                                    </button>
-                                                )}
+                                                )}>
+                                                    {scheduledItem ? (
+                                                        <ScheduledEoCard item={scheduledItem} slotId={slotId} onRemove={onRemoveItem} />
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => onSlotSelect(slotId)}
+                                                            className="w-full h-full flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                            aria-label={`Plan Period ${period} for Phase ${phaseId}`}
+                                                        >
+                                                             <span className="sr-only">Add to Period {period} {getPhaseDisplayName(settings.element, phaseId)}</span>
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         );
                                     })}
@@ -117,3 +114,4 @@ export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSel
         </Card>
     );
 }
+
