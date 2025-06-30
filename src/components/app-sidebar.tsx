@@ -38,6 +38,7 @@ const navGroups = [
     title: "Planning",
     items: [
       { href: "/planning/eos-pos", label: "PO/EO Library", icon: BookOpen },
+      { href: "/planning/ada", label: "ADA Planner", icon: ClipboardList },
       { href: "/csar", label: "CSAR Planning", icon: ClipboardEdit },
     ]
   },
