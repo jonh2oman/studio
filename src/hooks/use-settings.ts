@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -99,39 +98,49 @@ export function useSettings() {
         return () => unsubscribe(); // Cleanup the listener on unmount
     }, [user, userData?.corpsId, toast]);
 
-    const updateCorpsData = useCallback(async (dataUpdate: Partial<Omit<CorpsData, 'id'>>) => {
+    const updateCorpsData = useCallback((updater: (prevData: CorpsData | null) => CorpsData | null) => {
         if (!user || !db || !userData?.corpsId) return;
-        
-        try {
-            const corpsDocRef = doc(db, 'corps', userData.corpsId);
-            const dataForFirestore = { ...dataUpdate };
-            
-            await setDoc(corpsDocRef, dataForFirestore, { merge: true });
 
-        } catch (error) {
-            console.error('Failed to save data to Firestore', error);
-            toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save your changes.' });
-        }
+        setCorpsData(currentCorpsData => {
+            const newData = updater(currentCorpsData);
+            if (newData && newData !== currentCorpsData) {
+                const corpsDocRef = doc(db, 'corps', userData.corpsId!);
+                // Use setDoc without merge to prevent race conditions, as we are managing the full state object.
+                // The onSnapshot listener will handle syncing back, but this ensures a faster save.
+                setDoc(corpsDocRef, newData).catch(error => {
+                    console.error('Failed to save data to Firestore', error);
+                    toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save your changes. Your local changes are temporary.' });
+                });
+            }
+            return newData;
+        });
     }, [user, db, userData?.corpsId, toast]);
 
-
     const saveSettings = useCallback(async (settingsUpdate: Partial<Settings> | ((prevSettings: Settings) => Partial<Settings>)) => {
-        if (!user || !db || !userData?.corpsId) return;
-
-        const currentSettings = corpsData?.settings || defaultSettings;
-        const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
-        const updatedSettings = { ...currentSettings, ...update };
-
-        await updateCorpsData({ settings: updatedSettings });
-
-    }, [user, db, corpsData, updateCorpsData, userData?.corpsId, toast]);
+        updateCorpsData(prevCorpsData => {
+            if (!prevCorpsData) return null;
+            const currentSettings = prevCorpsData.settings || defaultSettings;
+            const update = typeof settingsUpdate === 'function' ? settingsUpdate(currentSettings) : settingsUpdate;
+            return {
+                ...prevCorpsData,
+                settings: { ...currentSettings, ...update }
+            };
+        });
+    }, [updateCorpsData]);
     
-    const updateTrainingYears = useCallback((newTrainingYears: CorpsData['trainingYears']) => {
-        updateCorpsData({ trainingYears: newTrainingYears });
+    const updateTrainingYears = useCallback((updater: (prevTrainingYears: CorpsData['trainingYears']) => CorpsData['trainingYears']) => {
+        updateCorpsData(prevCorpsData => {
+            if (!prevCorpsData) return null;
+            const newTrainingYears = updater(prevCorpsData.trainingYears || {});
+            return { ...prevCorpsData, trainingYears: newTrainingYears };
+        });
     }, [updateCorpsData]);
 
     const saveZtoReviewedPlans = useCallback((newPlans: ZtoReviewedPlan[]) => {
-         updateCorpsData({ ztoReviewedPlans: newPlans });
+         updateCorpsData(prevCorpsData => {
+            if (!prevCorpsData) return null;
+            return { ...prevCorpsData, ztoReviewedPlans: newPlans };
+        });
     }, [updateCorpsData]);
 
     const resetUserDocument = useCallback(async () => {

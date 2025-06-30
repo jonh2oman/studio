@@ -27,17 +27,21 @@ export const BiathlonProvider = ({ children }: { children: React.ReactNode }) =>
             return;
         }
         const newResult: BiathlonResult = { ...resultData, id: crypto.randomUUID() };
-        const updatedResults = [...results, newResult];
-        updateCurrentYearData({ biathlonResults: updatedResults });
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            biathlonResults: [...(prevData.biathlonResults || []), newResult]
+        }));
         toast({ title: "Biathlon Result Saved", description: "The competition result has been added." });
-    }, [results, currentYear, updateCurrentYearData, toast]);
+    }, [currentYear, updateCurrentYearData, toast]);
 
     const removeResult = useCallback((resultId: string) => {
         if (!currentYear) return;
-        const updatedResults = results.filter(r => r.id !== resultId);
-        updateCurrentYearData({ biathlonResults: updatedResults });
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            biathlonResults: (prevData.biathlonResults || []).filter(r => r.id !== resultId)
+        }));
         toast({ title: "Result Removed", variant: "destructive" });
-    }, [results, currentYear, updateCurrentYearData, toast]);
+    }, [currentYear, updateCurrentYearData, toast]);
 
     const value = { results, addResult, removeResult, isLoaded };
 

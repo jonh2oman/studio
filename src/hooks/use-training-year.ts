@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -58,12 +57,6 @@ export function useTrainingYear() {
     const [currentYear, setCurrentYearState] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     
-    // Use a ref to hold the latest version of allYearsData to prevent stale closures in callbacks.
-    const allYearsDataRef = useRef(allYearsData);
-    useEffect(() => {
-        allYearsDataRef.current = allYearsData;
-    }, [allYearsData]);
-    
     useEffect(() => {
         if(settingsLoaded && user) {
             const years = Object.keys(allYearsData).sort().reverse();
@@ -96,23 +89,22 @@ export function useTrainingYear() {
         }
     }, [trainingYears, toast, user]);
 
-    const updateCurrentYearData = useCallback(async (
-        dataUpdate: Partial<TrainingYearData> | ((prevData: TrainingYearData) => TrainingYearData)
-    ) => {
-        if (!currentYear || !user) return;
+    const updateCurrentYearData = useCallback((updater: (prevData: TrainingYearData) => TrainingYearData) => {
+        if (!currentYear) return;
 
-        // Use the ref to get the absolute latest state, preventing stale closures.
-        const allYears = allYearsDataRef.current;
-        const currentData = allYears[currentYear] || defaultYearData as TrainingYearData;
-
-        const updatedData = typeof dataUpdate === 'function' 
-            ? dataUpdate(currentData) 
-            : { ...currentData, ...dataUpdate };
-        
-        const newAllYearsData = { ...allYears, [currentYear]: updatedData };
-        updateTrainingYears(newAllYearsData);
-
-    }, [currentYear, user, updateTrainingYears]);
+        updateTrainingYears(prevAllYears => {
+            const currentDataForYear = prevAllYears[currentYear];
+            if (!currentDataForYear) {
+                console.error("Attempted to update a non-existent year:", currentYear);
+                return prevAllYears;
+            }
+            const updatedDataForYear = updater(currentDataForYear);
+            return {
+                ...prevAllYears,
+                [currentYear]: updatedDataForYear
+            };
+        });
+    }, [currentYear, updateTrainingYears]);
 
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, useAiForCopy?: boolean, copyFromFileData?: Omit<TrainingYearData, 'cadets'> }) => {
@@ -131,9 +123,10 @@ export function useTrainingYear() {
 
         try {
             let newYearData: Omit<TrainingYearData, 'cadets'>;
+            const sourceData = allYearsData[copyFrom || ''] || null;
 
-            if (copyFrom && allYearsData[copyFrom]) {
-                const { cadets, ...sourceDataToCopy } = allYearsData[copyFrom];
+            if (copyFrom && sourceData) {
+                const { cadets, ...sourceDataToCopy } = sourceData;
                 newYearData = { ...sourceDataToCopy, firstTrainingNight: startDate, element: sourceDataToCopy.element || settings.element };
                 
                 if (useAiForCopy) {
@@ -152,9 +145,11 @@ export function useTrainingYear() {
                  newYearData = { ...defaultYearData, firstTrainingNight: startDate, element: settings.element };
             }
             
-            const newAllYearsData: CorpsData['trainingYears'] = { ...allYearsData, [year]: newYearData as TrainingYearData };
+            updateTrainingYears(prevAllYears => ({
+                 ...prevAllYears, 
+                 [year]: newYearData as TrainingYearData 
+            }));
             
-            updateTrainingYears(newAllYearsData);
             setCurrentYear(year);
 
             toast({ title: "Success", description: `Successfully created and switched to training year ${year}.` });
@@ -172,13 +167,14 @@ export function useTrainingYear() {
             return;
         }
 
-        const newAllYearsData = { ...allYearsData };
-        delete newAllYearsData[yearToDelete];
-        
-        updateTrainingYears(newAllYearsData);
+        updateTrainingYears(prevAllYears => {
+            const newAllYearsData = { ...prevAllYears };
+            delete newAllYearsData[yearToDelete];
+            return newAllYearsData;
+        });
 
         if (currentYear === yearToDelete) {
-            const remainingYears = Object.keys(newAllYearsData).sort().reverse();
+            const remainingYears = Object.keys(allYearsData).filter(y => y !== yearToDelete).sort().reverse();
             const newCurrentYear = remainingYears.length > 0 ? remainingYears[0] : null;
             setCurrentYear(newCurrentYear);
         }
@@ -188,16 +184,17 @@ export function useTrainingYear() {
     }, [user, allYearsData, currentYear, toast, updateTrainingYears, setCurrentYear]);
 
     const updateDutySchedule = useCallback((date: string, scheduleUpdate: Partial<DutySchedule[string]>) => {
-        if (!currentYearData) return;
-        const newDutySchedule = {
-            ...currentYearData.dutySchedule,
-            [date]: {
-                ...(currentYearData.dutySchedule[date] || {}),
-                ...scheduleUpdate
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            dutySchedule: {
+                ...prevData.dutySchedule,
+                [date]: {
+                    ...(prevData.dutySchedule[date] || {}),
+                    ...scheduleUpdate
+                }
             }
-        };
-        updateCurrentYearData({ dutySchedule: newDutySchedule });
-    }, [currentYearData, updateCurrentYearData]);
+        }));
+    }, [updateCurrentYearData]);
 
     const adaPlanners = currentYearData?.adaPlanners || defaultAdaPlanners;
     const dayPlanners = currentYearData?.dayPlanners || defaultDayPlanners;

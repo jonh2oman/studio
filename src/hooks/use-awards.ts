@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Award, AwardWinner } from '@/lib/types';
+import type { Award, AwardWinner, TrainingYearData } from '@/lib/types';
 import { awardsData as defaultAwards } from '@/lib/awards-data';
 import { useTrainingYear } from './use-training-year';
 import { useSettings } from './use-settings';
@@ -31,9 +31,8 @@ export function useAwards() {
     }, [saveSettings]);
 
     const saveWinners = useCallback((updatedWinners: AwardWinner) => {
-        if (!currentYear) return;
-        updateCurrentYearData({ awardWinners: updatedWinners });
-    }, [currentYear, updateCurrentYearData]);
+        updateCurrentYearData(prevData => ({ ...prevData, awardWinners: updatedWinners }));
+    }, [updateCurrentYearData]);
 
     const addAward = useCallback((award: Omit<Award, 'id'>) => {
         const newAward = { ...award, id: crypto.randomUUID() };

@@ -44,11 +44,14 @@ export const MarksmanshipProvider = ({ children }: { children: React.ReactNode }
             id: crypto.randomUUID(),
         };
 
-        const updatedRecords = [...records, newRecord];
-        updateCurrentYearData({ marksmanshipRecords: updatedRecords });
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            marksmanshipRecords: [...(prevData.marksmanshipRecords || []), newRecord]
+        }));
+        
         toast({ title: "Score Saved", description: "The marksmanship record has been added." });
 
-    }, [records, currentYear, updateCurrentYearData, toast]);
+    }, [currentYear, updateCurrentYearData, toast]);
 
     const value = {
         records,
