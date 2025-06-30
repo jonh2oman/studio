@@ -85,7 +85,7 @@ export function AddAssetForm({ onAddAsset }: AddAssetFormProps) {
                            <FormItem><FormLabel>Purchase Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="purchasePrice" render={({ field }) => (
-                           <FormItem><FormLabel>Purchase Price ($)</FormLabel><FormControl><Input type="number" step="0.01" {...field} placeholder="0.00" /></FormControl><FormMessage /></FormItem>
+                           <FormItem><FormLabel>Purchase Price ($)</FormLabel><FormControl><Input type="number" step="0.01" {...field} placeholder="0.00" value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">

@@ -89,7 +89,7 @@ export function BiathlonResultForm() {
                                 <FormItem><FormLabel>Ski/Run Time</FormLabel><FormControl><Input {...field} placeholder="MM:SS" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={form.control} name="finalRank" render={({ field }) => (
-                                <FormItem><FormLabel>Final Rank</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabel>Final Rank</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                             )} />
                         </div>
                          <div className="grid grid-cols-2 gap-4">
