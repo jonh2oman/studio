@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { CardContent } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug, CalendarDays } from "lucide-react";
 
 export const instructionsData = [
     { 
@@ -35,36 +35,32 @@ export const instructionsData = [
             <CardContent className="space-y-4 text-muted-foreground">
                 <p>The dashboard provides an at-a-glance overview of your training year and quick access to all modules.</p>
                 <h4 className="font-semibold text-foreground">Mandatory Training Planning Progress</h4>
-                <p>This section displays progress bars for each Phase / Level / Star Level, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Weekend, LDA, and ADA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
+                <p>This section displays progress bars for each Phase / Level / Star Level, showing the percentage of mandatory training periods that have been scheduled across all planners (Day/Weekend Planner and ADA Planner). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
                 <h4 className="font-semibold text-foreground">Navigation Cards</h4>
                 <p>Each card on the dashboard links to a major module of the application. The categories can be expanded or collapsed to keep the view tidy. Simply click on a card to navigate to the respective page.</p>
             </CardContent>
         )
     },
     { 
-        id: "planners", 
-        title: "The Planners (Annual, Weekend, LDA)", 
-        icon: Calendar, 
+        id: "day-planner", 
+        title: "Day / Weekend Planner", 
+        icon: CalendarDays, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>The application includes three planners for different scheduling needs. All planners feature a sticky header, so page controls are always accessible. All scheduled activities, regardless of the planner used, contribute to the overall training progress on the Dashboard.</p>
+                <p>This planner is designed for scheduling single-day or multi-day training events that are not part of your regular weekly parade nights, such as weekend exercises or Local Directed Activities (LDAs).</p>
                 <h4 className="font-semibold text-foreground">The Objectives Panel</h4>
-                <p>This floating panel is your palette of lessons. It can be moved anywhere on the screen and resized to your liking. It contains all official EOs for your selected element, plus any custom EOs you've created in Settings. Use the search bar to quickly find what you need.</p>
+                <p>This panel on the left is your palette of lessons. It contains all official EOs for your selected element, plus any custom EOs you've created in Settings. Use the search bar to quickly find what you need.</p>
                 <h4 className="font-semibold text-foreground">Core Mechanic: Drag & Drop</h4>
                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Find the lesson (EO) you want to schedule in the floating "Training Objectives" panel.</li>
+                    <li>Use the calendar to select a date to plan.</li>
+                    <li>The planning grid for that day will appear.</li>
+                    <li>Find the lesson (EO) you want to schedule in the "Training Objectives" panel.</li>
                     <li>Click and drag the lesson from the list.</li>
-                    <li>Drop it onto the desired Phase / Level / Star Level slot for a specific Period on a specific day.</li>
-                    <li>Once an EO is scheduled, click on it to open a dialog where you can assign an Instructor and a Classroom. The app will warn you if you create a scheduling conflict (e.g., assigning the same instructor to two places at once).</li>
+                    <li>Drop it onto the desired Phase / Level / Star Level slot for a specific Period on the grid.</li>
+                    <li>Once an EO is scheduled, click on it to assign an Instructor and a Classroom. The app will warn you if you create a scheduling conflict.</li>
                 </ol>
-                <h4 className="font-semibold text-foreground">CSAR Planning (Weekends & LDAs)</h4>
-                <p>The Weekend and LDA planners include a Cadet Support and Activity Request (CSAR) section for each day.</p>
-                 <ul className="list-disc list-inside space-y-1">
-                    <li>Toggle "CSAR Required?" to 'Yes'. This enables the other toggles and the "Plan CSAR" button.</li>
-                    <li>Click "Plan CSAR" to open a detailed planning sheet with tabs for Details, Meal Plan, and J4 (equipment).</li>
-                    <li>Fill out the form. The data is saved automatically as you fill it out.</li>
-                    <li>Track the submission and approval status using the toggles on the main planner page.</li>
-                </ul>
+                <h4 className="font-semibold text-foreground">CSAR Status Tracking</h4>
+                <p>The planner includes toggles for "CSAR Required?", "Submitted," and "Approved." These are for your visual reference only and help you keep track of the administrative status of an event. They do not link to the main CSAR Planning module.</p>
             </CardContent>
         )
     },
@@ -80,7 +76,7 @@ export const instructionsData = [
                 <h4 className="font-semibold text-foreground">How to Use It</h4>
                 <ol className="list-decimal list-inside space-y-1">
                     <li>Click the "Add New ADA Planner" button to create a container for an activity. Give it a descriptive name (e.g., "Fall FTX 2024").</li>
-                    <li>From the floating "Training Objectives" panel, find the EOs that were covered during the ADA.</li>
+                    <li>From the "Training Objectives" panel, find the EOs that were covered during the ADA.</li>
                     <li>Drag and drop each completed EO into the grid for the corresponding ADA planner.</li>
                     <li>Each planner can hold up to 60 EOs. Any mandatory EOs you add here will immediately update the progress bars on your Dashboard.</li>
                 </ol>
