@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -73,7 +74,7 @@ export function StoreInventory() {
                                 <TableCell className="text-right font-mono">${item.price.toFixed(2)}</TableCell>
                                 <TableCell className="text-right">{item.stock}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={()={() => handleEdit(item)}}>
+                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
                                         <Pencil className="h-4 w-4"/>
                                     </Button>
                                     <AlertDialog>
