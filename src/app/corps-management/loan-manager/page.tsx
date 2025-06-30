@@ -46,21 +46,21 @@ export default function LoanManagerPage() {
   };
   
   const handleReturnLoan = async (assetId: string) => {
-      const asset = settings.assets.find(a => a.id === assetId);
-      if (!asset) return;
+    const asset = settings.assets.find(a => a.id === assetId);
+    if (!asset) return;
 
-      const updatedAsset: Asset = {
-        ...asset,
-        status: 'In Stock',
-        loanedToCadetId: undefined,
-        loanDate: undefined,
-        returnDate: undefined,
-      };
+    // Create a new object from the existing asset, but omit the loan-specific fields
+    const { loanedToCadetId, loanDate, returnDate, ...restOfAsset } = asset;
 
-      const updatedAssets = settings.assets.map(a => a.id === assetId ? updatedAsset : a);
-      await saveSettings({ assets: updatedAssets });
-      
-      toast({ title: "Asset Returned", description: `"${asset.name}" is now back in stock.` });
+    const updatedAsset: Asset = {
+      ...restOfAsset,
+      status: 'In Stock',
+    };
+
+    const updatedAssets = settings.assets.map(a => a.id === assetId ? updatedAsset : a);
+    await saveSettings({ assets: updatedAssets });
+    
+    toast({ title: "Asset Returned", description: `"${asset.name}" is now back in stock.` });
   };
   
   const handlePrintLoanCard = (asset: Asset, cadet: Cadet) => {
