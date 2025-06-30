@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, Edit } from 'lucide-react';
+import { Loader2, PlusCircle, Edit, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useSchedule } from '@/hooks/use-schedule';
 import { useTrainingYear } from '@/hooks/use-training-year';
@@ -142,10 +142,10 @@ export default function CsarPage() {
                     )}
                 </div>
                 
-                <SheetContent className="w-full sm:max-w-4xl p-0">
+                <SheetContent className="w-full sm:max-w-4xl p-0 h-full flex flex-col">
                     {editingCsar && (
                         <>
-                            <SheetHeader className="p-6 border-b">
+                            <SheetHeader className="p-6 border-b flex-shrink-0">
                                 <SheetTitle>Editing CSAR: {editingCsar.details.activityName}</SheetTitle>
                                 <SheetDescription>
                                     {format(new Date(editingCsar.date.replace(/-/g, '/')), 'EEEE, MMMM dd, yyyy')}

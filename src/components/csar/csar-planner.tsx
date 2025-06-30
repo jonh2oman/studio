@@ -123,7 +123,7 @@ export function CsarPlanner({ initialData, onSave, startDate, endDate }: CsarPla
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full bg-transparent">
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full pr-4 -mr-4">
+          <ScrollArea className="h-full p-6 -mr-6">
             <Tabs defaultValue="details">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">CSAR Details</TabsTrigger>
