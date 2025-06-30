@@ -3,7 +3,7 @@
 
 import { useSettings } from "@/hooks/use-settings";
 import { getPhaseDisplayName } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ScheduledEoCard } from "./scheduled-eo-card";
@@ -87,18 +87,18 @@ export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSel
                                             <div key={slotId} className="rounded-lg bg-muted/50 p-2">
                                                 <h5 className="font-medium text-center text-sm mb-1">{getPhaseDisplayName(settings.element, phaseId)}</h5>
                                                 <div className={cn(
-                                                    "relative rounded-md min-h-[6rem] border-2 border-dashed border-transparent transition-colors",
-                                                    isActive && "border-primary"
+                                                    "relative rounded-md min-h-[6rem] transition-colors",
+                                                    isActive && "ring-2 ring-primary ring-offset-2"
                                                 )}>
                                                     {scheduledItem ? (
                                                         <ScheduledEoCard item={scheduledItem} slotId={slotId} onRemove={onRemoveItem} />
                                                     ) : (
                                                         <button
                                                             onClick={() => onSlotSelect(slotId)}
-                                                            className="w-full h-full flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                                                            aria-label={`Plan Period ${period} for Phase ${phaseId}`}
+                                                            className="w-full h-full flex items-center justify-center text-muted-foreground/40 hover:bg-accent hover:text-accent-foreground bg-background rounded-md transition-colors"
+                                                            aria-label={`Select Period ${period} for ${getPhaseDisplayName(settings.element, phaseId)}`}
                                                         >
-                                                             <span className="sr-only">Add to Period {period} {getPhaseDisplayName(settings.element, phaseId)}</span>
+                                                             <span className="sr-only">Add lesson</span>
                                                         </button>
                                                     )}
                                                 </div>
@@ -114,4 +114,3 @@ export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSel
         </Card>
     );
 }
-

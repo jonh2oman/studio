@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
@@ -58,6 +58,12 @@ export function useTrainingYear() {
     const [currentYear, setCurrentYearState] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     
+    // Use a ref to hold the latest version of allYearsData to prevent stale closures in callbacks.
+    const allYearsDataRef = useRef(allYearsData);
+    useEffect(() => {
+        allYearsDataRef.current = allYearsData;
+    }, [allYearsData]);
+    
     useEffect(() => {
         if(settingsLoaded && user) {
             const years = Object.keys(allYearsData).sort().reverse();
@@ -93,17 +99,20 @@ export function useTrainingYear() {
     const updateCurrentYearData = useCallback(async (
         dataUpdate: Partial<TrainingYearData> | ((prevData: TrainingYearData) => TrainingYearData)
     ) => {
-        if (!currentYear || !user || !currentYearData) return;
+        if (!currentYear || !user) return;
 
-        const currentData = currentYearData || defaultYearData;
+        // Use the ref to get the absolute latest state, preventing stale closures.
+        const allYears = allYearsDataRef.current;
+        const currentData = allYears[currentYear] || defaultYearData as TrainingYearData;
+
         const updatedData = typeof dataUpdate === 'function' 
             ? dataUpdate(currentData) 
             : { ...currentData, ...dataUpdate };
         
-        const newAllYearsData = { ...allYearsData, [currentYear]: updatedData };
+        const newAllYearsData = { ...allYears, [currentYear]: updatedData };
         updateTrainingYears(newAllYearsData);
 
-    }, [currentYear, allYearsData, user, updateTrainingYears, currentYearData]);
+    }, [currentYear, user, updateTrainingYears]);
 
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, useAiForCopy?: boolean, copyFromFileData?: Omit<TrainingYearData, 'cadets'> }) => {
