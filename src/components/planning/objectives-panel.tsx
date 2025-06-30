@@ -12,6 +12,7 @@ import { AddableEoItem } from './addable-eo-item';
 import { DraggableEoItem } from './draggable-eo-item';
 import type { Phase, EO } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { Card } from '../ui/card';
 
 interface ObjectivesPanelProps {
     interactionMode: 'drag' | 'add';
@@ -25,6 +26,8 @@ export function ObjectivesPanel({ interactionMode, onEoAdd }: ObjectivesPanelPro
     const lowercasedFilter = searchTerm.toLowerCase();
 
     const filteredData = trainingData.map(phase => {
+        if (phase.id === 5) return { ...phase, performanceObjectives: [] }; // Exclude Phase 5
+
         const filteredPos = phase.performanceObjectives.map(po => {
             const filteredEos = po.enablingObjectives.filter(eo => 
                 eo.id.toLowerCase().includes(lowercasedFilter) || 
@@ -38,52 +41,50 @@ export function ObjectivesPanel({ interactionMode, onEoAdd }: ObjectivesPanelPro
     const EoItemComponent = interactionMode === 'add' ? AddableEoItem : DraggableEoItem;
 
     return (
-        <ResizablePanelGroup direction="horizontal" className="w-[350px] min-w-[300px] max-w-[500px] border rounded-lg bg-card/50">
-            <ResizablePanel defaultSize={100}>
-                <div className="flex h-full flex-col">
-                    <div className="p-4 border-b">
-                        <h2 className="text-xl font-bold">Training Objectives</h2>
-                        <Input 
-                            placeholder="Search EOs..." 
-                            className="mt-2" 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <ScrollArea className="flex-1">
-                        {!isLoaded ? (
-                            <div className="flex justify-center items-center h-full p-4">
-                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                            </div>
-                        ) : (
-                            <Accordion type="multiple" className="p-4">
-                                {filteredData.map(phase => (
-                                    <AccordionItem key={phase.id} value={`phase-${phase.id}`}>
-                                        <AccordionTrigger>{getPhaseDisplayName(settings.element, phase.id)}</AccordionTrigger>
-                                        <AccordionContent className="space-y-2 pt-2">
-                                            {phase.performanceObjectives.map(po => (
-                                                <div key={po.id}>
-                                                    <h4 className="font-semibold text-sm mb-1">{po.id} - {po.title}</h4>
-                                                    <div className="space-y-1 pl-2 border-l-2 ml-2">
-                                                        {po.enablingObjectives.map(eo => (
-                                                            <EoItemComponent 
-                                                                key={eo.id} 
-                                                                eo={eo}
-                                                                onAdd={onEoAdd} 
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        )}
-                    </ScrollArea>
+        <Card className="w-[350px] min-w-[300px] max-w-[500px]">
+            <div className="flex h-full flex-col">
+                <div className="p-4 border-b">
+                    <h2 className="text-xl font-bold">Training Objectives</h2>
+                    <Input 
+                        placeholder="Search EOs..." 
+                        className="mt-2" 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-        </ResizablePanelGroup>
+                <ScrollArea className="flex-1">
+                    {!isLoaded ? (
+                        <div className="flex justify-center items-center h-full p-4">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                    ) : (
+                        <Accordion type="multiple" className="p-4">
+                            {filteredData.map(phase => (
+                                <AccordionItem key={phase.id} value={`phase-${phase.id}`}>
+                                    <AccordionTrigger>{getPhaseDisplayName(settings.element, phase.id)}</AccordionTrigger>
+                                    <AccordionContent className="space-y-2 pt-2">
+                                        {phase.performanceObjectives.map(po => (
+                                            <div key={po.id}>
+                                                <h4 className="font-semibold text-sm mb-1">{po.id} - {po.title}</h4>
+                                                <div className="space-y-1 pl-2 border-l-2 ml-2">
+                                                    {po.enablingObjectives.map(eo => (
+                                                        <EoItemComponent 
+                                                            key={eo.id} 
+                                                            eo={eo}
+                                                            onAdd={onEoAdd} 
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    )}
+                </ScrollArea>
+            </div>
+        </Card>
     );
 }
+

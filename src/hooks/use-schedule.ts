@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useCallback } from 'react';
@@ -176,3 +177,4 @@ export function useSchedule() {
 
     return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, moveScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule, updateCurrentYearData };
 }
+

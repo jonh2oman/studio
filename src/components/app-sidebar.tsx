@@ -38,6 +38,7 @@ const navGroups = [
   {
     title: "Planning",
     items: [
+      { href: "/planning/annual", label: "Annual Planner", icon: Calendar },
       { href: "/planning/eos-pos", label: "PO/EO Library", icon: BookOpen },
       { href: "/planning/day-planner", label: "Day / Weekend Planner", icon: CalendarDays },
       { href: "/planning/ada", label: "ADA Planner", icon: ClipboardList },
@@ -380,3 +381,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
