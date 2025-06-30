@@ -41,7 +41,9 @@ export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
         mealsRequired: false,
         mealPlan: [],
         j4Plan: { quartermasterLocation: '', items: [], submitted: false, approved: false },
-    }
+    },
+    adaPlanners: [],
+    dayPlanners: [],
 };
 
 const defaultDutySchedule: DutySchedule = {};
@@ -56,6 +58,12 @@ export function useTrainingYear() {
     const [trainingYears, setTrainingYears] = useState<string[]>([]);
     const [currentYear, setCurrentYearState] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+
+    // Ref to hold the latest version of allYearsData to avoid stale closures
+    const allYearsDataRef = useRef(allYearsData);
+    useEffect(() => {
+        allYearsDataRef.current = allYearsData;
+    }, [allYearsData]);
     
     useEffect(() => {
         if(settingsLoaded && user) {
@@ -92,20 +100,25 @@ export function useTrainingYear() {
     const updateCurrentYearData = useCallback((updater: (prevData: TrainingYearData) => TrainingYearData) => {
         if (!currentYear) return;
 
-        updateTrainingYears(prevAllYears => {
-            const currentDataForYear = prevAllYears[currentYear];
-            if (!currentDataForYear) {
-                console.error("Attempted to update a non-existent year:", currentYear);
-                return prevAllYears;
-            }
-            const updatedDataForYear = updater(currentDataForYear);
-            return {
-                ...prevAllYears,
-                [currentYear]: updatedDataForYear
-            };
-        });
-    }, [currentYear, updateTrainingYears]);
+        // Use the ref to get the absolute latest state
+        const currentAllYears = allYearsDataRef.current;
+        const currentDataForYear = currentAllYears[currentYear];
+        if (!currentDataForYear) {
+            console.error("Attempted to update a non-existent year:", currentYear);
+            return;
+        }
 
+        const updatedDataForYear = updater(currentDataForYear);
+
+        // Construct the new complete object for all years
+        const newAllYearsData = {
+            ...currentAllYears,
+            [currentYear]: updatedDataForYear
+        };
+
+        // Call the save function with the new state object, not a function
+        updateTrainingYears(newAllYearsData);
+    }, [currentYear, updateTrainingYears]);
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, useAiForCopy?: boolean, copyFromFileData?: Omit<TrainingYearData, 'cadets'> }) => {
         if (trainingYears.includes(year)) {
