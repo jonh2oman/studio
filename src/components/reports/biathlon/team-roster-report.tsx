@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 export function BiathlonTeamRosterReport() {
     const { cadets, isLoaded: cadetsLoaded } = useCadets();
@@ -103,4 +104,3 @@ export function BiathlonTeamRosterReport() {
         </Card>
     );
 }
-
