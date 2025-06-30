@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -37,6 +38,9 @@ const defaultSettings: Settings = {
     assets: [],
     assetCategories: ['Uniforms', 'Electronics', 'Sailing Gear', 'Training Aids', 'Furniture', 'Other'],
     lsaWishList: [],
+    uniformInventory: [],
+    issuedUniforms: [],
+    uniformCategories: ['Tunics', 'Trousers', 'Boots', 'Headwear', 'Shirts', 'Accessories', 'Other'],
     settingsCardOrder: ['general', 'resources', 'data', 'danger'],
     generalSettingsCardOrder: ['trainingYear', 'corpsInfo'],
     planningResourcesCardOrder: ['classrooms', 'customEos', 'weeklyActivities'],

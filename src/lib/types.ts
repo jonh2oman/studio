@@ -109,6 +109,24 @@ export interface LsaWishListItem {
   priceScreenshot?: string; // base64 data URI
 }
 
+export interface UniformItem {
+  id: string;
+  name: string;
+  category: string;
+  size: string;
+  quantity: number;
+  notes?: string;
+}
+
+export interface IssuedUniformItem {
+  id: string;
+  cadetId: string;
+  uniformItemId: string; // The ID of the UniformItem
+  issueDate: string; // YYYY-MM-DD
+  notes?: string;
+}
+
+
 export type CadetElement = 'Sea' | 'Army' | 'Air';
 
 export interface Cadet {
@@ -163,6 +181,9 @@ export interface Settings {
   assets: Asset[];
   assetCategories: string[];
   lsaWishList: LsaWishListItem[];
+  uniformInventory: UniformItem[];
+  issuedUniforms: IssuedUniformItem[];
+  uniformCategories: string[];
   settingsCardOrder?: string[];
   generalSettingsCardOrder?: string[];
   planningResourcesCardOrder?: string[];
