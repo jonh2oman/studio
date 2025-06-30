@@ -24,6 +24,7 @@ export function AssetTracker({ assets, isLoaded, onEditAsset, onRemoveAsset }: A
         case 'In Stock': return 'default';
         case 'Deployed': return 'secondary';
         case 'In Repair': return 'destructive';
+        case 'On Loan': return 'outline';
         case 'Decommissioned': return 'outline';
         default: return 'secondary';
     }

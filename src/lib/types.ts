@@ -90,10 +90,13 @@ export interface Asset {
   serialNumber?: string;
   purchaseDate?: string; // YYYY-MM-DD
   purchasePrice?: number;
-  status: 'In Stock' | 'Deployed' | 'In Repair' | 'Decommissioned';
+  status: 'In Stock' | 'Deployed' | 'In Repair' | 'Decommissioned' | 'On Loan';
   condition: 'New' | 'Good' | 'Fair' | 'Poor';
   location: string;
   notes?: string;
+  loanedToCadetId?: string;
+  loanDate?: string; // YYYY-MM-DD
+  returnDate?: string; // YYYY-MM-DD
 }
 
 export interface LsaWishListItem {

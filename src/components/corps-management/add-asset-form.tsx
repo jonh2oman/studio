@@ -19,7 +19,7 @@ const assetSchema = z.object({
   serialNumber: z.string().optional(),
   purchaseDate: z.string().optional(),
   purchasePrice: z.coerce.number().optional(),
-  status: z.enum(['In Stock', 'Deployed', 'In Repair', 'Decommissioned']),
+  status: z.enum(['In Stock', 'Deployed', 'In Repair', 'Decommissioned', 'On Loan']),
   condition: z.enum(['New', 'Good', 'Fair', 'Poor']),
   location: z.string().min(1, "Location is required"),
   notes: z.string().optional(),
@@ -82,7 +82,7 @@ export function AddAssetForm({ onAddAsset }: AddAssetFormProps) {
                     )} />
                     <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="purchaseDate" render={({ field }) => (
-                           <FormItem><FormLabel>Purchase Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                           <FormItem><FormLabel>Purchase Date</FormLabel><FormControl><Input type="date" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="purchasePrice" render={({ field }) => (
                            <FormItem><FormLabel>Purchase Price ($)</FormLabel><FormControl><Input type="number" step="0.01" {...field} placeholder="0.00" value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
@@ -90,7 +90,7 @@ export function AddAssetForm({ onAddAsset }: AddAssetFormProps) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="status" render={({ field }) => (
-                            <FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="In Stock">In Stock</SelectItem><SelectItem value="Deployed">Deployed</SelectItem><SelectItem value="In Repair">In Repair</SelectItem><SelectItem value="Decommissioned">Decommissioned</SelectItem></SelectContent></Select><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="In Stock">In Stock</SelectItem><SelectItem value="Deployed">Deployed</SelectItem><SelectItem value="In Repair">In Repair</SelectItem><SelectItem value="On Loan">On Loan</SelectItem><SelectItem value="Decommissioned">Decommissioned</SelectItem></SelectContent></Select><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="condition" render={({ field }) => (
                            <FormItem><FormLabel>Condition</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="Good">Good</SelectItem><SelectItem value="Fair">Fair</SelectItem><SelectItem value="Poor">Poor</SelectItem></SelectContent></Select><FormMessage /></FormItem>
