@@ -48,7 +48,7 @@ const navGroups = [
       { href: "/cadets", label: "Cadets", icon: Users },
       { href: "/attendance", label: "Attendance", icon: ClipboardCheck },
       { href: "/awards", label: "Awards", icon: Trophy },
-      { href: "/marksmanship", label: "Marksmanship", icon: Target },
+      { href: "/marksmanship", label: "Marksmanship/Biathlon", icon: Target },
     ]
   },
   {
