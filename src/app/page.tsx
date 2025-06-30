@@ -25,6 +25,7 @@ const dashboardCategories = [
     {
         title: "Planning",
         items: [
+            { href: "/planning/eos-pos", title: "PO/EO Library", icon: BookOpen, description: "Browse the complete training program for your element." },
             { href: "/csar", title: "CSAR Planning", icon: ClipboardEdit, description: "Create and manage Cadet Support and Activity Requests." },
         ]
     },
