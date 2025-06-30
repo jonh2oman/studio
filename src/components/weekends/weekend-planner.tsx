@@ -52,7 +52,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, date: string, period: number, phase: number) => {
         e.preventDefault();
         const eo = JSON.parse(e.dataTransfer.getData("application/json"));
-        const slotId = `${date}-${period}-${phase}`;
+        const slotId = `${dateStr}-${period}-${phase}`;
         addScheduleItem(slotId, eo);
         setDragOverSlot(null);
     };
@@ -168,9 +168,9 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                 )}
                                             >
                                                 {scheduledItem ? (
-                                                    <div className="w-full text-left">
+                                                    <>
                                                         <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => updateScheduleItem(slotId, details)} >
-                                                            <button className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
+                                                            <button className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
                                                                 <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
                                                                 <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                                                                 <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
@@ -180,10 +180,10 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-10" onClick={() => removeScheduleItem(slotId)}>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100" onClick={() => removeScheduleItem(slotId)}>
                                                             <X className="w-4 h-4"/>
                                                         </Button>
-                                                    </div>
+                                                    </>
                                                 ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
                                             </div>
                                         );
