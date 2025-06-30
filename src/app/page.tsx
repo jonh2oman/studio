@@ -25,11 +25,7 @@ const dashboardCategories = [
     {
         title: "Planning",
         items: [
-            { href: "/planner", title: "CSTP - Annual", icon: Calendar, description: "Plan your training year schedule by dragging and dropping lessons." },
-            { href: "/weekends", title: "Weekend Planner", icon: CalendarDays, description: "Plan training weekends with a detailed 9-period schedule." },
-            { href: "/lda", title: "LDA Day Planner", icon: CalendarPlus, description: "Plan single ad-hoc training days with a 9-period schedule." },
             { href: "/csar", title: "CSAR Planning", icon: ClipboardEdit, description: "Create and manage Cadet Support and Activity Requests." },
-            { href: "/ada", title: "ADA Planner", icon: ClipboardList, description: "Account for EOs completed at Area Directed Activities." },
         ]
     },
     {
