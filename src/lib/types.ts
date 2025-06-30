@@ -272,6 +272,8 @@ export interface CsarDetails {
     activityName: string;
     activityType?: 'discretionary_supported' | 'elemental_training' | 'fundamental_supported' | '';
     activityLocation: string;
+    activityStartDate?: string; // YYYY-MM-DD
+    activityEndDate?: string; // YYYY-MM-DD
     startTime: string; 
     endTime: string; 
     isMultiUnit: boolean;

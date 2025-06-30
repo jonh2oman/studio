@@ -27,6 +27,8 @@ export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
         activityName: '',
         activityType: '',
         activityLocation: '',
+        activityStartDate: '',
+        activityEndDate: '',
         startTime: '09:00',
         endTime: '17:00',
         isMultiUnit: false,

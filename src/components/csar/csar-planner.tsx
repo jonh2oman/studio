@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useForm, useFieldArray, Controller } from "react-hook-form";
@@ -46,7 +47,8 @@ const mealPlanItemSchema = z.object({
 });
 
 const csarDetailsSchema = z.object({
-  activityDate: z.date(),
+  activityStartDate: z.date({ required_error: "Start date is required" }),
+  activityEndDate: z.date({ required_error: "End date is required" }),
   activityName: z.string().min(1, "Activity name is required"),
   activityType: z.enum(["discretionary_supported", "elemental_training", "fundamental_supported", ""]).optional(),
   activityLocation: z.string().min(1, "Activity location is required"),
@@ -86,27 +88,26 @@ const csarDetailsSchema = z.object({
     submitted: z.boolean(),
     approved: z.boolean(),
   }),
+}).refine(data => data.activityEndDate >= data.activityStartDate, {
+    message: "End date must be on or after start date.",
+    path: ["activityEndDate"],
 });
 
 type CsarFormData = z.infer<typeof csarDetailsSchema>;
 
 interface CsarPlannerProps {
-  initialData?: CsarDetails;
+  initialData: CsarFormData;
   onSave: (data: CsarFormData) => void;
-  activityDate: Date;
 }
 
 export interface CsarPlannerRef {
   submit: () => void;
 }
 
-export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initialData, onSave, activityDate }, ref) => {
+export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initialData, onSave }, ref) => {
   const form = useForm<CsarFormData>({
     resolver: zodResolver(csarDetailsSchema),
-    defaultValues: {
-      ...initialData,
-      activityDate,
-    } || { ...defaultYearData.csarDetails, activityDate },
+    defaultValues: initialData,
   });
 
   const { fields: j4Fields, append: appendJ4, remove: removeJ4 } = useFieldArray({
@@ -154,12 +155,36 @@ export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initi
                       <FormField control={form.control} name="activityName" render={({ field }) => (<FormItem><FormLabel>Activity Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                       <FormField control={form.control} name="activityType" render={({ field }) => (<FormItem><FormLabel>Activity Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="discretionary_supported">LDA Discretionary Supported Day</SelectItem><SelectItem value="elemental_training">LDA Elemental Training Weekend/Day</SelectItem><SelectItem value="fundamental_supported">LDA - Fundamental Supported Day</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                       <FormField control={form.control} name="activityLocation" render={({ field }) => (<FormItem><FormLabel>Activity Location</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                      <FormField
+                      <div></div>
+                       <FormField
                         control={form.control}
-                        name="activityDate"
+                        name="activityStartDate"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel>Activity Date</FormLabel>
+                            <FormLabel>Start Date</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="activityEndDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>End Date</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>

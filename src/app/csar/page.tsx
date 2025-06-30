@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -36,8 +37,8 @@ export default function CsarPage() {
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [dayMetadata]);
 
-    const handleCreateCsar = (name: string, date: Date) => {
-        const dateStr = format(date, "yyyy-MM-dd");
+    const handleCreateCsar = (name: string, startDate: Date, endDate: Date) => {
+        const dateStr = format(startDate, "yyyy-MM-dd");
         if (dayMetadata[dateStr]?.csarDetails) {
             toast({ variant: 'destructive', title: "CSAR Exists", description: "A CSAR plan already exists for this date." });
             return;
@@ -46,6 +47,8 @@ export default function CsarPage() {
         const newCsarDetails: CsarDetails = {
             activityName: name,
             activityLocation: '',
+            activityStartDate: format(startDate, 'yyyy-MM-dd'),
+            activityEndDate: format(endDate, 'yyyy-MM-dd'),
             startTime: '09:00',
             endTime: '17:00',
             isMultiUnit: false,
@@ -72,7 +75,7 @@ export default function CsarPage() {
         };
         
         updateDayMetadata(dateStr, newMetadata);
-        toast({ title: "CSAR Created", description: `Plan for "${name}" on ${format(date, 'PPP')} has been created.`});
+        toast({ title: "CSAR Created", description: `Plan for "${name}" has been created.`});
     };
     
     const isLoading = !yearLoaded;
@@ -102,35 +105,46 @@ export default function CsarPage() {
                     </Card>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {plannedCsars.map(csar => (
-                            <Card key={csar.date} className="flex flex-col">
-                                <CardHeader>
-                                    <CardTitle>{csar.details.activityName}</CardTitle>
-                                    <CardDescription>{format(new Date(csar.date.replace(/-/g, '/')), 'EEEE, MMMM dd, yyyy')}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex-grow">
-                                    <div className="flex flex-wrap gap-2">
-                                        {csar.metadata.csarSubmitted && (
-                                            <Badge variant={csar.metadata.csarApproved ? "default" : "secondary"} className={cn(csar.metadata.csarApproved && "bg-green-600 hover:bg-green-600/90")}>
-                                                CSAR {csar.metadata.csarApproved ? 'Approved' : 'Submitted'}
-                                            </Badge>
-                                        )}
-                                        {csar.details.j4Plan.submitted && (
-                                            <Badge variant={csar.details.j4Plan.approved ? "default" : "secondary"} className={cn(csar.details.j4Plan.approved && "bg-green-600 hover:bg-green-600/90")}>
-                                                J4 {csar.details.j4Plan.approved ? 'Approved' : 'Submitted'}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </CardContent>
-                                <CardFooter className="flex justify-end">
-                                    <Button asChild>
-                                        <Link href={`/csar/${csar.date}`}>
-                                            <Edit className="mr-2 h-4 w-4"/> Edit Plan
-                                        </Link>
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        ))}
+                        {plannedCsars.map(csar => {
+                             const startDateStr = csar.details.activityStartDate || csar.date;
+                             const endDateStr = csar.details.activityEndDate || startDateStr;
+                             const startDate = new Date(startDateStr.replace(/-/g, '/'));
+                             const endDate = new Date(endDateStr.replace(/-/g, '/'));
+ 
+                             const dateDisplay = startDate.getTime() === endDate.getTime()
+                                 ? format(startDate, 'EEEE, MMMM dd, yyyy')
+                                 : `${format(startDate, 'MMM dd')} - ${format(endDate, 'MMM dd, yyyy')}`;
+
+                            return (
+                                <Card key={csar.date} className="flex flex-col">
+                                    <CardHeader>
+                                        <CardTitle>{csar.details.activityName}</CardTitle>
+                                        <CardDescription>{dateDisplay}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow">
+                                        <div className="flex flex-wrap gap-2">
+                                            {csar.metadata.csarSubmitted && (
+                                                <Badge variant={csar.metadata.csarApproved ? "default" : "secondary"} className={cn(csar.metadata.csarApproved && "bg-green-600 hover:bg-green-600/90")}>
+                                                    CSAR {csar.metadata.csarApproved ? 'Approved' : 'Submitted'}
+                                                </Badge>
+                                            )}
+                                            {csar.details.j4Plan.submitted && (
+                                                <Badge variant={csar.details.j4Plan.approved ? "default" : "secondary"} className={cn(csar.details.j4Plan.approved && "bg-green-600 hover:bg-green-600/90")}>
+                                                    J4 {csar.details.j4Plan.approved ? 'Approved' : 'Submitted'}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-end">
+                                        <Button asChild>
+                                            <Link href={`/csar/${csar.date}`}>
+                                                <Edit className="mr-2 h-4 w-4"/> Edit Plan
+                                            </Link>
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            )
+                        })}
                     </div>
                 )}
             </div>
