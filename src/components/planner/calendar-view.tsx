@@ -137,7 +137,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
         <AlertDialog>
             <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 text-destructive hover:bg-destructive/10 hover:text-destructive print:hidden">
-                    <X className="h-5 w-5" />
+                    <Trash2 className="h-5 w-5" />
                     <span className="sr-only">Clear Day</span>
                 </Button>
             </AlertDialogTrigger>
@@ -218,7 +218,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, viewMode, d
                                         </div>
                                     </button>
                                 </ScheduleDialog>
-                                 <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-10" onClick={() => onRemove(slotId)}>
+                                 <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-50" onClick={() => onRemove(slotId)}>
                                     <X className="w-4 h-4"/>
                                 </Button>
                             </div>

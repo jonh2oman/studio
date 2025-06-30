@@ -188,7 +188,7 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20" onClick={() => removeScheduleItem(slotId)}>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-50" onClick={() => removeScheduleItem(slotId)}>
                                                             <X className="w-4 h-4"/>
                                                         </Button>
                                                     </div>
@@ -260,7 +260,7 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                                         className="absolute top-1/2 right-0 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        <X className="h-3 w-3" />
+                                                        <Trash2 className="h-3 w-3" />
                                                     </Button>
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent>
@@ -296,3 +296,4 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
     );
 });
 LdaPlanner.displayName = "LdaPlanner";
+

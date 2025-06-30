@@ -104,12 +104,12 @@ export function useSchedule() {
     const clearDaySchedule = useCallback((dateStr: string) => {
         if (!currentYear) return;
 
-        const newSchedule = { ...schedule };
-        Object.keys(newSchedule).forEach(slotId => {
-            if (slotId.startsWith(dateStr)) {
-                delete newSchedule[slotId];
+        const newSchedule = Object.keys(schedule).reduce((acc, slotId) => {
+            if (!slotId.startsWith(dateStr)) {
+                acc[slotId] = schedule[slotId];
             }
-        });
+            return acc;
+        }, {} as Schedule);
 
         const newDayMetadata = { ...dayMetadata };
         if (newDayMetadata[dateStr]) {

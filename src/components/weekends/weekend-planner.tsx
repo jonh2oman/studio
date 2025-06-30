@@ -188,7 +188,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20" onClick={() => removeScheduleItem(slotId)}>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-50" onClick={() => removeScheduleItem(slotId)}>
                                                             <X className="w-4 h-4"/>
                                                         </Button>
                                                     </div>
@@ -244,3 +244,4 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     );
 });
 WeekendPlanner.displayName = "WeekendPlanner";
+
