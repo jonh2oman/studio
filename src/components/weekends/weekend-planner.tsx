@@ -77,26 +77,6 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                         </div>
                         <Sheet open={activeCsarDay === dateStr} onOpenChange={(isOpen) => setActiveCsarDay(isOpen ? dateStr : null)}>
                             <Card className="p-3 bg-muted/50 w-64 relative">
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 z-10 text-destructive hover:bg-destructive/10 hover:text-destructive print:hidden h-7 w-7">
-                                            <X className="h-4 w-4" />
-                                            <span className="sr-only">Clear Day</span>
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
                                 <CardTitle className="text-base mb-2 flex items-center justify-between">
                                     <span>CSAR Status</span>
                                     {metadata.csarApproved ? (

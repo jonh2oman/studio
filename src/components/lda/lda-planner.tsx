@@ -96,26 +96,6 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                         <div className="flex items-center gap-2">
                              <Sheet open={isCsarSheetOpen} onOpenChange={setIsCsarSheetOpen}>
                                 <Card className="p-3 bg-muted/50 w-72 relative">
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 z-10 text-destructive hover:bg-destructive/10 hover:text-destructive print:hidden h-7 w-7">
-                                                <X className="h-4 w-4" />
-                                                <span className="sr-only">Clear Day</span>
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
                                     <CardTitle className="text-base mb-2 flex items-center justify-between">
                                         <span>CSAR Status</span>
                                         {metadata.csarApproved ? (
@@ -263,15 +243,40 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
                                 {plannedDates.map(dateStr => {
                                     const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === dateStr;
                                     return (
-                                        <Button 
-                                            key={dateStr}
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleDateLinkClick(dateStr)}
-                                            className={cn(isSelected && "border-primary text-primary")}
-                                        >
-                                            {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
-                                        </Button>
+                                        <div key={dateStr} className="relative group">
+                                            <Button 
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleDateLinkClick(dateStr)}
+                                                className={cn("pr-7", isSelected && "border-primary text-primary")}
+                                            >
+                                                {format(new Date(dateStr.replace(/-/g, '/')), "PPP")}
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute top-1/2 right-0 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This will permanently delete all planned lessons for {format(new Date(dateStr.replace(/-/g, '/')), 'PPP')}. This action cannot be undone.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
                                     );
                                 })}
                             </div>
@@ -291,5 +296,3 @@ export const LdaPlanner = forwardRef<HTMLDivElement, LdaPlannerProps>(({ objecti
     );
 });
 LdaPlanner.displayName = "LdaPlanner";
-
-    
