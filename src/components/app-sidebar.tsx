@@ -1,10 +1,9 @@
-
 "use client";
 
 import Link from "next/link";
 import React, { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake, Store } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -49,6 +48,12 @@ const navGroups = [
       { href: "/attendance", label: "Attendance", icon: ClipboardCheck },
       { href: "/awards", label: "Awards", icon: Trophy },
       { href: "/marksmanship", label: "Marksmanship/Biathlon", icon: Target },
+    ]
+  },
+  {
+    title: "Cadet Economy",
+    items: [
+      { href: "/store", label: "Store & Banking", icon: Store },
     ]
   },
   {

@@ -123,6 +123,23 @@ export interface Cadet {
     isMarksmanshipTeamMember?: boolean;
 }
 
+export interface StoreItem {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  stock: number;
+}
+
+export interface Transaction {
+  id: string;
+  cadetId: string;
+  amount: number; // positive for credit, negative for debit
+  reason: string;
+  timestamp: string; // ISO 8601 string
+  staffId: string; // user.email of the staff member who made the transaction
+}
+
 export interface Settings {
   element: CadetElement;
   trainingDay: number;
@@ -322,6 +339,8 @@ export interface TrainingYearData {
     adaPlanners?: AdaPlannerData[];
     marksmanshipRecords?: MarksmanshipRecord[];
     biathlonResults?: BiathlonResult[];
+    storeInventory?: StoreItem[];
+    transactions?: Transaction[];
 }
 
 export interface ZtoReviewedPlan {

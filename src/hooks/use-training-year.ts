@@ -7,7 +7,7 @@ import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult } from '@/lib/types';
+import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult, StoreItem, Transaction } from '@/lib/types';
 import { useSettings } from './use-settings';
 
 export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
@@ -21,6 +21,8 @@ export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
     adaPlanners: [],
     marksmanshipRecords: [],
     biathlonResults: [],
+    storeInventory: [],
+    transactions: [],
     csarDetails: {
         activityName: '',
         activityType: '',

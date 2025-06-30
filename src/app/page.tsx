@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -6,7 +5,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake, Store } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { elementalTrainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -36,6 +35,12 @@ const dashboardCategories = [
             { href: "/attendance", title: "Attendance Management", icon: ClipboardCheck, description: "Mark and track attendance for training nights." },
             { href: "/awards", title: "Awards Management", icon: Trophy, description: "Manage corps awards and track eligible cadets." },
             { href: "/marksmanship", title: "Marksmanship/Biathlon", icon: Target, description: "Enter cadet scores and track their achievements." },
+        ]
+    },
+    {
+        title: "Cadet Economy",
+        items: [
+            { href: "/store", title: "Store & Banking", icon: Store, description: "Manage Ardent Dollars, canteen sales, and inventory." },
         ]
     },
     {
