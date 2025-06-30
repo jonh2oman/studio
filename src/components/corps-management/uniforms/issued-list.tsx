@@ -1,8 +1,9 @@
+
 "use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, RotateCcw } from "lucide-react";
+import { Loader2, RotateCcw, Printer } from "lucide-react";
 import type { IssuedUniformItem, UniformItem, Cadet } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -15,10 +16,11 @@ interface IssuedListProps {
   inventory: UniformItem[];
   cadets: Cadet[];
   onReturn: (issuedItemId: string) => void;
+  onPrintLoanCard: (issuedItem: IssuedUniformItem, cadet: Cadet, uniformItem: UniformItem) => void;
   isLoaded: boolean;
 }
 
-export function IssuedList({ issuedItems, inventory, cadets, onReturn, isLoaded }: IssuedListProps) {
+export function IssuedList({ issuedItems, inventory, cadets, onReturn, onPrintLoanCard, isLoaded }: IssuedListProps) {
   
   const enrichedIssuedItems = useMemo(() => {
     return issuedItems.map(issued => {
@@ -87,19 +89,30 @@ export function IssuedList({ issuedItems, inventory, cadets, onReturn, isLoaded 
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {items.map((item) => (
-                                                <TableRow key={item.id}>
-                                                    <TableCell>
-                                                        <p>{item.itemName}</p>
-                                                        <p className="text-xs text-muted-foreground">Size: {item.itemSize} | Issued: {format(new Date(item.issueDate), 'dd MMM yyyy')}</p>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button variant="outline" size="sm" onClick={() => onReturn(item.id)}>
-                                                            <RotateCcw className="mr-2 h-4 w-4" /> Return
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {items.map((item) => {
+                                                const uniformItem = inventory.find(i => i.id === item.uniformItemId);
+                                                if (!uniformItem) return null;
+
+                                                const cadet = cadets.find(c => c.id === item.cadetId);
+                                                if (!cadet) return null;
+
+                                                return (
+                                                    <TableRow key={item.id}>
+                                                        <TableCell>
+                                                            <p>{item.itemName}</p>
+                                                            <p className="text-xs text-muted-foreground">Size: {item.itemSize} | Issued: {format(new Date(item.issueDate), 'dd MMM yyyy')}</p>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button variant="outline" size="sm" onClick={() => onReturn(item.id)}>
+                                                                <RotateCcw className="mr-2 h-4 w-4" /> Return
+                                                            </Button>
+                                                            <Button variant="secondary" size="sm" className="ml-2" onClick={() => onPrintLoanCard(item, cadet, uniformItem)}>
+                                                                <Printer className="mr-2 h-4 w-4" /> Print Card
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
+                                            })}
                                         </TableBody>
                                     </Table>
                                 </div>

@@ -1,17 +1,21 @@
+
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { format } from "date-fns";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { PageHeader } from "@/components/page-header";
 import { useSettings } from "@/hooks/use-settings";
 import { useCadets } from "@/hooks/use-cadets";
-import type { UniformItem, IssuedUniformItem } from "@/lib/types";
+import type { UniformItem, IssuedUniformItem, Cadet } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { UniformInventoryList } from "@/components/corps-management/uniforms/uniform-inventory-list";
 import { UniformItemDialog } from "@/components/corps-management/uniforms/uniform-item-dialog";
 import { UniformCategoryManager } from "@/components/corps-management/uniforms/uniform-category-manager";
 import { UniformIssueForm } from "@/components/corps-management/uniforms/uniform-issue-form";
 import { IssuedList } from "@/components/corps-management/uniforms/issued-list";
+import { PrintableUniformLoanCard } from "@/components/corps-management/uniforms/printable-uniform-loan-card";
 
 export default function UniformSupplyPage() {
   const { settings, saveSettings, isLoaded } = useSettings();
@@ -20,6 +24,8 @@ export default function UniformSupplyPage() {
   
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<UniformItem | null>(null);
+  const [itemToPrint, setItemToPrint] = useState<{ issuedItem: IssuedUniformItem; cadet: Cadet; uniformItem: UniformItem; } | null>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const inventory = settings.uniformInventory || [];
   const issuedItems = settings.issuedUniforms || [];
@@ -94,6 +100,25 @@ export default function UniformSupplyPage() {
 
   }, [inventory, issuedItems, saveSettings, toast]);
 
+  const handlePrintLoanCard = useCallback((issuedItem: IssuedUniformItem, cadet: Cadet, uniformItem: UniformItem) => {
+    setItemToPrint({ issuedItem, cadet, uniformItem });
+
+    setTimeout(() => {
+        const input = pdfRef.current;
+        if (!input) return;
+
+        html2canvas(input, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', [127, 203]); // 5x8 inches
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Uniform-Card-${cadet.lastName}-${uniformItem.name}.pdf`);
+            setItemToPrint(null);
+        });
+    }, 100);
+  }, []);
 
   return (
     <>
@@ -115,6 +140,7 @@ export default function UniformSupplyPage() {
                 inventory={inventory}
                 cadets={cadets}
                 onReturn={handleReturnItem}
+                onPrintLoanCard={handlePrintLoanCard}
                 isLoaded={isLoaded && cadetsLoaded}
             />
         </div>
@@ -137,6 +163,19 @@ export default function UniformSupplyPage() {
           onOpenChange={setIsItemDialogOpen}
         />
       )}
+
+      <div className="absolute -top-[9999px] -left-[9999px]">
+        {itemToPrint && (
+            <PrintableUniformLoanCard 
+                ref={pdfRef}
+                issuedItem={itemToPrint.issuedItem}
+                cadet={itemToPrint.cadet}
+                uniformItem={itemToPrint.uniformItem}
+                corpsName={settings.corpsName}
+                corpsLogo={settings.corpsLogo}
+            />
+        )}
+      </div>
     </>
   );
 }
