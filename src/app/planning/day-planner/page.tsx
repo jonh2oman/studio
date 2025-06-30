@@ -156,11 +156,11 @@ export default function DayPlannerPage() {
                                         </CardHeader>
                                         <CardContent>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                {[1, 2, 3].map(period => (
+                                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(period => (
                                                     <div key={period} className="space-y-2">
                                                         <h4 className="font-semibold text-center text-muted-foreground text-sm">Period {period}</h4>
                                                         <div className="space-y-2 rounded-lg bg-background p-2">
-                                                            {[1, 2, 3, 4, 5].map(phase => (
+                                                            {[1, 2, 3, 4].map(phase => (
                                                                 <div key={phase}>
                                                                     <p className="font-medium text-sm mb-1">{getPhaseDisplayName(settings.element, phase)}</p>
                                                                     <DroppableSlot slotId={`${dateStr}-${period}-${phase}`} />
