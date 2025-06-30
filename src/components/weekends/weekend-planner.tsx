@@ -52,7 +52,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, date: string, period: number, phase: number) => {
         e.preventDefault();
         const eo = JSON.parse(e.dataTransfer.getData("application/json"));
-        const slotId = `${dateStr}-${period}-${phase}`;
+        const slotId = `${date}-${period}-${phase}`;
         addScheduleItem(slotId, eo);
         setDragOverSlot(null);
     };
@@ -162,7 +162,7 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                 onDragLeave={handleDragLeave}
                                                 onDrop={(e) => handleDrop(e, dateStr, period, phase)}
                                                 className={cn(
-                                                    "relative group p-2 rounded-md min-h-[5rem] border-2 border-dashed flex flex-col justify-center items-center transition-colors",
+                                                    "relative group p-2 rounded-md min-h-[6rem] border-2 border-dashed flex flex-col justify-center items-center transition-colors",
                                                     dragOverSlot === slotId ? "border-primary bg-primary/10" : "border-muted-foreground/20 hover:border-primary/50",
                                                     { "border-solid bg-background p-3": scheduledItem }
                                                 )}
@@ -257,5 +257,3 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     );
 });
 WeekendPlanner.displayName = "WeekendPlanner";
-
-    
