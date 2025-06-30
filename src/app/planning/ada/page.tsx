@@ -37,7 +37,7 @@ export default function AdaPlannerPage() {
     return (
         <DndContext onDragEnd={handleDragEnd}>
             <div className="flex h-[calc(100vh-8rem)] gap-8">
-                <ObjectivesPanel />
+                <ObjectivesPanel interactionMode="drag" />
                 <div className="flex-1 flex flex-col">
                     <PageHeader
                         title="ADA Planner"

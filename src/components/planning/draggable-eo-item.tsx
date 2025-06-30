@@ -1,19 +1,29 @@
 
 'use client';
 import type { EO } from '@/lib/types';
+import { useDraggable } from '@dnd-kit/core';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { GripVertical } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export function AddableEoItem({ eo, onAdd }: { eo: EO; onAdd: (eo: EO) => void; }) {
+export function DraggableEoItem({ eo }: { eo: EO; onAdd?: (eo: EO) => void; }) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+        id: `draggable-${eo.id}`,
+        data: {
+            eo: eo,
+        },
+    });
     
-    const handleAddClick = () => {
-        onAdd(eo);
-    };
-
     return (
-        <div className="relative p-2 rounded-md border bg-card/80 flex items-start gap-2 justify-between">
+        <div
+            ref={setNodeRef}
+            {...attributes}
+            {...listeners}
+            className={cn(
+                "relative p-2 rounded-md border bg-card/80 flex items-start gap-2 justify-between touch-none",
+                isDragging && "z-10 shadow-lg opacity-80"
+            )}
+        >
             <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                     <Badge variant={eo.type === 'mandatory' ? 'default' : 'secondary'} className="capitalize">
@@ -21,11 +31,11 @@ export function AddableEoItem({ eo, onAdd }: { eo: EO; onAdd: (eo: EO) => void; 
                     </Badge>
                     <p className="font-mono text-xs font-semibold">{eo.id.split('-').slice(1).join('-')}</p>
                 </div>
-                <p className="text-sm leading-tight">{eo.title}</p>
+                <p className="text-sm leading-tight pr-4">{eo.title}</p>
             </div>
-            <Button size="icon" className="h-7 w-7 flex-shrink-0" onClick={handleAddClick} aria-label={`Add ${eo.title}`}>
-                <Plus className="h-4 w-4" />
-            </Button>
+             <div className="text-muted-foreground cursor-grab">
+                <GripVertical className="h-5 w-5" />
+            </div>
         </div>
     );
 }

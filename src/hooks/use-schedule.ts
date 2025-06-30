@@ -75,12 +75,10 @@ export function useSchedule() {
 
     const removeScheduleItem = useCallback((slotId: string) => {
         if (!currentYear) return;
-        const newSchedule = Object.keys(schedule).reduce((acc, key) => {
-            if (key !== slotId) {
-                acc[key] = schedule[key];
-            }
-            return acc;
-        }, {} as Schedule);
+        
+        const newSchedule = { ...schedule };
+        delete newSchedule[slotId];
+        
         updateCurrentYearData({ schedule: newSchedule });
     }, [schedule, currentYear, updateCurrentYearData]);
     

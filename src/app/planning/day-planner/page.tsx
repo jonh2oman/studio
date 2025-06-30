@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { ObjectivesPanel } from '@/components/planning/objectives-panel';
 import { useSchedule } from '@/hooks/use-schedule';
 import { useSettings } from '@/hooks/use-settings';
-import type { ScheduledItem } from '@/lib/types';
+import type { ScheduledItem, EO } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
@@ -19,8 +19,8 @@ import { Switch } from '@/components/ui/switch';
 import { X, AlertTriangle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
-// This component is now "dumb" and only receives props.
 function ScheduledEoCard({ slotId, item, onRemove, onUpdate }: { 
     slotId: string; 
     item: ScheduledItem; 
@@ -59,7 +59,6 @@ function ScheduledEoCard({ slotId, item, onRemove, onUpdate }: {
     );
 }
 
-// This component now passes the onRemove and onUpdate props down.
 function PlannerSlot({ slotId, item, isSelected, onSelect, onRemove, onUpdate }: { 
     slotId: string; 
     item?: ScheduledItem; 
@@ -91,16 +90,28 @@ function PlannerSlot({ slotId, item, isSelected, onSelect, onRemove, onUpdate }:
 export default function DayPlannerPage() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-    // All schedule-modifying functions are now retrieved here in the parent component.
-    const { schedule, dayMetadata, updateDayMetadata, removeScheduleItem, updateScheduleItem } = useSchedule();
+    const { schedule, dayMetadata, updateDayMetadata, removeScheduleItem, updateScheduleItem, addScheduleItem } = useSchedule();
     const { settings } = useSettings();
+    const { toast } = useToast();
 
     const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : '';
     const metadata = dateStr ? dayMetadata[dateStr] || {} : {};
 
+    const handleAddEo = (eo: EO) => {
+        if (selectedSlotId) {
+            addScheduleItem(selectedSlotId, eo);
+        } else {
+            toast({
+                title: "No Slot Selected",
+                description: "Please click on an empty slot in the planner to add a lesson.",
+                variant: 'destructive',
+            });
+        }
+    };
+
     return (
         <div className="flex h-[calc(100vh-8rem)] gap-8">
-            <ObjectivesPanel selectedSlotId={selectedSlotId} />
+            <ObjectivesPanel interactionMode="add" onEoAdd={handleAddEo} />
             <div className="flex-1 flex flex-col">
                 <PageHeader title="Day / Weekend Planner" description="Plan training for non-parade nights. Click a slot, then add an EO." />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6 flex-1">
@@ -116,7 +127,7 @@ export default function DayPlannerPage() {
                                     selected={selectedDate}
                                     onSelect={(date) => {
                                         setSelectedDate(date);
-                                        setSelectedSlotId(null); // Reset selected slot when date changes
+                                        setSelectedSlotId(null);
                                     }}
                                 />
                             </CardContent>
@@ -125,7 +136,7 @@ export default function DayPlannerPage() {
                     <div className="lg:col-span-2">
                             <ScrollArea className="h-full pr-4 -mr-4">
                             {selectedDate ? (
-                                    <Card>
+                                <Card>
                                     <CardHeader>
                                         <CardTitle>{format(selectedDate, "EEEE, MMMM dd, yyyy")}</CardTitle>
                                             <Alert className="mt-4">

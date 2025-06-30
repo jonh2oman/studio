@@ -8,16 +8,18 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useSettings } from '@/hooks/use-settings';
 import { elementalTrainingData } from '@/lib/data';
 import { getPhaseDisplayName } from '@/lib/utils';
-import { AddableEoItem } from './draggable-eo-item';
+import { AddableEoItem } from './addable-eo-item';
+import { DraggableEoItem } from './draggable-eo-item';
 import type { Phase, EO } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { useSchedule } from '@/hooks/use-schedule';
-import { useToast } from '@/hooks/use-toast';
 
-export function ObjectivesPanel({ selectedSlotId }: { selectedSlotId: string | null }) {
+interface ObjectivesPanelProps {
+    interactionMode: 'drag' | 'add';
+    onEoAdd?: (eo: EO) => void;
+}
+
+export function ObjectivesPanel({ interactionMode, onEoAdd }: ObjectivesPanelProps) {
     const { settings, isLoaded } = useSettings();
-    const { addScheduleItem } = useSchedule();
-    const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const trainingData: Phase[] = settings.element ? elementalTrainingData[settings.element] : [];
     const lowercasedFilter = searchTerm.toLowerCase();
@@ -33,17 +35,7 @@ export function ObjectivesPanel({ selectedSlotId }: { selectedSlotId: string | n
         return { ...phase, performanceObjectives: filteredPos };
     }).filter(phase => phase.performanceObjectives.length > 0);
 
-    const handleAddEo = (eo: EO) => {
-        if (selectedSlotId) {
-            addScheduleItem(selectedSlotId, eo);
-        } else {
-            toast({
-                title: "No Slot Selected",
-                description: "Please click on an empty slot in the planner to add a lesson.",
-                variant: 'destructive',
-            });
-        }
-    };
+    const EoItemComponent = interactionMode === 'add' ? AddableEoItem : DraggableEoItem;
 
     return (
         <ResizablePanelGroup direction="horizontal" className="w-[350px] min-w-[300px] max-w-[500px] border rounded-lg bg-card/50">
@@ -74,10 +66,10 @@ export function ObjectivesPanel({ selectedSlotId }: { selectedSlotId: string | n
                                                     <h4 className="font-semibold text-sm mb-1">{po.id} - {po.title}</h4>
                                                     <div className="space-y-1 pl-2 border-l-2 ml-2">
                                                         {po.enablingObjectives.map(eo => (
-                                                            <AddableEoItem 
+                                                            <EoItemComponent 
                                                                 key={eo.id} 
                                                                 eo={eo}
-                                                                onAdd={handleAddEo}
+                                                                onAdd={onEoAdd} 
                                                             />
                                                         ))}
                                                     </div>
