@@ -17,6 +17,13 @@ export function useSchedule() {
 
     const addScheduleItem = useCallback((slotId: string, eo: EO) => {
         if (!currentYear) return;
+        
+        // Prevent adding to an occupied slot
+        if (schedule[slotId]) {
+            toast({ variant: "destructive", title: "Slot Occupied", description: "This slot already has a lesson planned." });
+            return;
+        }
+
         const newSchedule = { 
             ...schedule, 
             [slotId]: {
@@ -26,7 +33,7 @@ export function useSchedule() {
             }
         };
         updateCurrentYearData({ schedule: newSchedule });
-    }, [schedule, currentYear, updateCurrentYearData]);
+    }, [schedule, currentYear, updateCurrentYearData, toast]);
 
     const updateScheduleItem = useCallback((slotId: string, details: Partial<Omit<ScheduledItem, 'eo'>>) => {
         if (!currentYear) return;

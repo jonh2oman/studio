@@ -195,15 +195,17 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                             <GripVertical className="h-4 w-4 text-muted-foreground" />
                                                         </div>
                                                         <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => updateScheduleItem(slotId, details)} >
-                                                            <div className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1 cursor-pointer">
-                                                                <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
-                                                                <p className="font-bold text-sm">{scheduledItem.eo?.id?.split('-').slice(1).join('-') || 'Invalid EO'}</p>
-                                                                <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo?.title || 'No Title'}</p>
-                                                                <div className="text-xs space-y-0.5">
-                                                                    <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor?.trim() ? scheduledItem.instructor : 'N/A'}</p>
-                                                                    <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom?.trim() ? scheduledItem.classroom : 'N/A'}</p>
+                                                            <DialogTrigger asChild>
+                                                                <div className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1 cursor-pointer">
+                                                                    <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
+                                                                    <p className="font-bold text-sm">{scheduledItem.eo?.id?.split('-').slice(1).join('-') || 'Invalid EO'}</p>
+                                                                    <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo?.title || 'No Title'}</p>
+                                                                    <div className="text-xs space-y-0.5">
+                                                                        <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor?.trim() ? scheduledItem.instructor : 'N/A'}</p>
+                                                                        <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom?.trim() ? scheduledItem.classroom : 'N/A'}</p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            </DialogTrigger>
                                                         </ScheduleDialog>
                                                     </>
                                                 ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}

@@ -49,7 +49,7 @@ export function ObjectivesList() {
     
     // Count from main schedule
     Object.values(schedule).forEach(item => {
-        if (item) {
+        if (item && item.eo) {
             const eoId = item.eo.id;
             counts[eoId] = (counts[eoId] || 0) + 1;
         }
