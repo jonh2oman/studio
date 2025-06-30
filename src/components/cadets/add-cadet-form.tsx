@@ -1,6 +1,7 @@
 
 "use client";
 
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,6 +14,7 @@ import { useSettings } from "@/hooks/use-settings";
 import type { Cadet } from "@/lib/types";
 import { getPhaseDisplayName, getPhaseLabel } from "@/lib/utils";
 import { Switch } from "../ui/switch";
+import { differenceInYears, parseISO, isValid } from 'date-fns';
 
 const cadetSchema = z.object({
   rank: z.string().min(1, "Rank is required"),
@@ -44,6 +46,14 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
       isMarksmanshipTeamMember: false,
     },
   });
+
+  const dateOfBirth = form.watch("dateOfBirth");
+  const age = React.useMemo(() => {
+    if (!dateOfBirth) return null;
+    const dob = parseISO(dateOfBirth);
+    if (!isValid(dob)) return null;
+    return differenceInYears(new Date(), dob);
+  }, [dateOfBirth]);
 
   const onSubmit = (data: z.infer<typeof cadetSchema>) => {
     onAddCadet(data);
@@ -116,7 +126,10 @@ export function AddCadetForm({ onAddCadet }: AddCadetFormProps) {
                     name="dateOfBirth"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Date of Birth</FormLabel>
+                        <div className="flex justify-between items-center">
+                            <FormLabel>Date of Birth</FormLabel>
+                            {age !== null && <span className="text-xs text-muted-foreground font-medium">Age: {age}</span>}
+                        </div>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
