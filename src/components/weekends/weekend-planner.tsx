@@ -77,6 +77,26 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                         </div>
                         <Sheet open={activeCsarDay === dateStr} onOpenChange={(isOpen) => setActiveCsarDay(isOpen ? dateStr : null)}>
                             <Card className="p-3 bg-muted/50 w-64 relative">
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="absolute -top-1 -right-1 z-10 h-6 w-6 text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="sr-only">Clear Day</span>
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This will permanently delete all planned lessons for {format(day, "PPP")}. This action cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => clearDaySchedule(dateStr)}>Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                                 <CardTitle className="text-base mb-2 flex items-center justify-between">
                                     <span>CSAR Status</span>
                                     {metadata.csarApproved ? (
@@ -157,9 +177,6 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                             >
                                                 {scheduledItem ? (
                                                     <div className="w-full text-left">
-                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20" onClick={() => removeScheduleItem(slotId)}>
-                                                            <X className="w-4 h-4"/>
-                                                        </Button>
                                                         <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => updateScheduleItem(slotId, details)} >
                                                             <button className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1">
                                                                 <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
@@ -171,6 +188,9 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
                                                                 </div>
                                                             </button>
                                                         </ScheduleDialog>
+                                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 w-6 h-6 z-20" onClick={() => removeScheduleItem(slotId)}>
+                                                            <X className="w-4 h-4"/>
+                                                        </Button>
                                                     </div>
                                                 ) : ( <span className="text-xs text-muted-foreground text-center">{getPhaseDisplayName(settings.element, phase)}</span> )}
                                             </div>
@@ -224,5 +244,3 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     );
 });
 WeekendPlanner.displayName = "WeekendPlanner";
-
-    
