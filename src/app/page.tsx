@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -156,7 +157,7 @@ function SortableCategoryAccordionItem({ id, children }: { id: string, children:
 export default function DashboardPage() {
     const { user, loading } = useAuth();
     const { schedule, isLoaded } = useSchedule();
-    const { currentYear, isLoaded: yearsLoaded, adaPlanners } = useTrainingYear();
+    const { currentYear, isLoaded: yearsLoaded, adaPlanners, dayPlanners } = useTrainingYear();
     const { settings, saveSettings } = useSettings();
 
     const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
@@ -230,7 +231,9 @@ export default function DashboardPage() {
 
         const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
         const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
-        const allScheduledEOs = [...scheduleEOs, ...adaEOs];
+        const dayPlannerEOs = (dayPlanners || []).flatMap(p => p.eos);
+        const allScheduledEOs = [...scheduleEOs, ...adaEOs, ...dayPlannerEOs];
+        
         const scheduledCounts: { [key: string]: number } = {};
         allScheduledEOs.forEach(eo => {
             if (eo.type === 'mandatory') {
@@ -248,7 +251,7 @@ export default function DashboardPage() {
             const progress = (completedPeriods / totalMandatoryPeriods) * 100;
             return { phaseName: getPhaseDisplayName(settings.element, phase.id), progress: Math.min(100, progress), completed: completedPeriods, total: totalMandatoryPeriods };
         });
-    }, [schedule, isLoaded, adaPlanners, yearsLoaded, settings.element]);
+    }, [schedule, isLoaded, adaPlanners, dayPlanners, yearsLoaded, settings.element]);
 
     const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 

@@ -15,7 +15,7 @@ import { getPhaseDisplayName } from '@/lib/utils';
 
 export function TrainingCompletionReport() {
     const { schedule, isLoaded } = useSchedule();
-    const { adaPlanners, isLoaded: yearsLoaded } = useTrainingYear();
+    const { adaPlanners, dayPlanners, isLoaded: yearsLoaded } = useTrainingYear();
     const { settings } = useSettings();
     const [isGenerating, setIsGenerating] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
@@ -28,7 +28,8 @@ export function TrainingCompletionReport() {
 
         const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
         const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
-        const allScheduledEOs = [...scheduleEOs, ...adaEOs];
+        const dayPlannerEOs = (dayPlanners || []).flatMap(p => p.eos);
+        const allScheduledEOs = [...scheduleEOs, ...adaEOs, ...dayPlannerEOs];
        
         return trainingData.map(phase => {
             const mandatoryEOs = phase.performanceObjectives.flatMap(po => 
@@ -67,7 +68,7 @@ export function TrainingCompletionReport() {
                 progress: Math.min(100, progress),
             };
         });
-    }, [schedule, isLoaded, adaPlanners, yearsLoaded, settings.element]);
+    }, [schedule, isLoaded, adaPlanners, dayPlanners, yearsLoaded, settings.element]);
 
     const handleGeneratePdf = async () => {
         const input = pdfRef.current;

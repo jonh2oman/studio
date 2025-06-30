@@ -17,7 +17,7 @@ import { useTrainingYear } from "@/hooks/use-training-year";
 export default function EosPosPage() {
     const { settings, isLoaded } = useSettings();
     const { schedule, isLoaded: scheduleLoaded } = useSchedule();
-    const { adaPlanners, isLoaded: yearLoaded } = useTrainingYear();
+    const { adaPlanners, dayPlanners, isLoaded: yearLoaded } = useTrainingYear();
 
     const scheduledEoCounts = useMemo(() => {
         if (!scheduleLoaded || !yearLoaded) return {};
@@ -38,8 +38,16 @@ export default function EosPosPage() {
             });
         });
 
+        (dayPlanners || []).forEach(planner => {
+            planner.eos.forEach(eo => {
+                if (eo?.id) {
+                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+                }
+            });
+        });
+
         return counts;
-    }, [schedule, adaPlanners, scheduleLoaded, yearLoaded]);
+    }, [schedule, adaPlanners, dayPlanners, scheduleLoaded, yearLoaded]);
     
     const isLoading = !isLoaded || !scheduleLoaded || !yearLoaded || !settings.element;
 
