@@ -1,4 +1,3 @@
-
 "use client";
 
 import { forwardRef } from 'react';
@@ -84,8 +83,8 @@ export const WroPreview = forwardRef<HTMLDivElement, WroPreviewProps>(({ data, l
                                        <TableCell key={phase} className="text-black">
                                            {item ? (
                                                <div>
-                                                   <p className="font-bold">{item.eo.id.split('-').slice(1).join('-')}</p>
-                                                   <p className="text-xs">{item.eo.title}</p>
+                                                   <p className="font-bold">{item.eo?.id ? item.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
+                                                   <p className="text-xs">{item.eo?.title || 'No Title'}</p>
                                                    <p className="text-xs italic">Inst: {item.instructor || 'TBA'}</p>
                                                    <p className="text-xs italic">Loc: {item.classroom || 'TBA'}</p>
                                                </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, forwardRef } from 'react';
@@ -257,4 +256,3 @@ export const WeekendPlanner = forwardRef<HTMLDivElement, WeekendPlannerProps>(({
     );
 });
 WeekendPlanner.displayName = "WeekendPlanner";
-

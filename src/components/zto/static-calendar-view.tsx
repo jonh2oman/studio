@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -95,8 +94,8 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
                                                 {scheduledItem ? (
                                                     <div className="w-full text-left">
                                                         <Badge className="mb-1">{getPhaseDisplayName(element, phase)}</Badge>
-                                                        <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
-                                                        <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>
+                                                        <p className="font-bold text-sm">{scheduledItem.eo?.id ? scheduledItem.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
+                                                        <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo?.title || 'No Title'}</p>
                                                         <div className="text-xs space-y-0.5">
                                                             <p><span className="font-semibold">Inst:</span> {scheduledItem.instructor || 'N/A'}</p>
                                                             <p><span className="font-semibold">Loc:</span> {scheduledItem.classroom || 'N/A'}</p>
