@@ -3,6 +3,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useSchedule } from '@/hooks/use-schedule';
+import { useTrainingYear } from '@/hooks/use-training-year';
 import { CsarPlanner, CsarPlannerRef } from '@/components/csar/csar-planner';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -12,12 +13,15 @@ import { format } from 'date-fns';
 import type { CsarDetails, DayMetadata } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
+type CsarFormData = CsarDetails & { activityDate: Date };
+
 export default function EditCsarPage() {
     const router = useRouter();
     const params = useParams();
     const date = params.date as string;
 
     const { dayMetadata, updateDayMetadata, isLoaded } = useSchedule();
+    const { updateCurrentYearData } = useTrainingYear();
     const { toast } = useToast();
     const plannerRef = useRef<CsarPlannerRef>(null);
 
@@ -26,12 +30,40 @@ export default function EditCsarPage() {
         return dayMetadata[date];
     }, [dayMetadata, date, isLoaded]);
 
-    const handleSaveCsar = (date: string, data: CsarDetails) => {
-        const currentMetadata = dayMetadata[date];
-        if (!currentMetadata) return;
-        const newMetadata: DayMetadata = { ...currentMetadata, csarDetails: data };
-        updateDayMetadata(date, newMetadata);
-        toast({ title: "CSAR Saved", description: `Changes for ${format(new Date(date.replace(/-/g,'/')), 'PPP')} have been saved.`});
+    const handleSaveCsar = (originalDate: string, formData: CsarFormData) => {
+        const { activityDate, ...csarDetailsToSave } = formData;
+        const newDateStr = format(activityDate, 'yyyy-MM-dd');
+
+        if (originalDate === newDateStr) {
+            // Date hasn't changed, just update metadata
+            const currentMetadata = dayMetadata[originalDate] || { csarRequired: false, csarSubmitted: false, csarApproved: false };
+            const newMetadata: DayMetadata = { ...currentMetadata, csarDetails: csarDetailsToSave };
+            updateDayMetadata(originalDate, newMetadata);
+            toast({ title: "CSAR Saved" });
+        } else {
+            // Date has changed, move the object
+            if (dayMetadata[newDateStr]?.csarDetails) {
+                toast({ variant: 'destructive', title: "Move Failed", description: `A CSAR already exists for ${format(activityDate, 'PPP')}.` });
+                return;
+            }
+
+            const metadataToMove = dayMetadata[originalDate];
+            if (!metadataToMove) return; // Should not happen
+
+            // Create new metadata object for new date, using newly edited details
+            const newMetadataForNewDate: DayMetadata = {
+                ...metadataToMove,
+                csarDetails: csarDetailsToSave,
+            };
+            
+            const finalDayMetadata = { ...dayMetadata };
+            finalDayMetadata[newDateStr] = newMetadataForNewDate;
+            delete finalDayMetadata[originalDate]; // Remove the old entry
+
+            updateCurrentYearData({ dayMetadata: finalDayMetadata });
+            toast({ title: "CSAR Moved", description: `Plan moved to ${format(activityDate, 'PPP')}` });
+            router.push(`/csar/${newDateStr}`);
+        }
     };
     
     if (!isLoaded) {
@@ -55,12 +87,13 @@ export default function EditCsarPage() {
     }
 
     const { csarDetails } = csarData;
+    const activityDate = new Date(date.replace(/-/g, '/'));
 
     return (
         <>
             <PageHeader
                 title={`Editing CSAR: ${csarDetails.activityName}`}
-                description={format(new Date(date.replace(/-/g, '/')), 'EEEE, MMMM dd, yyyy')}
+                description={format(activityDate, 'EEEE, MMMM dd, yyyy')}
             >
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={() => router.push('/csar')}>
@@ -78,9 +111,8 @@ export default function EditCsarPage() {
                     ref={plannerRef}
                     key={date}
                     initialData={csarDetails}
-                    onSave={(data) => handleSaveCsar(date, data)}
-                    startDate={format(new Date(date.replace(/-/g, '/')), "PPP")}
-                    endDate={format(new Date(date.replace(/-/g, '/')), "PPP")}
+                    activityDate={activityDate}
+                    onSave={(data) => handleSaveCsar(date, data as CsarFormData)}
                 />
             </div>
         </>

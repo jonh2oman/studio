@@ -46,6 +46,7 @@ const mealPlanItemSchema = z.object({
 });
 
 const csarDetailsSchema = z.object({
+  activityDate: z.date(),
   activityName: z.string().min(1, "Activity name is required"),
   activityType: z.enum(["discretionary_supported", "elemental_training", "fundamental_supported", ""]).optional(),
   activityLocation: z.string().min(1, "Activity location is required"),
@@ -87,21 +88,25 @@ const csarDetailsSchema = z.object({
   }),
 });
 
+type CsarFormData = z.infer<typeof csarDetailsSchema>;
+
 interface CsarPlannerProps {
   initialData?: CsarDetails;
-  onSave: (data: CsarDetails) => void;
-  startDate: string;
-  endDate: string;
+  onSave: (data: CsarFormData) => void;
+  activityDate: Date;
 }
 
 export interface CsarPlannerRef {
   submit: () => void;
 }
 
-export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initialData, onSave, startDate, endDate }, ref) => {
-  const form = useForm<CsarDetails>({
+export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initialData, onSave, activityDate }, ref) => {
+  const form = useForm<CsarFormData>({
     resolver: zodResolver(csarDetailsSchema),
-    defaultValues: initialData || defaultYearData.csarDetails,
+    defaultValues: {
+      ...initialData,
+      activityDate,
+    } || { ...defaultYearData.csarDetails, activityDate },
   });
 
   const { fields: j4Fields, append: appendJ4, remove: removeJ4 } = useFieldArray({
@@ -119,7 +124,7 @@ export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initi
   const totalCadets = useMemo(() => Number(watchFields.numCadetsMale || 0) + Number(watchFields.numCadetsFemale || 0), [watchFields.numCadetsMale, watchFields.numCadetsFemale]);
   const totalStaff = useMemo(() => Number(watchFields.numStaffMale || 0) + Number(watchFields.numStaffFemale || 0), [watchFields.numStaffMale, watchFields.numStaffFemale]);
 
-  const onSubmit = (data: CsarDetails) => {
+  const onSubmit = (data: CsarFormData) => {
     onSave(data);
   };
 
@@ -149,10 +154,29 @@ export const CsarPlanner = forwardRef<CsarPlannerRef, CsarPlannerProps>(({ initi
                       <FormField control={form.control} name="activityName" render={({ field }) => (<FormItem><FormLabel>Activity Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                       <FormField control={form.control} name="activityType" render={({ field }) => (<FormItem><FormLabel>Activity Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type..." /></SelectTrigger></FormControl><SelectContent><SelectItem value="discretionary_supported">LDA Discretionary Supported Day</SelectItem><SelectItem value="elemental_training">LDA Elemental Training Weekend/Day</SelectItem><SelectItem value="fundamental_supported">LDA - Fundamental Supported Day</SelectItem></SelectContent></Select><FormMessage /></FormItem>)} />
                       <FormField control={form.control} name="activityLocation" render={({ field }) => (<FormItem><FormLabel>Activity Location</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                      <div className="flex gap-4">
-                          <div className="w-1/2"><Label>Start Date</Label><Input value={startDate} disabled /></div>
-                          <div className="w-1/2"><Label>End Date</Label><Input value={endDate} disabled /></div>
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="activityDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Activity Date</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                        <FormField control={form.control} name="startTime" render={({ field }) => (<FormItem><FormLabel>Start Time</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>)} />
                        <FormField control={form.control} name="endTime" render={({ field }) => (<FormItem><FormLabel>End Time</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
