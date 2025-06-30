@@ -120,6 +120,7 @@ export interface Cadet {
     role?: string;
     dateOfBirth?: string; // YYYY-MM-DD
     isBiathlonTeamMember?: boolean;
+    isMarksmanshipTeamMember?: boolean;
 }
 
 export interface Settings {

@@ -23,6 +23,7 @@ const cadetSchema = z.object({
   phase: z.coerce.number().min(1).max(5),
   role: z.string().optional(),
   isBiathlonTeamMember: z.boolean().optional(),
+  isMarksmanshipTeamMember: z.boolean().optional(),
 });
 
 interface EditCadetDialogProps {
@@ -39,6 +40,7 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
         ...cadet,
         dateOfBirth: cadet.dateOfBirth || '',
         isBiathlonTeamMember: cadet.isBiathlonTeamMember || false,
+        isMarksmanshipTeamMember: cadet.isMarksmanshipTeamMember || false,
     },
   });
 
@@ -176,6 +178,21 @@ export function EditCadetDialog({ cadet, onUpdateCadet, onOpenChange }: EditCade
                             <div className="space-y-0.5">
                                 <FormLabel>Biathlon Team Member</FormLabel>
                                 <FormDescription>Mark if this cadet is on the biathlon team.</FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="isMarksmanshipTeamMember"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                                <FormLabel>Marksmanship Team Member</FormLabel>
+                                <FormDescription>Mark if this cadet is on the marksmanship team.</FormDescription>
                             </div>
                             <FormControl>
                                 <Switch checked={field.value} onCheckedChange={field.onChange} />

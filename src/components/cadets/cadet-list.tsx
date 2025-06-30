@@ -3,7 +3,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { X, Pencil, Snowflake } from "lucide-react";
+import { X, Pencil, Snowflake, Target } from "lucide-react";
 import type { Cadet } from "@/lib/types";
 import { Badge } from "../ui/badge";
 import { useSettings } from "@/hooks/use-settings";
@@ -45,11 +45,18 @@ export function CadetList({ cadets, onRemoveCadet, onEditCadet }: CadetListProps
                     <TableCell><Badge variant="secondary">{getPhaseDisplayName(settings.element, cadet.phase)}</Badge></TableCell>
                     <TableCell>{cadet.role || 'N/A'}</TableCell>
                     <TableCell>
-                      {cadet.isBiathlonTeamMember && (
-                        <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                          <Snowflake className="h-3 w-3" /> Biathlon
-                        </Badge>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {cadet.isBiathlonTeamMember && (
+                          <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                            <Snowflake className="h-3 w-3" /> Biathlon
+                          </Badge>
+                        )}
+                        {cadet.isMarksmanshipTeamMember && (
+                           <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                            <Target className="h-3 w-3" /> Marksmanship
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => onEditCadet(cadet)}>
