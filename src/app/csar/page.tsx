@@ -75,16 +75,14 @@ export default function CsarPage() {
         // Create a new object for the day, omitting csarDetails
         const { csarDetails, ...restOfDayData } = dayData;
 
-        // Create a new copy of the entire dayMetadata object
-        const newDayMetadata = { ...dayMetadata };
+        // Create a new copy of the entire dayMetadata object, excluding the day to be modified/deleted
+        const { [date]: _, ...newDayMetadata } = dayMetadata;
 
         if (Object.keys(restOfDayData).length > 0) {
-            // If there are other properties for that day (e.g., dress), update the day
+            // If there are other properties for that day (e.g., dress), add the day back without csarDetails
             newDayMetadata[date] = restOfDayData;
-        } else {
-            // If csarDetails was the only property, remove the entire day entry
-            delete newDayMetadata[date];
         }
+        // If csarDetails was the only property, the day is now fully removed.
         
         updateCurrentYearData({ dayMetadata: newDayMetadata });
         toast({ variant: 'destructive', title: 'CSAR Deleted', description: `The plan for "${csarName}" has been deleted.`});
