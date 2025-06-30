@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, addMonths, startOfMonth, eachDayOfInterval, getYear, addDays, addWeeks, startOfWeek, endOfWeek, addYears, getMonth } from "date-fns";
-import { ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Trash2, GripVertical } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import type { Schedule, EO, DayMetadataState, DayMetadata, ScheduledItem } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -138,7 +138,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
     }
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, slotId: string, item: ScheduledItem) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, slotId: string) => {
     e.dataTransfer.setData("application/json", JSON.stringify({ type: "move", sourceSlotId: slotId }));
     e.dataTransfer.effectAllowed = "move";
   };
@@ -156,6 +156,7 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
     const dress = metadata.dressOfTheDay || { caf: '', cadets: '' };
 
     const handleDressChange = (type: 'caf' | 'cadets', value: string) => {
+        const newDress = { ...dress, [type]: value };
         updateDayMetadata(dateStr, { dressOfTheDay: newDress });
     };
 
@@ -218,25 +219,25 @@ export function CalendarView({ schedule, onDrop, onUpdate, onRemove, onMove, vie
                         )}
                       >
                         {scheduledItem ? (
-                            <div 
-                                className="relative group w-full h-full"
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, slotId, scheduledItem)}
-                            >
+                            <div className="relative group w-full h-full">
                                 <Button
                                     variant="ghost" size="icon"
                                     className="absolute top-1 right-1 w-6 h-6 z-20 opacity-0 group-hover:opacity-100"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onRemove(slotId);
-                                    }}
-                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onClick={() => onRemove(slotId)}
                                 >
                                     <X className="w-4 h-4"/>
                                 </Button>
                                 <ScheduleDialog scheduledItem={scheduledItem} onUpdate={(details) => onUpdate(slotId, details)} >
                                     <DialogTrigger asChild>
                                         <div className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-primary rounded-md p-1 -m-1 cursor-pointer">
+                                            <div
+                                                draggable
+                                                onDragStart={(e) => handleDragStart(e, slotId)}
+                                                onMouseDown={(e) => e.stopPropagation()}
+                                                className="absolute top-1 left-1 p-1 cursor-grab opacity-0 group-hover:opacity-100 z-10"
+                                            >
+                                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                            </div>
                                             <Badge className="mb-1">{getPhaseDisplayName(settings.element, phase)}</Badge>
                                             <p className="font-bold text-sm">{scheduledItem.eo.id.split('-').slice(1).join('-')}</p>
                                             <p className="text-xs text-muted-foreground leading-tight mb-2">{scheduledItem.eo.title}</p>

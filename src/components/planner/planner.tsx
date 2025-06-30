@@ -48,5 +48,3 @@ const Planner = React.forwardRef<HTMLDivElement, PlannerProps>(
 Planner.displayName = "Planner";
 
 export default Planner;
-
-    

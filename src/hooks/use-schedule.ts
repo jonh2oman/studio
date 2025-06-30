@@ -143,5 +143,3 @@ export function useSchedule() {
 
     return { schedule, isLoaded, addScheduleItem, updateScheduleItem, removeScheduleItem, moveScheduleItem, dayMetadata, updateDayMetadata, updateCsarDetails, clearDaySchedule };
 }
-
-    
