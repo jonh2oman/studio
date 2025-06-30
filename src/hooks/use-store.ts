@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useCallback, useMemo } from 'react';
@@ -28,22 +29,28 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
 
     const addStoreItem = useCallback((itemData: Omit<StoreItem, 'id'>) => {
         const newItem: StoreItem = { ...itemData, id: crypto.randomUUID() };
-        const updatedInventory = [...inventory, newItem];
-        updateCurrentYearData({ storeInventory: updatedInventory });
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            storeInventory: [...(prevData.storeInventory || []), newItem]
+        }));
         toast({ title: "Item Added", description: `"${newItem.name}" has been added to the store.` });
-    }, [inventory, updateCurrentYearData, toast]);
+    }, [updateCurrentYearData, toast]);
 
     const updateStoreItem = useCallback((updatedItem: StoreItem) => {
-        const updatedInventory = inventory.map(item => item.id === updatedItem.id ? updatedItem : item);
-        updateCurrentYearData({ storeInventory: updatedInventory });
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            storeInventory: (prevData.storeInventory || []).map(item => item.id === updatedItem.id ? updatedItem : item)
+        }));
         toast({ title: "Item Updated" });
-    }, [inventory, updateCurrentYearData, toast]);
+    }, [updateCurrentYearData, toast]);
 
     const removeStoreItem = useCallback((itemId: string) => {
         const itemToRemove = inventory.find(item => item.id === itemId);
-        const updatedInventory = inventory.filter(item => item.id !== itemId);
-        updateCurrentYearData({ storeInventory: updatedInventory });
-        toast({ title: "Item Removed", description: `"${itemToRemove?.name}" has been removed.`, variant: 'destructive' });
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            storeInventory: (prevData.storeInventory || []).filter(item => item.id !== itemId)
+        }));
+        toast({ title: "Item Removed", description: `"${itemToRemove?.name || 'Item'}" has been removed.`, variant: 'destructive' });
     }, [inventory, updateCurrentYearData, toast]);
     
     const addTransaction = useCallback((cadetId: string, amount: number, reason: string) => {
@@ -59,10 +66,12 @@ export const StoreProvider = ({ children }: { children: React.ReactNode }) => {
             timestamp: new Date().toISOString(),
             staffId: user.email,
         };
-        const updatedTransactions = [...transactions, newTransaction];
-        updateCurrentYearData({ transactions: updatedTransactions });
+        updateCurrentYearData(prevData => ({
+            ...prevData,
+            transactions: [...(prevData.transactions || []), newTransaction]
+        }));
         toast({ title: "Transaction Complete" });
-    }, [transactions, updateCurrentYearData, toast, user]);
+    }, [updateCurrentYearData, toast, user]);
 
 
     const value = { 
