@@ -100,24 +100,20 @@ export function useTrainingYear() {
     const updateCurrentYearData = useCallback((updater: (prevData: TrainingYearData) => TrainingYearData) => {
         if (!currentYear) return;
 
-        // Use the ref to get the absolute latest state
-        const currentAllYears = allYearsDataRef.current;
-        const currentDataForYear = currentAllYears[currentYear];
-        if (!currentDataForYear) {
-            console.error("Attempted to update a non-existent year:", currentYear);
-            return;
-        }
-
-        const updatedDataForYear = updater(currentDataForYear);
-
-        // Construct the new complete object for all years
-        const newAllYearsData = {
-            ...currentAllYears,
-            [currentYear]: updatedDataForYear
-        };
-
-        // Call the save function with the new state object, not a function
-        updateTrainingYears(newAllYearsData);
+        updateTrainingYears(prevAllYears => {
+            const currentDataForYear = prevAllYears[currentYear];
+            if (!currentDataForYear) {
+                console.error("Attempted to update a non-existent year:", currentYear);
+                return prevAllYears; // Return unchanged state
+            }
+    
+            const updatedDataForYear = updater(currentDataForYear);
+    
+            return {
+                ...prevAllYears,
+                [currentYear]: updatedDataForYear,
+            };
+        });
     }, [currentYear, updateTrainingYears]);
 
     const createNewYear = useCallback(async ({ year, startDate, copyFrom, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, useAiForCopy?: boolean, copyFromFileData?: Omit<TrainingYearData, 'cadets'> }) => {
@@ -372,3 +368,5 @@ export function useTrainingYear() {
         removeEoFromDayPlanner,
     };
 }
+
+    
