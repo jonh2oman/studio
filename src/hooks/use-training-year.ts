@@ -10,11 +10,10 @@ import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
 import type { TrainingYearData, DutySchedule, AdaPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult } from '@/lib/types';
 import { useSettings } from './use-settings';
 
-export const defaultYearData: TrainingYearData = {
+export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
     firstTrainingNight: '',
     element: 'Sea',
     dutySchedule: {},
-    cadets: [],
     schedule: {},
     dayMetadata: {},
     attendance: {},
@@ -94,9 +93,9 @@ export function useTrainingYear() {
     const updateCurrentYearData = useCallback(async (
         dataUpdate: Partial<TrainingYearData> | ((prevData: TrainingYearData) => TrainingYearData)
     ) => {
-        if (!currentYear || !user) return;
+        if (!currentYear || !user || !currentYearData) return;
 
-        const currentData = allYearsData[currentYear] || defaultYearData;
+        const currentData = currentYearData || defaultYearData;
         const updatedData = typeof dataUpdate === 'function' 
             ? dataUpdate(currentData) 
             : { ...currentData, ...dataUpdate };
@@ -104,10 +103,10 @@ export function useTrainingYear() {
         const newAllYearsData = { ...allYearsData, [currentYear]: updatedData };
         updateTrainingYears(newAllYearsData);
 
-    }, [currentYear, allYearsData, user, updateTrainingYears]);
+    }, [currentYear, allYearsData, user, updateTrainingYears, currentYearData]);
 
 
-    const createNewYear = useCallback(async ({ year, startDate, copyFrom, promoteCadets, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, promoteCadets?: boolean, useAiForCopy?: boolean, copyFromFileData?: TrainingYearData }) => {
+    const createNewYear = useCallback(async ({ year, startDate, copyFrom, useAiForCopy, copyFromFileData }: { year: string, startDate: string, copyFrom?: string, useAiForCopy?: boolean, copyFromFileData?: Omit<TrainingYearData, 'cadets'> }) => {
         if (trainingYears.includes(year)) {
             toast({ variant: "destructive", title: "Error", description: `Training year ${year} already exists.` });
             return;
@@ -122,33 +121,29 @@ export function useTrainingYear() {
         toast({ title: "Creating New Year...", description: `Please wait while we set up ${year}.` });
 
         try {
-            let newYearData: TrainingYearData;
+            let newYearData: Omit<TrainingYearData, 'cadets'>;
 
             if (copyFrom && allYearsData[copyFrom]) {
-                const sourceData = allYearsData[copyFrom];
-                newYearData = { ...sourceData, firstTrainingNight: startDate, element: sourceData.element || settings.element };
-                if (promoteCadets) {
-                    newYearData.cadets = sourceData.cadets.map(c => ({ ...c, phase: Math.min(5, c.phase + 1) }));
-                }
+                const { cadets, ...sourceDataToCopy } = allYearsData[copyFrom];
+                newYearData = { ...sourceDataToCopy, firstTrainingNight: startDate, element: sourceDataToCopy.element || settings.element };
+                
                 if (useAiForCopy) {
                     const result = await copyTrainingSchedule({
-                        sourceScheduleJson: JSON.stringify(sourceData.schedule),
-                        sourceTrainingYearStart: sourceData.firstTrainingNight,
+                        sourceScheduleJson: JSON.stringify(sourceDataToCopy.schedule),
+                        sourceTrainingYearStart: sourceDataToCopy.firstTrainingNight,
                         targetTrainingYearStart: startDate,
                         trainingDayOfWeek: settings?.trainingDay ?? 2,
                     });
                     newYearData.schedule = JSON.parse(result.newScheduleJson);
                 }
             } else if (copyFromFileData) {
-                newYearData = { ...copyFromFileData, firstTrainingNight: startDate, element: copyFromFileData.element || 'Sea' };
-                if (promoteCadets) {
-                    newYearData.cadets = newYearData.cadets.map(c => ({...c, phase: Math.min(5, c.phase + 1)}));
-                }
+                 const { cadets, ...dataToCopy } = copyFromFileData;
+                newYearData = { ...dataToCopy, firstTrainingNight: startDate, element: dataToCopy.element || 'Sea' };
             } else {
                  newYearData = { ...defaultYearData, firstTrainingNight: startDate, element: settings.element };
             }
             
-            const newAllYearsData: CorpsData['trainingYears'] = { ...allYearsData, [year]: newYearData };
+            const newAllYearsData: CorpsData['trainingYears'] = { ...allYearsData, [year]: newYearData as TrainingYearData };
             
             updateTrainingYears(newAllYearsData);
             setCurrentYear(year);

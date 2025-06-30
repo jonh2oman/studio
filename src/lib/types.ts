@@ -111,12 +111,24 @@ export interface LsaWishListItem {
 
 export type CadetElement = 'Sea' | 'Army' | 'Air';
 
+export interface Cadet {
+    id: string;
+    rank: string;
+    firstName: string;
+    lastName: string;
+    phase: number;
+    role?: string;
+    dateOfBirth?: string; // YYYY-MM-DD
+    isBiathlonTeamMember?: boolean;
+}
+
 export interface Settings {
   element: CadetElement;
   trainingDay: number;
   corpsName: string;
   corpsLogo?: string;
   staff: StaffMember[];
+  cadets: Cadet[];
   staffRoles: string[];
   poNcmRoles: string[];
   cadetRoles: string[];
@@ -142,17 +154,6 @@ export interface Settings {
     categoryOrder: string[];
     itemOrder: Record<string, string[]>;
   };
-}
-
-export interface Cadet {
-    id: string;
-    rank: string;
-    firstName: string;
-    lastName: string;
-    phase: number;
-    role?: string;
-    dateOfBirth?: string; // YYYY-MM-DD
-    isBiathlonTeamMember?: boolean;
 }
 
 export interface CadetWithAttendance extends Cadet {
@@ -312,7 +313,6 @@ export interface TrainingYearData {
     firstTrainingNight: string;
     element: CadetElement;
     dutySchedule: DutySchedule;
-    cadets: Cadet[];
     schedule: Schedule;
     dayMetadata: DayMetadataState;
     attendance: AttendanceState;

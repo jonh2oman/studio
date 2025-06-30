@@ -15,6 +15,7 @@ const defaultSettings: Settings = {
     corpsName: "",
     corpsLogo: "",
     staff: [],
+    cadets: [],
     staffRoles: [
       'Commanding Officer',
       'Training Officer',

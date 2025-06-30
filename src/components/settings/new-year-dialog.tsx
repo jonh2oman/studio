@@ -24,7 +24,6 @@ const newYearSchema = z.object({
   firstTrainingNight: z.coerce.date({ required_error: "First training night is required" }),
   creationMethod: z.enum(["fresh", "copyYear", "copyFile"]),
   sourceYear: z.string().optional(),
-  promoteCadets: z.boolean().default(false),
 }).refine(data => {
     if (data.creationMethod === 'copyYear') return !!data.sourceYear;
     return true;
@@ -43,7 +42,7 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
   const { trainingYears, createNewYear, isCreating } = useTrainingYear();
   const { toast } = useToast();
   const [useAi, setUseAi] = useState(false);
-  const [fileData, setFileData] = useState<TrainingYearData | null>(null);
+  const [fileData, setFileData] = useState<Omit<TrainingYearData, 'cadets'> | null>(null);
   const [fileName, setFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +50,6 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
     resolver: zodResolver(newYearSchema),
     defaultValues: {
         creationMethod: "fresh",
-        promoteCadets: false,
     },
   });
   
@@ -68,8 +66,10 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
             const text = e.target?.result as string;
             const data = JSON.parse(text);
             // Basic validation to ensure it looks like TrainingYearData
-            if (data && typeof data.firstTrainingNight === 'string' && Array.isArray(data.cadets) && typeof data.schedule === 'object') {
-                 setFileData(data);
+            if (data && typeof data.firstTrainingNight === 'string' && typeof data.schedule === 'object') {
+                 // We specifically omit cadets when loading from a file now
+                 const { cadets, ...restOfData } = data;
+                 setFileData(restOfData);
                  toast({ title: "File Ready", description: `"${file.name}" has been successfully loaded.`});
             } else {
                 throw new Error("Invalid file format.");
@@ -97,7 +97,6 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
       year: newYearString,
       startDate: format(yearStartDate, "yyyy-MM-dd"),
       copyFrom: data.creationMethod === 'copyYear' ? data.sourceYear : undefined,
-      promoteCadets: data.creationMethod !== 'fresh' ? data.promoteCadets : false,
       useAiForCopy: data.creationMethod === 'copyYear' ? useAi : false,
       copyFromFileData: data.creationMethod === 'copyFile' ? fileData : undefined,
     });
@@ -194,21 +193,8 @@ export function NewYearDialog({ onOpenChange }: NewYearDialogProps) {
                         {fileName && <Badge variant="secondary">{fileName}</Badge>}
                         <Input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" />
                     </div>
-                    <FormDescription>Upload a `.json` file that was exported from another user. This will create a new training year on your account with all the data from their file, including their calendar schedule.</FormDescription>
+                    <FormDescription>Upload a `.json` file that was exported from another user. This will create a new training year on your account with all the data from their file. The cadet roster will not be imported as it is global to your account.</FormDescription>
                 </div>
-            )}
-
-            {creationMethod !== 'fresh' && (
-                <FormField
-                    control={form.control}
-                    name="promoteCadets"
-                    render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                            <div className="space-y-1 leading-none"><FormLabel>Promote cadets to the next phase?</FormLabel><FormDescription>Automatically increment the phase for all copied cadets.</FormDescription></div>
-                    </FormItem>
-                    )}
-                />
             )}
 
             <DialogFooter>

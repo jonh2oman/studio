@@ -4,17 +4,18 @@
 import { useCallback } from 'react';
 import type { Cadet, AttendanceRecord } from '@/lib/types';
 import { useTrainingYear } from './use-training-year';
+import { useSettings } from './use-settings';
 
 export function useCadets() {
-    const { currentYear, currentYearData, updateCurrentYearData, isLoaded } = useTrainingYear();
+    const { currentYear, currentYearData, updateCurrentYearData, isLoaded: yearIsLoaded } = useTrainingYear();
+    const { settings, saveSettings, isLoaded: settingsIsLoaded } = useSettings();
 
-    const cadets = currentYearData?.cadets || [];
+    const cadets = settings.cadets || [];
     const attendance = currentYearData?.attendance || {};
 
     const saveCadets = useCallback((updatedCadets: Cadet[]) => {
-        if (!currentYear) return;
-        updateCurrentYearData({ cadets: updatedCadets });
-    }, [currentYear, updateCurrentYearData]);
+        saveSettings({ cadets: updatedCadets });
+    }, [saveSettings]);
 
     const addCadet = useCallback((cadet: Omit<Cadet, 'id'>) => {
         const newCadet = { ...cadet, id: crypto.randomUUID() };
@@ -55,5 +56,5 @@ export function useCadets() {
     }, [currentYear, attendance, updateCurrentYearData]);
 
 
-    return { cadets, addCadet, updateCadet, removeCadet, isLoaded, getAttendanceForDate, saveAttendanceForDate, deleteAttendanceForDate, attendance };
+    return { cadets, addCadet, updateCadet, removeCadet, isLoaded: yearIsLoaded && settingsIsLoaded, getAttendanceForDate, saveAttendanceForDate, deleteAttendanceForDate, attendance };
 }
