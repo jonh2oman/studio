@@ -12,7 +12,7 @@ import { AddDayPlannerDialog } from '@/components/planning/add-day-planner-dialo
 import type { EO } from '@/lib/types';
 
 export default function DayPlannerPage() {
-    const { dayPlanners, addEoToDayPlanner } = useTrainingYear();
+    const { dayPlanners, addEoToDayPlanner, addDayPlanner } = useTrainingYear();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
     const handleDragEnd = (event: DragEndEvent) => {
@@ -58,6 +58,7 @@ export default function DayPlannerPage() {
                     <AddDayPlannerDialog 
                         isOpen={isAddDialogOpen}
                         onOpenChange={setIsAddDialogOpen}
+                        onAdd={addDayPlanner}
                     />
                 )}
             </div>

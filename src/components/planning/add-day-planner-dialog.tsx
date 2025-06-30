@@ -1,10 +1,8 @@
 'use client';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { useTrainingYear } from '@/hooks/use-training-year';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -24,17 +22,17 @@ type PlannerFormData = z.infer<typeof plannerSchema>;
 interface AddDayPlannerDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
+    onAdd: (name: string, date: string) => void;
 }
 
-export function AddDayPlannerDialog({ isOpen, onOpenChange }: AddDayPlannerDialogProps) {
-    const { addDayPlanner } = useTrainingYear();
+export function AddDayPlannerDialog({ isOpen, onOpenChange, onAdd }: AddDayPlannerDialogProps) {
     const form = useForm<PlannerFormData>({
         resolver: zodResolver(plannerSchema),
         defaultValues: { name: "", date: new Date() },
     });
 
     const onSubmit = (data: PlannerFormData) => {
-        addDayPlanner(data.name, format(data.date, 'yyyy-MM-dd'));
+        onAdd(data.name, format(data.date, 'yyyy-MM-dd'));
         onOpenChange(false);
     };
 
