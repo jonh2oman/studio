@@ -20,29 +20,54 @@ import { X, AlertTriangle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-// Simplified card for displaying a scheduled item. No drag logic.
-function ScheduledEoCard({ slotId, item }: { slotId: string; item: ScheduledItem }) {
-    const { updateScheduleItem, removeScheduleItem } = useSchedule();
+// This component is now "dumb" and only receives props.
+function ScheduledEoCard({ slotId, item, onRemove, onUpdate }: { 
+    slotId: string; 
+    item: ScheduledItem; 
+    onRemove: (slotId: string) => void;
+    onUpdate: (slotId: string, details: Partial<Omit<ScheduledItem, 'eo'>>) => void;
+}) {
     const [instructor, setInstructor] = useState(item.instructor);
     const [classroom, setClassroom] = useState(item.classroom);
 
     return (
         <div className="relative p-3 rounded-md min-h-[6rem] border flex flex-col justify-center transition-colors bg-background/80 shadow-sm">
-            <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-7 w-7" onClick={(e) => { e.stopPropagation(); removeScheduleItem(slotId); }}>
+            <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-7 w-7" onClick={(e) => { e.stopPropagation(); onRemove(slotId); }}>
                 <X className="h-4 w-4" />
             </Button>
             <p className="font-bold text-sm pr-4">{item.eo?.id ? item.eo.id.split('-').slice(1).join('-') : 'Invalid EO'}</p>
             <p className="text-xs text-muted-foreground leading-tight mb-2 pr-4">{item.eo?.title || 'No Title'}</p>
             <div className="text-xs space-y-1 mt-auto">
-                <Input value={instructor} onChange={(e) => setInstructor(e.target.value)} onBlur={() => updateScheduleItem(slotId, { instructor })} className="h-6 text-xs" placeholder="Instructor" onClick={(e) => e.stopPropagation()} />
-                <Input value={classroom} onChange={(e) => setClassroom(e.target.value)} onBlur={() => updateScheduleItem(slotId, { classroom })} className="h-6 text-xs" placeholder="Location" onClick={(e) => e.stopPropagation()} />
+                <Input 
+                    value={instructor} 
+                    onChange={(e) => setInstructor(e.target.value)} 
+                    onBlur={() => onUpdate(slotId, { instructor })} 
+                    className="h-6 text-xs" 
+                    placeholder="Instructor" 
+                    onClick={(e) => e.stopPropagation()} 
+                />
+                <Input 
+                    value={classroom} 
+                    onChange={(e) => setClassroom(e.target.value)} 
+                    onBlur={() => onUpdate(slotId, { classroom })} 
+                    className="h-6 text-xs" 
+                    placeholder="Location" 
+                    onClick={(e) => e.stopPropagation()} 
+                />
             </div>
         </div>
     );
 }
 
-// Clickable slot in the grid.
-function PlannerSlot({ slotId, item, isSelected, onSelect }: { slotId: string; item?: ScheduledItem; isSelected: boolean; onSelect: () => void; }) {
+// This component now passes the onRemove and onUpdate props down.
+function PlannerSlot({ slotId, item, isSelected, onSelect, onRemove, onUpdate }: { 
+    slotId: string; 
+    item?: ScheduledItem; 
+    isSelected: boolean; 
+    onSelect: () => void; 
+    onRemove: (slotId: string) => void;
+    onUpdate: (slotId: string, details: Partial<Omit<ScheduledItem, 'eo'>>) => void;
+}) {
     return (
         <div 
             className={cn(
@@ -54,7 +79,7 @@ function PlannerSlot({ slotId, item, isSelected, onSelect }: { slotId: string; i
         >
             {item ? (
                  <div className="w-full">
-                    <ScheduledEoCard slotId={slotId} item={item} />
+                    <ScheduledEoCard slotId={slotId} item={item} onRemove={onRemove} onUpdate={onUpdate} />
                  </div>
             ) : (
                 <span className="text-xs text-muted-foreground">Click to select slot</span>
@@ -66,7 +91,8 @@ function PlannerSlot({ slotId, item, isSelected, onSelect }: { slotId: string; i
 export default function DayPlannerPage() {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-    const { schedule, dayMetadata, updateDayMetadata } = useSchedule();
+    // All schedule-modifying functions are now retrieved here in the parent component.
+    const { schedule, dayMetadata, updateDayMetadata, removeScheduleItem, updateScheduleItem } = useSchedule();
     const { settings } = useSettings();
 
     const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : '';
@@ -144,6 +170,8 @@ export default function DayPlannerPage() {
                                                                         item={schedule[slotId]}
                                                                         isSelected={selectedSlotId === slotId}
                                                                         onSelect={() => setSelectedSlotId(slotId)}
+                                                                        onRemove={removeScheduleItem}
+                                                                        onUpdate={updateScheduleItem}
                                                                     />
                                                                 </div>
                                                             )
