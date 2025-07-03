@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/card";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ScheduledEoCard } from "./scheduled-eo-card";
-import type { Schedule } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useSchedule } from "@/hooks/use-schedule";
@@ -22,6 +21,7 @@ interface AnnualDayDropzoneProps {
 }
 
 const phases = [1, 2, 3, 4];
+const periods = [1, 2, 3];
 
 export function AnnualDayDropzone({ date }: AnnualDayDropzoneProps) {
     const { settings } = useSettings();
@@ -33,8 +33,6 @@ export function AnnualDayDropzone({ date }: AnnualDayDropzoneProps) {
         const newDress = { ...(metadata.dressOfTheDay || { caf: '', cadets: '' }), [type]: value };
         updateDayMetadata(dateStr, { dressOfTheDay: newDress });
     };
-
-    const scheduledItemsForDay = Object.entries(schedule).filter(([slotId]) => slotId.startsWith(dateStr));
     
     return (
          <Card className="border">
@@ -72,32 +70,40 @@ export function AnnualDayDropzone({ date }: AnnualDayDropzoneProps) {
                     </div>
                     
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                        {phases.map(phaseId => {
-                            const itemsForPhase = scheduledItemsForDay.filter(([slotId]) => slotId.endsWith(`-${phaseId}`));
-                            const { setNodeRef, isOver } = useDroppable({
-                                id: `annual-${dateStr}-${phaseId}`,
-                                data: { date: dateStr, phase: phaseId }
-                            });
-                            
-                            return (
-                                <div key={phaseId} className="rounded-lg bg-muted/50 p-3 space-y-2">
-                                    <h5 className="font-medium text-center text-sm">{getPhaseDisplayName(settings.element, phaseId)}</h5>
-                                    <div
-                                        ref={setNodeRef}
-                                        className={cn(
-                                            "min-h-[10rem] rounded-md border-2 border-dashed bg-background/50 p-2 space-y-2 content-start transition-colors",
-                                            isOver && "border-primary bg-primary/10"
-                                        )}
-                                    >
-                                        {itemsForPhase.length > 0 ? itemsForPhase.map(([slotId, item]) => (
-                                            item ? <ScheduledEoCard key={slotId} item={item} slotId={slotId} /> : null
-                                        )) : (
-                                            <p className="text-xs text-muted-foreground text-center p-4">Drop EOs here</p>
-                                        )}
-                                    </div>
+                        {phases.map(phaseId => (
+                            <div key={phaseId} className="rounded-lg bg-muted/50 p-3 space-y-2">
+                                <h5 className="font-medium text-center text-sm">{getPhaseDisplayName(settings.element, phaseId)}</h5>
+                                <div className="space-y-2">
+                                    {periods.map(period => {
+                                        const slotId = `${dateStr}-${period}-${phaseId}`;
+                                        const scheduledItem = schedule[slotId];
+                                        const { setNodeRef, isOver } = useDroppable({
+                                            id: `annual-${slotId}`,
+                                            data: { date: dateStr, phase: phaseId, period: period }
+                                        });
+
+                                        return (
+                                            <div
+                                                ref={setNodeRef}
+                                                key={period}
+                                                className={cn(
+                                                    "min-h-[6rem] rounded-md border-2 border-dashed p-2 transition-colors",
+                                                    isOver && "border-primary bg-primary/10",
+                                                    !scheduledItem && "flex items-center justify-center",
+                                                    scheduledItem ? "bg-background border-solid" : "border-dashed"
+                                                )}
+                                            >
+                                                {scheduledItem ? (
+                                                    <ScheduledEoCard item={scheduledItem} slotId={slotId} />
+                                                ) : (
+                                                    <p className="text-xs text-muted-foreground">Period {period}</p>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                            );
-                        })}
+                            </div>
+                        ))}
                     </div>
                 </AccordionContent>
             </AccordionItem>

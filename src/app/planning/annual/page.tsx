@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { format, eachDayOfInterval } from "date-fns";
 import { useTrainingYear } from "@/hooks/use-training-year";
 import { useSettings } from "@/hooks/use-settings";
@@ -10,15 +10,17 @@ import { PageHeader } from "@/components/page-header";
 import { ObjectivesPanel } from "@/components/planning/objectives-panel";
 import { Accordion } from "@/components/ui/accordion";
 import { Loader2 } from "lucide-react";
-import type { EO, Schedule } from "@/lib/types";
+import type { EO } from "@/lib/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { AnnualDayDropzone } from "@/components/planning/annual/annual-day-dropzone";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AnnualPlannerPage() {
     const { settings, isLoaded: settingsLoaded } = useSettings();
     const { currentYear, currentYearData, isLoaded: yearLoaded } = useTrainingYear();
     const { schedule, addScheduleItem, isLoaded: scheduleLoaded } = useSchedule();
+    const { toast } = useToast();
     
     const trainingDays = useMemo(() => {
         if (!currentYear || !currentYearData?.firstTrainingNight || !settings?.trainingDay) return [];
@@ -41,17 +43,20 @@ export default function AnnualPlannerPage() {
     const handleDragEnd = (event: DragEndEvent) => {
         const { over, active } = event;
         if (over && active.data.current?.eo) {
-            const { date, phase } = over.data.current as { date: string, phase: number };
+            const { date, phase, period } = over.data.current as { date: string, phase: number, period: number };
             const eo = active.data.current.eo as EO;
+            const slotId = `${date}-${period}-${phase}`;
             
-            // Find the next available period (from 1 to 9) for this date and phase
-            for (let period = 1; period <= 9; period++) {
-                const slotId = `${date}-${period}-${phase}`;
-                if (!schedule[slotId]) {
-                    addScheduleItem(slotId, eo);
-                    return; // Exit after adding to the first available slot
-                }
+            if (schedule[slotId]) {
+                 toast({
+                    variant: "destructive",
+                    title: "Slot Occupied",
+                    description: "This slot already has a lesson planned.",
+                });
+                return;
             }
+
+            addScheduleItem(slotId, eo);
         }
     };
 
