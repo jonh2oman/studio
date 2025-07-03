@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { format, addMonths, getYear, eachDayOfInterval } from "date-fns";
+import { format, addMonths, getYear, eachDayOfInterval, getDay, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ZtoReviewedPlan } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
 
     useEffect(() => {
         if (planData.firstTrainingNight) {
-            const firstNight = new Date(planData.firstTrainingNight.replace(/-/g, '/'));
+            const firstNight = parseISO(planData.firstTrainingNight);
             const startYear = firstNight.getMonth() >= 8 ? firstNight.getFullYear() : firstNight.getFullYear() - 1;
             const endYear = startYear + 1;
 
