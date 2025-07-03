@@ -35,13 +35,12 @@ export default function DayPlannerPage() {
                 }
             });
         });
-
-        (dayPlanners || []).forEach(planner => {
-            planner.eos.forEach(eo => {
-                if (eo?.id) {
-                    counts[eo.id] = (counts[eo.id] || 0) + 1;
-                }
-            });
+        
+        const dayPlannerEOs = (dayPlanners || []).flatMap(p => Object.values(p.schedule || {}).filter(Boolean).map(item => item!.eo));
+        dayPlannerEOs.forEach(eo => {
+            if (eo.id) {
+                counts[eo.id] = (counts[eo.id] || 0) + 1;
+            }
         });
 
         return counts;
@@ -50,9 +49,16 @@ export default function DayPlannerPage() {
     const handleDragEnd = (event: DragEndEvent) => {
         const { over, active } = event;
         if (over && active.data.current?.eo) {
-            const plannerId = over.id as string;
-            const eo = active.data.current.eo as EO;
-            addEoToDayPlanner(plannerId, eo);
+            const overId = over.id as string;
+            if (overId.startsWith('day-planner-')) {
+                const parts = overId.split('-');
+                const plannerId = parts[2];
+                const phaseId = parts[4];
+                const period = parts[6];
+                const slotId = `${phaseId}-${period}`;
+                const eo = active.data.current.eo as EO;
+                addEoToDayPlanner(plannerId, slotId, eo);
+            }
         }
     };
     

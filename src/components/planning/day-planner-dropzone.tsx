@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
@@ -11,17 +10,19 @@ import { Trash2, Edit, Check, X } from 'lucide-react';
 import type { DayPlannerData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import { useSettings } from '@/hooks/use-settings';
+import { getPhaseDisplayName } from '@/lib/utils';
+import { ScheduledDayEoCard } from './day/scheduled-eo-card';
+
+const phases = [1, 2, 3, 4];
+const periods = Array.from({ length: 9 }, (_, i) => i + 1); // 9 periods
 
 export function DayPlannerDropzone({ planner }: { planner: DayPlannerData }) {
-    const { setNodeRef, isOver } = useDroppable({
-        id: planner.id,
-    });
-
-    const { removeDayPlanner, updateDayPlanner, removeEoFromDayPlanner } = useTrainingYear();
+    const { removeDayPlanner, updateDayPlanner } = useTrainingYear();
+    const { settings } = useSettings();
     const [isEditing, setIsEditing] = useState(false);
     const [editState, setEditState] = useState({ name: planner.name, date: parseISO(planner.date) });
 
@@ -38,7 +39,7 @@ export function DayPlannerDropzone({ planner }: { planner: DayPlannerData }) {
     };
 
     return (
-        <Card ref={setNodeRef} className={cn(isOver && "ring-2 ring-primary ring-offset-2 bg-primary/10")}>
+        <Card>
             <CardHeader>
                 <div className="flex justify-between items-start flex-wrap gap-2">
                     {isEditing ? (
@@ -89,25 +90,40 @@ export function DayPlannerDropzone({ planner }: { planner: DayPlannerData }) {
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="p-4 border-2 border-dashed rounded-lg min-h-[20rem] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
-                    {planner.eos.map((eo, index) => (
-                        <div key={`${eo.id}-${index}`} className="relative p-2 rounded-md border bg-card shadow-sm text-sm">
-                            <div className="flex justify-between items-start pr-6">
-                                <p className="font-semibold">{eo.id.split('-').slice(1).join('-')}</p>
-                                <Badge variant="secondary">{eo.periods} {eo.periods > 1 ? 'Periods' : 'Period'}</Badge>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    {phases.map(phaseId => (
+                        <div key={phaseId} className="rounded-lg bg-muted/50 p-3 space-y-2">
+                            <h5 className="font-medium text-center text-sm">{getPhaseDisplayName(settings.element, phaseId)}</h5>
+                            <div className="space-y-2">
+                                {periods.map(period => {
+                                    const slotId = `${phaseId}-${period}`;
+                                    const scheduledItem = planner.schedule[slotId];
+                                    const { setNodeRef, isOver } = useDroppable({
+                                        id: `day-planner-${planner.id}-phase-${phaseId}-period-${period}`,
+                                    });
+
+                                    return (
+                                        <div
+                                            ref={setNodeRef}
+                                            key={period}
+                                            className={cn(
+                                                "min-h-[6rem] rounded-md border-2 border-dashed p-2 transition-colors",
+                                                isOver && "border-primary bg-primary/10",
+                                                !scheduledItem && "flex items-center justify-center",
+                                                scheduledItem ? "bg-background border-solid" : "border-dashed"
+                                            )}
+                                        >
+                                            {scheduledItem ? (
+                                                <ScheduledDayEoCard item={scheduledItem} plannerId={planner.id} slotId={slotId} />
+                                            ) : (
+                                                <p className="text-xs text-muted-foreground">Period {period}</p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
-                            <p className="text-xs text-muted-foreground pr-6 mt-1">{eo.title}</p>
-                            <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="absolute top-0 right-0 h-6 w-6"
-                                onClick={() => removeEoFromDayPlanner(planner.id, index)}
-                            >
-                                <X className="h-3 w-3" />
-                            </Button>
                         </div>
                     ))}
-                    {planner.eos.length === 0 && <p className="col-span-full place-self-center text-muted-foreground text-center py-10">Drop EOs here</p>}
                 </div>
             </CardContent>
         </Card>

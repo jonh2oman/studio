@@ -6,7 +6,7 @@ import { useToast } from './use-toast';
 import { useAuth } from './use-auth';
 import { db } from '@/lib/firebase';
 import { copyTrainingSchedule } from '@/ai/flows/copy-training-year-flow';
-import type { TrainingYearData, DutySchedule, AdaPlannerData, DayPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult, StoreItem, Transaction } from '@/lib/types';
+import type { TrainingYearData, DutySchedule, AdaPlannerData, DayPlannerData, EO, CorpsData, MarksmanshipRecord, BiathlonResult, StoreItem, Transaction, Schedule } from '@/lib/types';
 import { useSettings } from './use-settings';
 
 export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
@@ -288,7 +288,7 @@ export function useTrainingYear() {
                 id: crypto.randomUUID(),
                 name,
                 date,
-                eos: []
+                schedule: {}
             };
             const updatedPlanners = [...(prevData.dayPlanners || []), newPlanner];
             return { ...prevData, dayPlanners: updatedPlanners };
@@ -311,15 +311,16 @@ export function useTrainingYear() {
         });
     }, [updateCurrentYearData]);
 
-    const addEoToDayPlanner = useCallback((plannerId: string, eo: EO) => {
+    const addEoToDayPlanner = useCallback((plannerId: string, slotId: string, eo: EO) => {
         updateCurrentYearData(prevData => {
             const updatedPlanners = (prevData.dayPlanners || []).map(p => {
                 if (p.id === plannerId) {
-                    if (p.eos.length >= 60) {
-                        toast({ title: "Planner Full", description: "A day planner cannot exceed 60 EOs.", variant: "destructive" });
-                        return p;
+                    if (p.schedule[slotId]) {
+                         toast({ variant: "destructive", title: "Slot Occupied", description: "This slot already has a lesson planned." });
+                         return p;
                     }
-                    return { ...p, eos: [...p.eos, eo] };
+                    const newSchedule = { ...p.schedule, [slotId]: { eo, instructor: '', classroom: '' } };
+                    return { ...p, schedule: newSchedule };
                 }
                 return p;
             });
@@ -327,13 +328,13 @@ export function useTrainingYear() {
         });
     }, [updateCurrentYearData, toast]);
 
-    const removeEoFromDayPlanner = useCallback((plannerId: string, eoIndex: number) => {
+    const removeEoFromDayPlanner = useCallback((plannerId: string, slotId: string) => {
         updateCurrentYearData(prevData => {
             const updatedPlanners = (prevData.dayPlanners || []).map(p => {
                 if (p.id === plannerId) {
-                    const newEos = [...p.eos];
-                    newEos.splice(eoIndex, 1);
-                    return { ...p, eos: newEos };
+                    const newSchedule = { ...p.schedule };
+                    delete newSchedule[slotId];
+                    return { ...p, schedule: newSchedule };
                 }
                 return p;
             });
@@ -368,5 +369,3 @@ export function useTrainingYear() {
         removeEoFromDayPlanner,
     };
 }
-
-    

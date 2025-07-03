@@ -354,7 +354,7 @@ export interface DayPlannerData {
     id: string;
     name: string;
     date: string; // YYYY-MM-DD
-    eos: EO[];
+    schedule: Schedule;
 }
 
 export interface TrainingYearData {
