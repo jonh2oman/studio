@@ -15,21 +15,17 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDroppable } from '@dnd-kit/core';
 
-interface PhasePlanningGridProps {
+interface AnnualDayDropzoneProps {
   date: Date;
-  scheduleForDate: Schedule;
-  activeSlot: string | null;
-  onSlotSelect: (slotId: string) => void;
-  onRemoveItem: (slotId: string) => void;
 }
 
-const periods = [1, 2, 3];
 const phases = [1, 2, 3, 4];
 
-export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSelect, onRemoveItem }: PhasePlanningGridProps) {
+export function AnnualDayDropzone({ date }: AnnualDayDropzoneProps) {
     const { settings } = useSettings();
-    const { updateDayMetadata, dayMetadata, clearDaySchedule } = useSchedule();
+    const { schedule, dayMetadata, updateDayMetadata, clearDaySchedule } = useSchedule();
     const dateStr = format(date, "yyyy-MM-dd");
     const metadata = dayMetadata[dateStr] || {};
 
@@ -38,6 +34,8 @@ export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSel
         updateDayMetadata(dateStr, { dressOfTheDay: newDress });
     };
 
+    const scheduledItemsForDay = Object.entries(schedule).filter(([slotId]) => slotId.startsWith(dateStr));
+    
     return (
          <Card className="border">
             <AccordionItem value={dateStr} className="border-b-0">
@@ -73,41 +71,33 @@ export function PhasePlanningGrid({ date, scheduleForDate, activeSlot, onSlotSel
                         </AlertDialog>
                     </div>
                     
-                    <div className="space-y-4">
-                        {periods.map(period => (
-                            <div key={period}>
-                                <h4 className="font-semibold mb-2 ml-1">Period {period}</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {phases.map(phaseId => {
-                                        const slotId = `${dateStr}-${period}-${phaseId}`;
-                                        const scheduledItem = scheduleForDate[slotId];
-                                        const isActive = activeSlot === slotId;
-
-                                        return (
-                                            <div key={slotId} className="rounded-lg bg-muted/50 p-2">
-                                                <h5 className="font-medium text-center text-sm mb-1">{getPhaseDisplayName(settings.element, phaseId)}</h5>
-                                                <div className={cn(
-                                                    "relative rounded-md min-h-[6rem] transition-colors",
-                                                    isActive && "ring-2 ring-primary ring-offset-2"
-                                                )}>
-                                                    {scheduledItem ? (
-                                                        <ScheduledEoCard item={scheduledItem} slotId={slotId} onRemove={onRemoveItem} />
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => onSlotSelect(slotId)}
-                                                            className="w-full h-full flex items-center justify-center text-muted-foreground/40 hover:bg-accent hover:text-accent-foreground bg-background rounded-md transition-colors"
-                                                            aria-label={`Select Period ${period} for ${getPhaseDisplayName(settings.element, phaseId)}`}
-                                                        >
-                                                             <span className="sr-only">Add lesson</span>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        {phases.map(phaseId => {
+                            const itemsForPhase = scheduledItemsForDay.filter(([slotId]) => slotId.endsWith(`-${phaseId}`));
+                            const { setNodeRef, isOver } = useDroppable({
+                                id: `annual-${dateStr}-${phaseId}`,
+                                data: { date: dateStr, phase: phaseId }
+                            });
+                            
+                            return (
+                                <div key={phaseId} className="rounded-lg bg-muted/50 p-3 space-y-2">
+                                    <h5 className="font-medium text-center text-sm">{getPhaseDisplayName(settings.element, phaseId)}</h5>
+                                    <div
+                                        ref={setNodeRef}
+                                        className={cn(
+                                            "min-h-[10rem] rounded-md border-2 border-dashed bg-background/50 p-2 space-y-2 content-start transition-colors",
+                                            isOver && "border-primary bg-primary/10"
+                                        )}
+                                    >
+                                        {itemsForPhase.length > 0 ? itemsForPhase.map(([slotId, item]) => (
+                                            item ? <ScheduledEoCard key={slotId} item={item} slotId={slotId} /> : null
+                                        )) : (
+                                            <p className="text-xs text-muted-foreground text-center p-4">Drop EOs here</p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </AccordionContent>
             </AccordionItem>
