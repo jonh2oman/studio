@@ -22,23 +22,22 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
 
     useEffect(() => {
         if (planData.firstTrainingNight) {
-            const [year, month, day] = planData.firstTrainingNight.split('-').map(Number);
-            const firstNight = new Date(year, month - 1, day);
+            const firstNight = parseISO(planData.firstTrainingNight + 'T00:00:00'); // Prevent timezone shift
             
-            const startYear = firstNight.getMonth() >= 8 ? firstNight.getFullYear() : firstNight.getFullYear() - 1;
+            const startYear = firstNight.getUTCMonth() >= 8 ? firstNight.getUTCFullYear() : firstNight.getUTCFullYear() - 1;
             const endYear = startYear + 1;
 
             const ty = {
-                start: new Date(startYear, 8, 1),
-                end: new Date(endYear, 5, 30),
+                start: new Date(Date.UTC(startYear, 8, 1)),
+                end: new Date(Date.UTC(endYear, 5, 30)),
             };
             setTrainingYear(ty);
             setCurrentDate(firstNight);
 
-            const trainingDayOfWeek = planData.trainingDay ?? firstNight.getDay();
+            const trainingDayOfWeek = planData.trainingDay ?? firstNight.getUTCDay();
             
             const allDaysInYear = eachDayOfInterval({ start: ty.start, end: ty.end });
-            const days = allDaysInYear.filter(d => d.getDay() === trainingDayOfWeek && d >= firstNight);
+            const days = allDaysInYear.filter(d => d.getUTCDay() === trainingDayOfWeek && d >= firstNight);
             setTrainingDays(days);
         }
     }, [planData.firstTrainingNight, planData.trainingDay]);
@@ -52,7 +51,7 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
         if (!currentDate || !trainingYear) return { headerText: 'Loading...', trainingDaysToShow: [] };
         const text = format(currentDate, "MMMM yyyy");
         const days = trainingDays.filter(d => 
-            d.getMonth() === currentDate.getMonth() && d.getFullYear() === currentDate.getFullYear()
+            d.getUTCMonth() === currentDate.getUTCMonth() && d.getUTCFullYear() === currentDate.getUTCFullYear()
         );
         return { headerText: text, trainingDaysToShow: days };
     }, [currentDate, trainingYear, trainingDays]);
