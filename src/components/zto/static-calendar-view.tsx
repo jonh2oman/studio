@@ -22,7 +22,9 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
 
     useEffect(() => {
         if (planData.firstTrainingNight) {
-            const firstNight = parseISO(planData.firstTrainingNight);
+            const parts = planData.firstTrainingNight.split('-').map(Number);
+            const firstNight = new Date(parts[0], parts[1] - 1, parts[2]);
+            
             const startYear = firstNight.getMonth() >= 8 ? firstNight.getFullYear() : firstNight.getFullYear() - 1;
             const endYear = startYear + 1;
 
