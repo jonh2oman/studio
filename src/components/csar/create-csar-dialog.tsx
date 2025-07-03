@@ -17,15 +17,20 @@ import { cn } from "@/lib/utils";
 
 const createCsarSchema = z.object({
   activityName: z.string().min(1, "Activity name is required."),
-  date: z.date({ required_error: "A date is required." }),
+  startDate: z.date({ required_error: "A start date is required." }),
+  endDate: z.date({ required_error: "An end date is required." }),
+}).refine(data => data.endDate >= data.startDate, {
+    message: "End date cannot be before start date.",
+    path: ["endDate"],
 });
+
 
 type CreateCsarFormData = z.infer<typeof createCsarSchema>;
 
 interface CreateCsarDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (name: string, date: Date) => void;
+  onCreate: (name: string, startDate: Date, endDate: Date) => void;
 }
 
 export function CreateCsarDialog({ isOpen, onOpenChange, onCreate }: CreateCsarDialogProps) {
@@ -37,7 +42,7 @@ export function CreateCsarDialog({ isOpen, onOpenChange, onCreate }: CreateCsarD
   });
 
   const onSubmit = (data: CreateCsarFormData) => {
-    onCreate(data.activityName, data.date);
+    onCreate(data.activityName, data.startDate, data.endDate);
     onOpenChange(false);
   };
 
@@ -47,7 +52,7 @@ export function CreateCsarDialog({ isOpen, onOpenChange, onCreate }: CreateCsarD
         <DialogHeader>
           <DialogTitle>Create New CSAR</DialogTitle>
           <DialogDescription>
-            Select a date and provide a name for the activity to create a new CSAR plan.
+            Provide a name and date range for the activity to create a new CSAR plan.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -63,32 +68,60 @@ export function CreateCsarDialog({ isOpen, onOpenChange, onCreate }: CreateCsarD
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Activity Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                    <FormLabel>Start Date</FormLabel>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button
+                            variant="outline"
+                            className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                        </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                    <FormLabel>End Date</FormLabel>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button
+                            variant="outline"
+                            className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}
+                            >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                        </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                        </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+             </div>
             <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
                 <Button type="submit">Create CSAR</Button>
