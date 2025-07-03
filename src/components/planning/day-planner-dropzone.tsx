@@ -99,7 +99,11 @@ export function DayPlannerDropzone({ planner }: { planner: DayPlannerData }) {
                                     const slotId = `${phaseId}-${period}`;
                                     const scheduledItem = (planner.schedule || {})[slotId];
                                     const { setNodeRef, isOver } = useDroppable({
-                                        id: `day-planner-${planner.id}-phase-${phaseId}-period-${period}`,
+                                        id: `day-planner-${planner.id}-${slotId}`,
+                                        data: {
+                                            plannerId: planner.id,
+                                            slotId: slotId,
+                                        }
                                     });
 
                                     return (
@@ -129,5 +133,3 @@ export function DayPlannerDropzone({ planner }: { planner: DayPlannerData }) {
         </Card>
     );
 }
-
-    

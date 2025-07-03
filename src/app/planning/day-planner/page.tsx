@@ -50,13 +50,9 @@ export default function DayPlannerPage() {
     const handleDragEnd = (event: DragEndEvent) => {
         const { over, active } = event;
         if (over && active.data.current?.eo) {
-            const overId = over.id as string;
-            if (overId.startsWith('day-planner-')) {
-                const parts = overId.split('-');
-                const plannerId = parts[2];
-                const phaseId = parts[4];
-                const period = parts[6];
-                const slotId = `${phaseId}-${period}`;
+            // Check if it's a day planner dropzone by looking for the data we passed
+            if (over.data.current?.plannerId && over.data.current?.slotId) {
+                const { plannerId, slotId } = over.data.current as { plannerId: string; slotId: string };
                 const eo = active.data.current.eo as EO;
                 addEoToDayPlanner(plannerId, slotId, eo);
             }
