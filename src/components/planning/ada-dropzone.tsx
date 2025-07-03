@@ -69,25 +69,30 @@ export function AdaDropzone({ planner }: { planner: AdaPlannerData }) {
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="p-4 border-2 border-dashed rounded-lg min-h-[10rem] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
-                    {planner.eos.map((eo, index) => (
-                        <div key={`${eo.id}-${index}`} className="relative p-2 rounded-md border bg-card shadow-sm text-sm">
-                            <div className="flex justify-between items-start pr-6">
-                                <p className="font-semibold">{eo.id.split('-').slice(1).join('-')}</p>
-                                <Badge variant="secondary">{eo.periods} {eo.periods > 1 ? 'Periods' : 'Period'}</Badge>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 content-start min-h-[6rem]">
+                     {planner.eos.length > 0 ? (
+                        planner.eos.map((eo, index) => (
+                            <div key={`${eo.id}-${index}`} className="relative p-2 rounded-md border bg-card shadow-sm text-sm">
+                                <div className="flex justify-between items-start pr-6">
+                                    <p className="font-semibold">{eo.id.split('-').slice(1).join('-')}</p>
+                                    <Badge variant="secondary">{eo.periods} {eo.periods > 1 ? 'Periods' : 'Period'}</Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground pr-6 mt-1">{eo.title}</p>
+                                <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="absolute top-0 right-0 h-6 w-6"
+                                    onClick={() => removeEoFromAda(planner.id, index)}
+                                >
+                                    <X className="h-3 w-3" />
+                                </Button>
                             </div>
-                            <p className="text-xs text-muted-foreground pr-6 mt-1">{eo.title}</p>
-                            <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="absolute top-0 right-0 h-6 w-6"
-                                onClick={() => removeEoFromAda(planner.id, index)}
-                            >
-                                <X className="h-3 w-3" />
-                            </Button>
+                        ))
+                    ) : (
+                         <div className="col-span-full flex items-center justify-center min-h-[6rem] border-2 border-dashed rounded-lg">
+                            <p className="text-muted-foreground text-center">Drop EOs here</p>
                         </div>
-                    ))}
-                    {planner.eos.length === 0 && <p className="col-span-full self-center text-muted-foreground text-center py-10">Drop EOs here</p>}
+                    )}
                 </div>
             </CardContent>
         </Card>
