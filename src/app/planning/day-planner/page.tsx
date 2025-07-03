@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,42 @@ import { PlusCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AddDayPlannerDialog } from '@/components/planning/add-day-planner-dialog';
 import type { EO } from '@/lib/types';
+import { useSchedule } from '@/hooks/use-schedule';
 
 export default function DayPlannerPage() {
-    const { dayPlanners, addEoToDayPlanner, addDayPlanner } = useTrainingYear();
+    const { dayPlanners, addEoToDayPlanner, addDayPlanner, adaPlanners, isLoaded: yearLoaded } = useTrainingYear();
+    const { schedule, isLoaded: scheduleLoaded } = useSchedule();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+    const scheduledEoCounts = useMemo(() => {
+        if (!scheduleLoaded || !yearLoaded) return {};
+        
+        const counts: { [key: string]: number } = {};
+
+        Object.values(schedule).forEach(item => {
+            if (item?.eo?.id) {
+                counts[item.eo.id] = (counts[item.eo.id] || 0) + 1;
+            }
+        });
+
+        (adaPlanners || []).forEach(planner => {
+            planner.eos.forEach(eo => {
+                if (eo?.id) {
+                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+                }
+            });
+        });
+
+        (dayPlanners || []).forEach(planner => {
+            planner.eos.forEach(eo => {
+                if (eo?.id) {
+                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+                }
+            });
+        });
+
+        return counts;
+    }, [schedule, adaPlanners, dayPlanners, scheduleLoaded, yearLoaded]);
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { over, active } = event;
@@ -27,7 +59,7 @@ export default function DayPlannerPage() {
     return (
         <DndContext onDragEnd={handleDragEnd}>
             <div className="flex h-[calc(100vh-8rem)] gap-8">
-                <ObjectivesPanel interactionMode="drag" />
+                <ObjectivesPanel scheduledEoCounts={scheduledEoCounts} />
                 <div className="flex-1 flex flex-col">
                     <PageHeader
                         title="Day / Weekend Planner"
@@ -54,13 +86,11 @@ export default function DayPlannerPage() {
                         </div>
                     </ScrollArea>
                 </div>
-                {isAddDialogOpen && (
-                    <AddDayPlannerDialog 
-                        isOpen={isAddDialogOpen}
-                        onOpenChange={setIsAddDialogOpen}
-                        onAdd={addDayPlanner}
-                    />
-                )}
+                <AddDayPlannerDialog 
+                    isOpen={isAddDialogOpen}
+                    onOpenChange={setIsAddDialogOpen}
+                    onAdd={addDayPlanner}
+                />
             </div>
         </DndContext>
     );

@@ -1,25 +1,22 @@
 
 'use client';
 import { useState } from 'react';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useSettings } from '@/hooks/use-settings';
 import { elementalTrainingData } from '@/lib/data';
 import { getPhaseDisplayName } from '@/lib/utils';
-import { AddableEoItem } from './addable-eo-item';
 import { DraggableEoItem } from './draggable-eo-item';
 import type { Phase, EO } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { Card } from '../ui/card';
 
 interface ObjectivesPanelProps {
-    interactionMode: 'drag' | 'add';
-    onEoAdd?: (eo: EO) => void;
+    scheduledEoCounts: { [key: string]: number };
 }
 
-export function ObjectivesPanel({ interactionMode, onEoAdd }: ObjectivesPanelProps) {
+export function ObjectivesPanel({ scheduledEoCounts }: ObjectivesPanelProps) {
     const { settings, isLoaded } = useSettings();
     const [searchTerm, setSearchTerm] = useState('');
     const trainingData: Phase[] = settings.element ? elementalTrainingData[settings.element] : [];
@@ -37,8 +34,6 @@ export function ObjectivesPanel({ interactionMode, onEoAdd }: ObjectivesPanelPro
         }).filter(po => po.enablingObjectives.length > 0);
         return { ...phase, performanceObjectives: filteredPos };
     }).filter(phase => phase.performanceObjectives.length > 0);
-
-    const EoItemComponent = interactionMode === 'add' ? AddableEoItem : DraggableEoItem;
 
     return (
         <Card className="w-[350px] min-w-[300px] max-w-[500px]">
@@ -68,10 +63,10 @@ export function ObjectivesPanel({ interactionMode, onEoAdd }: ObjectivesPanelPro
                                                 <h4 className="font-semibold text-sm mb-1">{po.id} - {po.title}</h4>
                                                 <div className="space-y-1 pl-2 border-l-2 ml-2">
                                                     {po.enablingObjectives.map(eo => (
-                                                        <EoItemComponent 
+                                                        <DraggableEoItem 
                                                             key={eo.id} 
                                                             eo={eo}
-                                                            onAdd={onEoAdd} 
+                                                            scheduledCount={scheduledEoCounts[eo.id] || 0}
                                                         />
                                                     ))}
                                                 </div>
@@ -87,4 +82,3 @@ export function ObjectivesPanel({ interactionMode, onEoAdd }: ObjectivesPanelPro
         </Card>
     );
 }
-

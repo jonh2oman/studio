@@ -6,7 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function DraggableEoItem({ eo }: { eo: EO; onAdd?: (eo: EO) => void; }) {
+interface DraggableEoItemProps {
+    eo: EO;
+    scheduledCount: number;
+}
+
+export function DraggableEoItem({ eo, scheduledCount = 0 }: DraggableEoItemProps) {
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: `draggable-${eo.id}`,
         data: {
@@ -25,11 +30,16 @@ export function DraggableEoItem({ eo }: { eo: EO; onAdd?: (eo: EO) => void; }) {
             )}
         >
             <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <Badge variant={eo.type === 'mandatory' ? 'default' : 'secondary'} className="capitalize">
                         {eo.type}
                     </Badge>
                     <p className="font-mono text-xs font-semibold">{eo.id.split('-').slice(1).join('-')}</p>
+                    {eo.type === 'mandatory' && scheduledCount > 0 && (
+                        <Badge variant="outline" className={cn("text-xs", scheduledCount >= eo.periods ? "text-green-600 border-green-600/50" : "")}>
+                            Planned: {scheduledCount} / {eo.periods}
+                        </Badge>
+                    )}
                 </div>
                 <p className="text-sm leading-tight pr-4">{eo.title}</p>
             </div>

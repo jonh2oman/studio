@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,43 @@ import { PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSchedule } from '@/hooks/use-schedule';
 
 export default function AdaPlannerPage() {
-    const { adaPlanners, addAdaPlanner, addEoToAda } = useTrainingYear();
+    const { adaPlanners, addAdaPlanner, addEoToAda, dayPlanners, isLoaded: yearLoaded } = useTrainingYear();
+    const { schedule, isLoaded: scheduleLoaded } = useSchedule();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [newPlannerName, setNewPlannerName] = useState('');
+
+    const scheduledEoCounts = useMemo(() => {
+        if (!scheduleLoaded || !yearLoaded) return {};
+        
+        const counts: { [key: string]: number } = {};
+
+        Object.values(schedule).forEach(item => {
+            if (item?.eo?.id) {
+                counts[item.eo.id] = (counts[item.eo.id] || 0) + 1;
+            }
+        });
+
+        (adaPlanners || []).forEach(planner => {
+            planner.eos.forEach(eo => {
+                if (eo?.id) {
+                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+                }
+            });
+        });
+
+        (dayPlanners || []).forEach(planner => {
+            planner.eos.forEach(eo => {
+                if (eo?.id) {
+                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+                }
+            });
+        });
+
+        return counts;
+    }, [schedule, adaPlanners, dayPlanners, scheduleLoaded, yearLoaded]);
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { over, active } = event;
@@ -37,7 +69,7 @@ export default function AdaPlannerPage() {
     return (
         <DndContext onDragEnd={handleDragEnd}>
             <div className="flex h-[calc(100vh-8rem)] gap-8">
-                <ObjectivesPanel interactionMode="drag" />
+                <ObjectivesPanel scheduledEoCounts={scheduledEoCounts} />
                 <div className="flex-1 flex flex-col">
                     <PageHeader
                         title="ADA Planner"

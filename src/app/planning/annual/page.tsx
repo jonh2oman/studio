@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AnnualPlannerPage() {
     const { settings, isLoaded: settingsLoaded } = useSettings();
-    const { currentYear, currentYearData, isLoaded: yearLoaded } = useTrainingYear();
+    const { currentYear, currentYearData, isLoaded: yearLoaded, adaPlanners, dayPlanners } = useTrainingYear();
     const { schedule, addScheduleItem, isLoaded: scheduleLoaded } = useSchedule();
     const { toast } = useToast();
     
@@ -39,6 +39,36 @@ export default function AnnualPlannerPage() {
             .filter(d => d.getDay() === settings.trainingDay && d >= firstNight);
 
     }, [currentYear, currentYearData?.firstTrainingNight, settings?.trainingDay]);
+
+    const scheduledEoCounts = useMemo(() => {
+        if (!scheduleLoaded || !yearLoaded) return {};
+        
+        const counts: { [key: string]: number } = {};
+
+        Object.values(schedule).forEach(item => {
+            if (item?.eo?.id) {
+                counts[item.eo.id] = (counts[item.eo.id] || 0) + 1;
+            }
+        });
+
+        (adaPlanners || []).forEach(planner => {
+            planner.eos.forEach(eo => {
+                if (eo?.id) {
+                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+                }
+            });
+        });
+
+        (dayPlanners || []).forEach(planner => {
+            planner.eos.forEach(eo => {
+                if (eo?.id) {
+                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+                }
+            });
+        });
+
+        return counts;
+    }, [schedule, adaPlanners, dayPlanners, scheduleLoaded, yearLoaded]);
     
     const handleDragEnd = (event: DragEndEvent) => {
         const { over, active } = event;
@@ -65,7 +95,7 @@ export default function AnnualPlannerPage() {
     return (
         <DndContext onDragEnd={handleDragEnd}>
             <div className="flex h-[calc(100vh-8rem)] gap-8">
-                <ObjectivesPanel interactionMode="drag" />
+                <ObjectivesPanel scheduledEoCounts={scheduledEoCounts} />
 
                 <div className="flex-1 flex flex-col">
                     <PageHeader
