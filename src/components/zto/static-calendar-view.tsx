@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -10,12 +11,6 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { getPhaseDisplayName } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
-
-const nightSchedule = [
-  { time: "1900-1930", event: "Period One" },
-  { time: "1930-2000", event: "Period Two" },
-  { time: "2015-2045", event: "Period Three" },
-];
 
 export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
     const { planData, element } = plan;
@@ -118,30 +113,28 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
         return <div className="flex items-center justify-center h-full"><p>Loading calendar...</p></div>;
     }
 
-    const groupedByMonth = trainingDays.reduce((acc, day) => {
-        const month = format(day, "MMMM yyyy");
-        if (!acc[month]) acc[month] = [];
-        acc[month].push(day);
-        return acc;
-    }, {} as Record<string, Date[]>);
-
     return (
         <div className="flex flex-col bg-background min-w-0 h-full">
-            <div className="p-4 flex flex-wrap gap-4">
-                {Object.entries(groupedByMonth).map(([month, days]) => (
-                    <div key={month} className="space-y-4">
-                        <h3 className="text-lg font-bold sticky top-0 bg-background py-2 px-1 z-10">{month}</h3>
-                        <div className="flex flex-wrap gap-4">
-                            {days.map(renderTrainingDayCard)}
-                        </div>
-                    </div>
-                ))}
-                 {trainingDays.length === 0 && (
-                    <div className="text-center text-muted-foreground py-16 w-full">
-                        No training days scheduled in this plan.
-                    </div>
-                 )}
+             <div className="flex items-center justify-between p-4 border-b">
+                <Button variant="outline" size="icon" onClick={() => changeMonth(-1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <h3 className="text-lg font-semibold">{headerText}</h3>
+                <Button variant="outline" size="icon" onClick={() => changeMonth(1)}>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
             </div>
+            <ScrollArea className="flex-grow">
+                <div className="p-4 space-y-4">
+                    {trainingDaysToShow.length > 0 ? (
+                        trainingDaysToShow.map(renderTrainingDayCard)
+                    ) : (
+                        <div className="text-center text-muted-foreground py-16 w-full">
+                            No training days scheduled in this month.
+                        </div>
+                    )}
+                </div>
+            </ScrollArea>
         </div>
     );
 }
