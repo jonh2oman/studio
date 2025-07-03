@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { CardContent } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug, CalendarDays, Palette, Shirt, Handshake, Store, Ship } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug, CalendarDays, Palette, Shirt, Handshake, Store, Ship, MailPlus } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 
 export const instructionsData = [
@@ -156,6 +156,24 @@ export const instructionsData = [
             </CardContent>
         )
     },
+     { 
+        id: "store-and-banking", 
+        title: "Store & Banking: The Cadet Economy", 
+        icon: Store, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This module helps you manage your corps' internal economy, often called a "Canteen" or "Tuck Shop". It's built around a virtual currency called Ardent Dollars.</p>
+                <h4 className="font-semibold text-foreground">Bank Manager</h4>
+                <p>This is where you manage cadet accounts. You can credit (add) money to a cadet's account as a reward for good performance, or debit (remove) money for other reasons. Every transaction requires a reason for good bookkeeping.</p>
+                 <h4 className="font-semibold text-foreground">Store Inventory</h4>
+                 <p>Here you can add all the items your canteen sells, like snacks, drinks, or corps swag. For each item, you set a name, price, and how many you have in stock.</p>
+                <h4 className="font-semibold text-foreground">Canteen POS (Point of Sale)</h4>
+                <p>This is your virtual cash register. To make a sale, you first select the cadet who is making the purchase. Then, you click on the items from the grid that they want to buy. The app keeps a running total. When you click "Complete Sale", the total cost is automatically deducted from the cadet's bank account, and the stock levels in your inventory are updated.</p>
+                 <h4 className="font-semibold text-foreground">Transaction History</h4>
+                <p>This tab shows a complete log of every credit, debit, and purchase made, including which staff member authorized it. This is great for accountability and tracking your economy over time.</p>
+            </CardContent>
+        )
+    },
     { 
         id: "asset-management", 
         title: "Asset Management: Your Stuff", 
@@ -205,7 +223,7 @@ export const instructionsData = [
                 <h4 className="font-semibold text-foreground">Adding Staff</h4>
                 <p>Use the "Add New Staff Member" form to build your staff roster. You can set their rank, roles, and contact info. For staff members who need to log in and use the app, be sure to enter their official email address and set their Access Level.</p>
                  <h4 className="font-semibold text-foreground">Inviting Users</h4>
-                 <p>After adding a staff member with an email address, you can click the <Badge variant="outline" className="p-1"><MailPlus className="h-4 w-4"/></Badge> icon next to their name. This will open your computer's default email client with a pre-written invitation message. Just click "Send" in your email client to invite them to the app.</p>
+                 <p>After adding a staff member with an email address, you can click the <Badge variant="outline" className="p-1 inline-flex"><MailPlus className="h-4 w-4"/></Badge> icon next to their name. This will open your computer's default email client with a pre-written invitation message. Just click "Send" in your email client to invite them to the app.</p>
                  <h4 className="font-semibold text-foreground">Duty Roster</h4>
                 <p>Use the "Duty Roster" table to assign a Duty Officer and Duty PO for every parade night of the year. This information will be automatically pulled into the WRO for that specific date, saving you time.</p>
                  <h4 className="font-semibold text-foreground">Staff Settings</h4>
