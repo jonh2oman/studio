@@ -46,7 +46,7 @@ export function ImportPlanDialog({ isOpen, onOpenChange, onImport }: ImportPlanD
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        if (data && typeof data.firstTrainingNight === 'string' && Array.isArray(data.cadets) && typeof data.schedule === 'object') {
+        if (data && typeof data.firstTrainingNight === 'string' && typeof data.schedule === 'object') {
           setFileData(data);
           toast({ title: 'File Ready', description: `"${file.name}" has been loaded.` });
         } else {
