@@ -47,9 +47,11 @@ export const instructionsData = [
             <CardContent className="space-y-4 text-muted-foreground">
                 <p>The dashboard provides an at-a-glance overview of your training year and quick access to all modules.</p>
                 <h4 className="font-semibold text-foreground">Mandatory Training Planning Progress</h4>
-                <p>This section displays progress bars for each Phase / Level / Star Level, showing the percentage of mandatory training periods that have been scheduled across all planners (Day/Weekend Planner and ADA Planner). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
+                <p>This section displays progress bars for each Phase / Level / Star Level, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Day/Weekend, and ADA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
                 <h4 className="font-semibold text-foreground">Navigation Cards</h4>
                 <p>Each card on the dashboard links to a major module of the application. The categories can be expanded or collapsed to keep the view tidy. Simply click on a card to navigate to the respective page.</p>
+                 <h4 className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="h-4 w-4"/>A Small Secret</h4>
+                <p>For those with a long memory for classic video games, try entering a famous code on the dashboard page for a small surprise.</p>
             </CardContent>
         )
     },

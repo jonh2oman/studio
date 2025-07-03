@@ -10,8 +10,9 @@ export const changelogData: ChangelogEntry[] = [
       "UI/UX Polish: Enhanced contrast on page headers and improved visibility of floating action buttons.",
       "UI/UX Polish: Increased the font weight of main navigation headings for better readability.",
       "Fix: Corrected a critical timezone bug in the ZTO Portal that caused incorrect training day display on imported plans.",
+      "Fix: Resolved a crash in the Training Completion Report caused by incorrect data aggregation.",
       "The ZTO Plan Review Portal has been temporarily disabled with a tooltip to indicate it's a future feature, preventing confusion.",
-      "Added a fun easter egg for observant users to discover on the dashboard.",
+      "Added a classic easter egg for observant users to discover on the dashboard. Up, up, down, down...",
     ]
   },
   {
