@@ -5,7 +5,7 @@ import { getFirestore, type Firestore } from "firebase/firestore";
 
 // Replace these with your actual Firebase project configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCztznJaVheCcRMDvuOBtXYFAtMMqkaDc0",
+  apiKey: "AIzaSyCCsCNA6wAGThwp2M3v7dtCmi43IK6whWQ",
   authDomain: "rcscc-training-plan.firebaseapp.com",
   projectId: "rcscc-training-plan",
   storageBucket: "rcscc-training-plan.firebasestorage.app",
