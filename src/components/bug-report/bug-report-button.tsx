@@ -17,7 +17,7 @@ export function BugReportButton() {
                     <Button
                         size="icon"
                         variant="outline"
-                        className="shadow-lg bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20"
+                        className="shadow-lg bg-background/50 backdrop-blur-md border border-white/10 text-destructive hover:bg-background/70"
                         onClick={() => setIsDialogOpen(true)}
                     >
                         <Bug className="h-6 w-6" />

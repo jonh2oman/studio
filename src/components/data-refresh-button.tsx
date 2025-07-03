@@ -17,7 +17,7 @@ export function DataRefreshButton() {
                 <Button
                     size="icon"
                     variant="outline"
-                    className="shadow-lg bg-muted/20 text-muted-foreground border-muted/20 hover:bg-muted/30"
+                    className="shadow-lg bg-background/50 backdrop-blur-md border border-white/10 text-muted-foreground hover:bg-background/70"
                     onClick={handleRefresh}
                 >
                     <RefreshCw className="h-6 w-6" />
