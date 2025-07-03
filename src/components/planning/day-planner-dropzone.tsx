@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
@@ -90,7 +91,7 @@ export function DayPlannerDropzone({ planner }: { planner: DayPlannerData }) {
             <CardContent>
                 <div className="p-4 border-2 border-dashed rounded-lg min-h-[20rem] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 content-start">
                     {planner.eos.map((eo, index) => (
-                        <div key={`${eo.id}-${index}`} className="relative p-2 rounded-md border bg-background/50 text-sm">
+                        <div key={`${eo.id}-${index}`} className="relative p-2 rounded-md border bg-background text-sm">
                             <div className="flex justify-between items-start pr-6">
                                 <p className="font-semibold">{eo.id.split('-').slice(1).join('-')}</p>
                                 <Badge variant="secondary">{eo.periods} {eo.periods > 1 ? 'Periods' : 'Period'}</Badge>
