@@ -3,310 +3,279 @@
 
 import React from 'react';
 import { CardContent } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug, CalendarDays, Palette } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug, CalendarDays, Palette, Shirt, Handshake, Store, Ship } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
 
 export const instructionsData = [
     { 
         id: "getting-started", 
-        title: "Getting Started: Core Concepts", 
+        title: "Getting Started: First Steps", 
         icon: Rocket, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
+                <p>Welcome! This application helps you plan and manage your entire cadet training year. To get started, there are a few key concepts to understand.</p>
                 <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Multi-Element Support</h4>
-                    <p>First, go to Settings and select your unit's Element (Sea, Army, or Air). This is crucial as it loads the correct training program and terminology (e.g., Phase, Level, or Star Level) throughout the application.</p>
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Everything is Saved in the Cloud</h4>
+                    <p>When you sign up, a secure online space is created just for your corps. Every change you make—adding a cadet, scheduling a lesson—is saved automatically. This means your data is safe and you can log in from any computer to access it.</p>
+                </div>
+                 <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Calendar className="h-4 w-4"/>Everything is Organized by Training Year</h4>
+                    <p>The app keeps all your information organized into "Training Years" (e.g., 2024-2025). Your first step is always to create a training year in the Settings page.</p>
                 </div>
                 <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Database className="h-4 w-4"/>Real-Time Cloud Storage</h4>
-                    <p>All your data (schedules, cadets, etc.) is securely saved to the cloud and linked to your user account. Every change is saved automatically and in real-time. This means your data is safe, private, and accessible from any device where you log in.</p>
+                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Select Your Element First!</h4>
+                    <p>After creating a training year, go to <span className="font-semibold text-foreground">Settings &gt; Corps Information</span> and choose your element: Sea, Army, or Air. This is very important because it loads the correct training program and terminology (like "Phase" vs. "Level") throughout the app.</p>
                 </div>
-                <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Everything is Organized by Training Year</h4>
-                    <p>The application is designed around Training Years (e.g., "2024-2025"). All your schedules, cadets, and reports are specific to the currently selected year. You must create your first training year in Settings to begin.</p>
-                </div>
-            </CardContent>
-        )
-    },
-     { 
-        id: "ui-theme", 
-        title: "UI & Customization", 
-        icon: Palette, 
-        content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <p>The application features a modern "liquid glass" visual style with a dynamic, animated background to make the interface feel layered and responsive.</p>
-                <h4 className="font-semibold text-foreground">Customization</h4>
-                <p>While the overall look is consistent, you can still customize aspects of the layout. The main dashboard cards and the settings page cards can be reordered using drag-and-drop to place the modules you use most frequently at the top.</p>
             </CardContent>
         )
     },
     { 
         id: "dashboard", 
-        title: "Dashboard", 
+        title: "Dashboard: Your Home Base", 
         icon: List, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>The dashboard provides an at-a-glance overview of your training year and quick access to all modules.</p>
+                <p>The Dashboard is the first page you see after logging in. It gives you a quick overview of your progress and links to every other page in the app.</p>
                 <h4 className="font-semibold text-foreground">Mandatory Training Planning Progress</h4>
-                <p>This section displays progress bars for each Phase / Level / Star Level, showing the percentage of mandatory training periods that have been scheduled across all planners (Annual, Day/Weekend, and ADA). The calculation is based on unique Enabling Objectives (EOs), so scheduling the same lesson multiple times correctly contributes to the total periods completed.</p>
+                <p>This section shows progress bars for each Phase/Level. As you schedule mandatory lessons in any of the planners (Annual, Day/Weekend, or ADA), these bars will fill up automatically. This helps you see at-a-glance how much of the required training you have scheduled.</p>
                 <h4 className="font-semibold text-foreground">Navigation Cards</h4>
-                <p>Each card on the dashboard links to a major module of the application. The categories can be expanded or collapsed to keep the view tidy. Simply click on a card to navigate to the respective page.</p>
-                 <h4 className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="h-4 w-4"/>A Small Secret</h4>
-                <p>For those with a long memory for classic video games, try entering a famous code on the dashboard page for a small surprise.</p>
+                <p>The main part of the dashboard is a series of cards organized into categories like "Planning" and "Cadet Management". Just click on any card to go to that page.</p>
+                <h4 className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="h-4 w-4"/>A Small Secret</h4>
+                <p>For those familiar with classic video games, try entering a famous up-down-left-right code on the dashboard page. A small, nautical surprise awaits!</p>
+            </CardContent>
+        )
+    },
+    { 
+        id: "annual-planner", 
+        title: "Annual Planner: Your Main Schedule", 
+        icon: Calendar, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This is where you will plan your regular, weekly training nights for the entire year.</p>
+                <h4 className="font-semibold text-foreground">How to Schedule a Lesson</h4>
+                <ol className="list-decimal list-inside space-y-2">
+                    <li>Find the date you want to plan for. The page is a long list of all your training nights for the year.</li>
+                    <li>On the left side of the screen is the "Training Objectives" panel, which contains every lesson (EO) for your element.</li>
+                    <li>Find the lesson you want to teach and simply <span className="font-semibold text-foreground">drag it with your mouse</span> from the left panel.</li>
+                    <li><span className="font-semibold text-foreground">Drop the lesson</span> into the box for the correct Phase and Period on the date card.</li>
+                    <li>Once a lesson is scheduled, you can type an instructor's name and a classroom location directly onto the lesson card. These details will automatically show up on the WRO.</li>
+                </ol>
+                <h4 className="font-semibold text-foreground">Setting the Dress of the Day</h4>
+                <p>At the top of each date card, you can type in the Dress of the Day for CAF members and for Cadets. This will also automatically appear on the WRO for that date.</p>
             </CardContent>
         )
     },
     { 
         id: "day-planner", 
-        title: "Day / Weekend Planner", 
+        title: "Day / Weekend Planner: Special Events", 
         icon: CalendarDays, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>This planner is for scheduling any training that happens outside your regular parade nights, such as weekend exercises, single-day training events, or community service.</p>
+                <p>This planner is for any training that happens on a day that is <span className="font-semibold text-foreground">not</span> your regular weekly parade night. This is perfect for weekend exercises, drill team practices, or single-day events.</p>
                 <h4 className="font-semibold text-foreground">How It Works</h4>
                 <ol className="list-decimal list-inside space-y-1">
                     <li>Click the "Add Day" button.</li>
-                    <li>In the dialog, give the event a name (e.g., "Fall FTX Day 1", "Drill Team Practice") and select the correct date.</li>
-                    <li>A new planner card will appear for that day.</li>
-                    <li>Drag Enabling Objectives (EOs) from the left-hand "Training Objectives" panel and drop them into the day's planner card.</li>
-                    <li>To plan a full weekend, simply create a separate day plan for Saturday and Sunday.</li>
+                    <li>Give the event a name (e.g., "Fall FTX Day 1", "Band Practice") and select the date.</li>
+                    <li>A new planner card will appear for that day, with a grid for all your phases.</li>
+                    <li>Just like the Annual Planner, drag lessons from the left panel and drop them into the correct Period and Phase slots.</li>
+                    <li>To plan a full weekend, simply create one "Day Plan" for Saturday and another for Sunday.</li>
                 </ol>
-                <p className="mt-2">This system provides a flexible way to account for all training, ensuring that any mandatory EOs completed on these days are counted towards your overall progress on the Dashboard.</p>
             </CardContent>
         )
     },
     { 
         id: "ada", 
-        title: "ADA Planner", 
+        title: "ADA Planner: Area-Level Training", 
         icon: ClipboardList, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>The Area Directed Activity (ADA) Planner is a special module designed to account for Enabling Objectives (EOs) that are completed outside of your regular corps/squadron training nights, such as at regional or area-level events.</p>
+                <p>The Area Directed Activity (ADA) Planner is for keeping track of lessons that your cadets complete at events run by a higher headquarters (like your local Area or Region).</p>
                 <h4 className="font-semibold text-foreground">Core Purpose</h4>
-                <p>The primary function of this planner is to ensure that EOs completed at ADAs are correctly reflected in your overall training completion statistics on the Dashboard. There are no dates, instructors, or locations to manage here—it is purely for record-keeping.</p>
+                <p>This page is just for <span className="font-semibold text-foreground">getting credit</span>. You don't need to enter dates or locations. By adding EOs here, you ensure the Dashboard progress bars are accurate.</p>
                 <h4 className="font-semibold text-foreground">How to Use It</h4>
                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Click the "Add New ADA Planner" button to create a container for an activity. Give it a descriptive name (e.g., "Fall FTX 2024").</li>
-                    <li>From the "Training Objectives" panel, find the EOs that were covered during the ADA.</li>
-                    <li>Drag and drop each completed EO into the grid for the corresponding ADA planner.</li>
-                    <li>Each planner can hold up to 60 EOs. Any mandatory EOs you add here will immediately update the progress bars on your Dashboard.</li>
+                    <li>Click "Add New ADA Planner" and give it a name (e.g., "Fall FTX 2024").</li>
+                    <li>Drag the lessons that were taught at that activity from the left panel into the new planner's box. That's it!</li>
                 </ol>
-            </CardContent>
-        )
-    },
-     { 
-        id: "marksmanship", 
-        title: "Marksmanship", 
-        icon: Target, 
-        content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <p>This module allows you to track cadet marksmanship scores for both grouping and competition targets, and it automatically maintains a record of their highest achieved classification.</p>
-                <h4 className="font-semibold text-foreground">Entering a New Score</h4>
-                <p>Use the "Enter New Score" form on the left side of the page.</p>
-                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Select the cadet and the date of the shoot.</li>
-                    <li>Choose the target type: "Grouping" or "Competition".</li>
-                    <li><strong>For Grouping:</strong> Enter the two 5-shot group measurements in centimeters. The form will immediately show you what classification level (e.g., "Marksman", "Expert") those scores qualify for.</li>
-                    <li><strong>For Competition:</strong> Enter the score (0-10) for each of the 10 scoring diagrams. The form will show a running total.</li>
-                    <li>Add any optional notes and click "Add Score Record".</li>
-                </ol>
-                <h4 className="font-semibold text-foreground">Achievements List</h4>
-                <p>The main table on this page provides an at-a-glance summary for every cadet. It automatically calculates and displays:</p>
-                <ul className="list-disc list-inside">
-                    <li>Their highest achieved classification badge from all their grouping scores.</li>
-                    <li>Their best score out of 100 from all their competition scores.</li>
-                </ul>
-                <p>Click the "View" icon on any cadet's row to see a popup with a complete history of all their recorded scores for the year.</p>
-            </CardContent>
-        )
-    },
-    { 
-        id: "reports", 
-        title: "Reports", 
-        icon: FileText, 
-        content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <p>This module allows you to generate a PDF of the Weekly Routine Orders (WRO) and view other key reports.</p>
-                <h4 className="font-semibold text-foreground">Generating a WRO</h4>
-                 <p>The WRO form intelligently pulls data from other parts of the application to streamline report creation.</p>
-                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Select a Training Date. The schedule for this date will be automatically pulled from the planners.</li>
-                    <li><strong>Automatic Logic:</strong> The following fields are auto-populated based on your settings and schedules:
-                        <ul className="list-disc list-inside ml-6 my-2 bg-muted/50 p-3 rounded-md">
-                            <li><strong>RO Number:</strong> Generated from the year and week number of the selected date.</li>
-                            <li><strong>Duty Personnel:</strong> Pulled from the Duty Roster you configure in Corps Management.</li>
-                            <li><strong>Dress of the Day:</strong> Pulled from the setting on the Annual Planner for that date.</li>
-                            <li><strong>Upcoming Activities:</strong> Populated from the "Weekly Activities" you define in Settings.</li>
-                        </ul>
-                    </li>
-                    <li>Fill in the remaining fields (e.g., CO Name, Announcements, Notes).</li>
-                    <li>Optionally, upload a corps logo.</li>
-                    <li>Click "Generate WRO PDF". A PDF file will be created and downloaded.</li>
-                </ol>
-                <h4 className="font-semibold text-foreground">Other Reports</h4>
-                <p>The reports page also includes several other useful reports that can be generated as PDFs:</p>
-                <ul className="list-disc list-inside">
-                    <li><strong>Cadet Roster:</strong> A complete list of all cadets.</li>
-                    <li><strong>Attendance:</strong> Includes a Summary, Daily Report, Perfect Attendance list, and At-Risk Cadets list.</li>
-                    <li><strong>Training Completion:</strong> Shows the progress of mandatory training for each phase.</li>
-                    <li><strong>Award Winners:</strong> A list of all awards and their assigned winners.</li>
-                    <li><strong>Corps Assets:</strong> A full inventory of all corps-owned assets.</li>
-                </ul>
             </CardContent>
         )
     },
     { 
         id: "cadets", 
-        title: "Cadet Management", 
+        title: "Cadet Management: Your Roster", 
         icon: Users, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>This is where you manage your corps' roster for the current training year.</p>
+                <p>This is where you manage your corps' list of cadets. The list you create here will be available everywhere else in the app.</p>
                  <h4 className="font-semibold text-foreground">Adding a Cadet</h4>
-                 <p>Use the "Add New Cadet" form. Fill in their details, including their current Phase / Level / Star Level and an optional role (if you've configured any in Settings). The list of available ranks is also managed on this page.</p>
+                 <p>Use the "Add New Cadet" form. Fill in their details. For things like "Rank" and "Role", the choices in the dropdown menus are managed by you!</p>
+                 <h4 className="font-semibold text-foreground">Cadet Settings (Ranks and Roles)</h4>
+                <p>At the bottom of the page, there is a "Cadet Settings" section. Open it to add all the possible ranks and roles (like Coxswain or Flag Party Commander) that exist at your unit. Once you add them here, they will be available to select when you add or edit a cadet.</p>
                 <h4 className="font-semibold text-foreground">Editing or Removing a Cadet</h4>
-                <p>The "Cadet Roster" table lists all your cadets. Use the pencil icon to edit a cadet's details or the 'X' icon to remove them.</p>
-                 <h4 className="font-semibold text-foreground">Cadet Settings</h4>
-                <p>You can manage the available ranks and roles for cadets in the accordion at the bottom of the page.</p>
-            </CardContent>
-        )
-    },
-    { 
-        id: "asset-management", 
-        title: "Asset Management", 
-        icon: Building2, 
-        content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <p>This is where you manage global corps assets. This data persists across all training years.</p>
-                 <p>Use the "Add New Asset" form to add items to your corps' inventory. You can track details like category, serial number, status, condition, and location. This data is available in a printable report on the Reports page.</p>
-                 <p>You can also manage the list of available asset categories on this page.</p>
-            </CardContent>
-        )
-    },
-    { 
-        id: "staff-management", 
-        title: "Staff Management", 
-        icon: Contact, 
-        content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <p>This is where you manage your staff roster and duty assignments. This data persists across all training years.</p>
-                <h4 className="font-semibold text-foreground">Staff Roster & Duties</h4>
-                 <p>Manage your staff roster (Officers and POs/NCMs) and assign their parade night duties in the <strong>Duty Roster</strong>. The duty roster assignments automatically populate the Duty Personnel section of the WRO for the corresponding date.</p>
-                 <p>You can also customize the available ranks and roles for both Officers and POs/NCMs using the cards in the "Staff Settings" accordion on this page.</p>
-            </CardContent>
-        )
-    },
-    { 
-        id: "lsa", 
-        title: "LSA Wish List", 
-        icon: ShoppingCart, 
-        content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <p>Create and manage your annual Local Support Allocation (LSA) request list. This is where you can track items your corps/squadron wishes to purchase, along with quantities, prices, and links.</p>
-                <h4 className="font-semibold text-foreground">Tracking Items</h4>
-                 <p>Use the form to add items, including names, descriptions, and pricing information. You can also upload a price screenshot for your records. The main table will keep a running total of your requested budget.</p>
+                <p>The "Cadet Roster" table lists all your cadets. Use the pencil icon to edit a cadet's details or the 'X' icon to remove them. You can also print a simple ID card for each cadet using the printer icon.</p>
             </CardContent>
         )
     },
     { 
         id: "attendance", 
-        title: "Attendance", 
+        title: "Attendance: Who's Here?", 
         icon: ClipboardCheck, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>Track cadet attendance for specific training nights.</p>
+                <p>This page lets you take attendance for your training nights. Keeping this up-to-date is important for reports and for the AI-powered award eligibility checks.</p>
                 <h4 className="font-semibold text-foreground">Taking Attendance</h4>
-                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Select a training night using the calendar. Your regular training days (set in Settings) are highlighted.</li>
-                    <li>For each cadet, select their status: Present, Absent, or Excused.</li>
-                    <li>Use the checkboxes to mark if a cadet Arrived Late or Left Early.</li>
-                    <li>Click "Save Attendance" to save your changes. This data is crucial for generating accurate attendance reports and for the AI-powered award eligibility checks.</li>
+                 <ol className="list-decimal list-inside space-y-2">
+                    <li>Use the calendar to pick the date of the training night. Your regular training days are highlighted to make them easy to find.</li>
+                    <li>For each cadet in the list, choose their status: <Badge>Present</Badge>, <Badge variant="destructive">Absent</Badge>, or <Badge variant="secondary">Excused</Badge>.</li>
+                    <li>You can also check the boxes for "Arrived Late" or "Left Early".</li>
+                    <li>When you are finished, click the <span className="font-semibold text-foreground">"Save Attendance"</span> button. Your changes are not saved until you click this button.</li>
                 </ol>
+                 <h4 className="font-semibold text-foreground">Generating a Sign-in Sheet</h4>
+                 <p>Click the "Generate Sheet" button to create a printable PDF attendance sheet for the selected date, which you can use for manual sign-ins.</p>
             </CardContent>
         )
     },
     { 
         id: "awards", 
-        title: "Awards Management", 
+        title: "Awards: Recognizing Excellence", 
         icon: Trophy, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>Manage corps awards and determine eligible cadets using AI assistance.</p>
-                <h4 className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />AI-Powered Eligibility Check</h4>
+                <p>Manage your corps' awards and use AI to help figure out who is eligible.</p>
+                <h4 className="font-semibold text-foreground flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Checking Eligibility with AI</h4>
                  <ul className="list-disc list-inside space-y-1">
-                    <li>Expand an award to view its criteria.</li>
-                    <li>Click the <strong>"Check Eligibility with AI"</strong> button.</li>
-                    <li><strong>Automatic Logic:</strong> The application sends the award criteria and your entire cadet roster (including their calculated attendance percentages) to an AI model. The AI analyzes this data and returns a list of cadets who meet all requirements.</li>
-                    <li>The "Eligible Cadets" section will update to show the results.</li>
+                    <li>Find an award in the list and click to expand it. You will see its criteria.</li>
+                    <li>Click the <span className="font-semibold text-foreground">"Check Eligibility with AI"</span> button.</li>
+                    <li>The app securely sends the award's rules and your full cadet roster (including their attendance percentage from the Attendance page) to an AI. The AI reads the rules, checks every cadet, and sends back a list of who is eligible.</li>
+                    <li>The "Eligible Cadets" section will appear, showing you the cadets who meet the criteria.</li>
                 </ul>
                 <h4 className="font-semibold text-foreground">Assigning Winners</h4>
-                <p>From the list of eligible cadets, click the "Select" button to mark a cadet as a winner. You can select multiple winners for corps awards. The winner's name will appear in the award title for easy reference.</p>
+                <p>From the list of eligible cadets, click the "Select" button next to a cadet's name to mark them as a winner. The winner's name will appear at the top of the award card.</p>
                 <h4 className="font-semibold text-foreground">Managing Awards</h4>
-                <p>You can add, edit, or delete award definitions. Note that award definitions are global across all training years, but winners are specific to each year.</p>
+                <p>You can add your own unique corps awards, edit existing ones, or delete them using the buttons inside each award's panel.</p>
             </CardContent>
         )
     },
     { 
-        id: "zto-portal", 
-        title: "ZTO Plan Review Portal", 
-        icon: FolderKanban, 
+        id: "asset-management", 
+        title: "Asset Management: Your Stuff", 
+        icon: Building2, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>This module is for Zone Training Officers (ZTOs) or other supervisory staff to review multiple training plans from different corps/squadrons.</p>
-                <div className='border-l-4 border-amber-500 pl-4 py-2 bg-amber-500/10'>
-                    <strong>Note:</strong> This feature is currently in development and will be enabled in a future release.
-                </div>
+                <p>This module helps you keep track of all the physical items the corps owns, like laptops, training gear, furniture, or boats. This data is global and shared across all training years.</p>
+                 <p>Use the "Add New Asset" form to add items to the list. You can specify its name, category, serial number, condition, and current location. The "Asset Tracker" on the right shows your full inventory.</p>
+                 <p>You can also manage the list of available asset categories in the "Manage Asset Categories" card.</p>
+            </CardContent>
+        )
+    },
+     { 
+        id: "uniform-supply", 
+        title: "Uniform Supply: Clothing & Parts", 
+        icon: Shirt, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This module is for managing your uniform inventory and tracking what parts have been issued to which cadets.</p>
+                 <h4 className="font-semibold text-foreground">Inventory</h4>
+                 <p>Use the "Uniform Inventory" card to add all the uniform parts you have in stock. Click "Add Item" and specify the name, category, size, and how many you have. For example, "Combat Boots", size "10R", quantity "15".</p>
+                <h4 className="font-semibold text-foreground">Issuing Items</h4>
+                <p>Use the "Issue Uniform Part" form. Select a cadet and the specific item/size from your inventory that you want to issue to them. When you issue an item, the stock quantity in your inventory will automatically decrease by one.</p>
+                 <h4 className="font-semibold text-foreground">Tracking and Returns</h4>
+                <p>The "Issued Items" list shows every part that is currently signed out to a cadet. You can print a loan card for them to sign, or click the "Return" button when they bring the item back, which will automatically add it back to your inventory stock.</p>
+            </CardContent>
+        )
+    },
+    { 
+        id: "loan-manager", 
+        title: "Loan Manager: Borrowing Gear", 
+        icon: Handshake, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This page is for loaning out your corps' non-uniform assets from the Asset Management page.</p>
+                <p>Use the "Create New Loan" form to select an available asset and the cadet who is borrowing it, and set a return date. The item will then appear in the "Currently Loaned Items" list until it is marked as returned.</p>
+            </CardContent>
+        )
+    },
+     { 
+        id: "staff-management", 
+        title: "Staff Management: Your Team", 
+        icon: Contact, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This is where you manage your staff roster, user permissions, and duty assignments.</p>
+                <h4 className="font-semibold text-foreground">Adding Staff</h4>
+                <p>Use the "Add New Staff Member" form to build your staff roster. You can set their rank, roles, and contact info. For staff members who need to log in and use the app, be sure to enter their official email address and set their Access Level.</p>
+                 <h4 className="font-semibold text-foreground">Inviting Users</h4>
+                 <p>After adding a staff member with an email address, you can click the <Badge variant="outline" className="p-1"><MailPlus className="h-4 w-4"/></Badge> icon next to their name. This will open your computer's default email client with a pre-written invitation message. Just click "Send" in your email client to invite them to the app.</p>
+                 <h4 className="font-semibold text-foreground">Duty Roster</h4>
+                <p>Use the "Duty Roster" table to assign a Duty Officer and Duty PO for every parade night of the year. This information will be automatically pulled into the WRO for that specific date, saving you time.</p>
+                 <h4 className="font-semibold text-foreground">Staff Settings</h4>
+                <p>At the bottom of the page, you can customize the lists of ranks and roles available for Officers and PO/NCMs.</p>
+            </CardContent>
+        )
+    },
+     { 
+        id: "lsa-wish-list", 
+        title: "LSA Wish List: Your Shopping List", 
+        icon: ShoppingCart, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This page helps you create and manage your annual Local Support Allocation (LSA) request list.</p>
+                <p>Use the form to add items you wish to purchase for the corps. You can include details like quantity, price, a web link, and even upload a screenshot of the price for your records. The list will automatically calculate the total cost of all items on your wish list.</p>
+            </CardContent>
+        )
+    },
+    { 
+        id: "reports", 
+        title: "Reports: WROs & More", 
+        icon: FileText, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>This module allows you to generate a PDF of the Weekly Routine Orders (WRO) and view other key reports.</p>
+                <h4 className="font-semibold text-foreground">Generating a WRO</h4>
+                 <p>The WRO form is designed to be fast by automatically pulling information from other parts of the app.</p>
+                 <ol className="list-decimal list-inside space-y-1">
+                    <li>Select a Training Date.</li>
+                    <li>The form will automatically fill in the Training Schedule, Duty Personnel, and Dress of the Day based on what you've entered on the Annual Planner and Staff Management pages.</li>
+                    <li>Fill in any remaining fields, like Announcements.</li>
+                    <li>Click "Generate WRO PDF" to download the file.</li>
+                </ol>
+                <h4 className="font-semibold text-foreground">Other Reports</h4>
+                <p>Use the tabs to access other printable reports, including a full Cadet Roster, various Attendance reports, a Training Completion summary, and more.</p>
             </CardContent>
         )
     },
     { 
         id: "settings", 
-        title: "Settings", 
+        title: "Settings: The Control Panel", 
         icon: Settings2, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>Configure the application to match your corps' specific needs. Changes here can affect automatic logic in other modules.</p>
-                <h4 className="font-semibold text-foreground">Training Year Management</h4>
-                <p>Create a new training year, switch between existing years, or delete the active year. When creating a new year, you have the option to copy all data from a previous year, or import from a shared file. An AI-powered feature can intelligently map a copied schedule to the new calendar, automatically adjusting for different start dates and holidays.</p>
+                <p>This is the most important page for initial setup. It controls how the entire application works for your unit.</p>
+                <h4 className="font-semibold text-foreground">General Settings</h4>
+                <p>This is where you create new Training Years and set your core Corps Information like your unit's name and Element (Sea, Army, or Air).</p>
                 <h4 className="font-semibold text-foreground">Planning Resources</h4>
-                <p>Customize the lists used throughout the planners. This includes creating and managing classrooms and custom EOs.</p>
-                <h4 className="font-semibold text-foreground">Data Management</h4>
+                <p>Here you can customize the lists of items that appear in dropdown menus elsewhere in the app. This includes managing your list of classrooms, creating custom EOs for corps-specific training, and defining weekly recurring activities that will automatically show up on the WRO.</p>
+                 <h4 className="font-semibold text-foreground">Data Management</h4>
                 <ul className="list-disc list-inside ml-4 space-y-2">
-                    <li><strong>Full Application Backup:</strong> Download a single JSON file containing all your data across all training years. This is useful for personal backups and disaster recovery.</li>
-                    <li><strong>Export Single Training Year:</strong> You can export the data for a single training year to a shareable `.json` file.</li>
-                    <li><strong>Importing Data:</strong> Another user can import a shared file when creating a new training year on their account, allowing for easy sharing of plans.</li>
+                    <li><strong>Full Application Backup:</strong> Download a single file containing all of your data. This is a great way to keep a personal backup.</li>
+                    <li><strong>Export Single Training Year:</strong> Create a file for just one training year. You can share this file with another user (e.g., your Zone Training Officer) for them to review.</li>
                 </ul>
                 <h4 className="font-semibold text-foreground flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive"/>Danger Zone</h4>
-                <p>The "Reset Application" button will permanently delete <strong>all</strong> of your data from the cloud, including all training years, schedules, cadets, and settings associated with your account. This action is irreversible and cannot be undone. Use this with extreme caution.</p>
+                <p>The "Reset Application" button is permanent and will delete <strong>all</strong> of your data from the cloud. This action cannot be undone. Only use this if you want to start over from a completely blank slate.</p>
             </CardContent>
         )
     },
-    { 
+     { 
         id: "help-and-bugs", 
         title: "Help & Bug Reports", 
         icon: HelpCircle, 
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
-                <p>This application includes built-in help and a simple way to report issues.</p>
+                <p>If you need help or find something that's not working correctly, use the floating buttons in the bottom-right corner of the screen.</p>
                 <h4 className="font-semibold text-foreground flex items-center gap-2"><HelpCircle className="h-4 w-4"/>Help Panel</h4>
-                <p>Click the pulsing blue help button at the bottom right of the screen to open the Help & Instructions panel. This panel slides in from the right and contains searchable documentation for every feature in the application.</p>
+                <p>Click the blue help button (<Badge variant="outline" className="p-1 inline-flex"><HelpCircle className="h-4 w-4"/></Badge>) to open this panel. You can search for instructions on any topic.</p>
                 <h4 className="font-semibold text-foreground flex items-center gap-2"><Bug className="h-4 w-4"/>Bug Reports</h4>
-                <p>If you encounter a bug or an error, please use the red bug report button. This will open a pre-filled form that you can submit to the developer. Providing detailed steps helps us fix issues faster!</p>
-            </CardContent>
-        )
-    },
-    { 
-        id: "about", 
-        title: "About", 
-        icon: Info, 
-        content: (
-            <CardContent className="space-y-4 text-muted-foreground">
-                <p>This page contains version information, credits, contact details, and software licensing for the application.</p>
-                <h4 className="font-semibold text-foreground">Disclaimer</h4>
-                <p>This is an unofficial planning tool and is not endorsed by the Canadian Cadet Organization (CCO) or the Department of National Defence (DND).</p>
-                <h4 className="font-semibold text-foreground">User Accounts</h4>
-                <p>To ensure security and proper access, account creation is restricted to users with a valid <span className="font-mono bg-muted/50 px-1 rounded">@cadets.gc.ca</span> or <span className="font-mono bg-muted/50 px-1 rounded">@forces.gc.ca</span> email address.</p>
-                <h4 className="font-semibold text-foreground">Changelog</h4>
-                <p>Click the "View Changelog" button to see a detailed history of all updates and new features added to the application.</p>
+                <p>If you encounter an error, click the red bug report button (<Badge variant="outline" className="p-1 inline-flex"><Bug className="h-4 w-4"/></Badge>). This will open a form that helps you send a detailed report to the developer so the issue can be fixed.</p>
             </CardContent>
         )
     },
