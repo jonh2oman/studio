@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import { useMemo, useCallback } from "react";
 import { format, eachDayOfInterval } from "date-fns";
@@ -60,9 +60,9 @@ export default function AnnualPlannerPage() {
         });
 
         (dayPlanners || []).forEach(planner => {
-            planner.eos.forEach(eo => {
-                if (eo?.id) {
-                    counts[eo.id] = (counts[eo.id] || 0) + 1;
+            Object.values(planner.schedule || {}).forEach(item => {
+                if (item?.eo?.id) {
+                    counts[item.eo.id] = (counts[item.eo.id] || 0) + 1;
                 }
             });
         });
