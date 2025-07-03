@@ -2,9 +2,9 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, GripVertical, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake, Store, Shirt } from "lucide-react";
+import { LayoutDashboard, Calendar, FileText, Settings, Ship, Users, ClipboardCheck, CalendarDays, CalendarPlus, Trophy, BookOpen, Info, UserCircle, LogIn, LogOut, Loader2, ClipboardList, Building2, User, Contact, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake, Store, Shirt } from "lucide-react";
 import {
   Sidebar,
   SidebarHeader,
@@ -22,9 +22,6 @@ import { useTrainingYear } from "@/hooks/use-training-year";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
@@ -39,9 +36,9 @@ const navGroups = [
     title: "Planning",
     items: [
       { href: "/planning/annual", label: "Annual Planner", icon: Calendar },
-      { href: "/planning/eos-pos", label: "PO/EO Library", icon: BookOpen },
       { href: "/planning/day-planner", label: "Day / Weekend Planner", icon: CalendarDays },
       { href: "/planning/ada", label: "ADA Planner", icon: ClipboardList },
+      { href: "/planning/eos-pos", label: "PO/EO Library", icon: BookOpen },
       { href: "/csar", label: "CSAR Planning", icon: ClipboardEdit },
     ]
   },
@@ -91,41 +88,26 @@ const navGroups = [
   }
 ];
 
-const SortableSidebarMenuItem = ({ id, href, isActive, isDisabled, icon: Icon, label }: {
-    id: string;
+const StaticSidebarMenuItem = ({ href, isActive, isDisabled, icon: Icon, label }: {
     href: string;
     isActive: boolean;
     isDisabled: boolean;
     icon: React.ElementType;
     label: string;
 }) => {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id });
-
     const { state, isMobile } = useSidebar();
 
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 100 : 'auto',
-    };
-
-    const content = (
-         <Link
+    const linkContent = (
+        <Link
             href={href}
             aria-disabled={isDisabled}
             tabIndex={isDisabled ? -1 : undefined}
             className={cn(
-                "flex h-8 flex-1 items-center gap-2 overflow-hidden rounded-r-md px-2 text-left text-sm outline-none ring-sidebar-ring transition-colors focus-visible:ring-2 active:text-sidebar-accent-foreground",
-                "group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:rounded-md",
-                !isDragging && !isActive && "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                 isDisabled && "pointer-events-none opacity-50"
+                "flex h-8 items-center gap-3 w-full overflow-hidden rounded-md px-2 text-left text-sm outline-none ring-sidebar-ring transition-colors focus-visible:ring-2 active:text-sidebar-accent-foreground",
+                "group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2",
+                !isActive && "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                isActive && "bg-sidebar-primary text-sidebar-primary-foreground",
+                isDisabled && "pointer-events-none opacity-50"
             )}
         >
             <Icon className="w-5 h-5 shrink-0" />
@@ -134,24 +116,10 @@ const SortableSidebarMenuItem = ({ id, href, isActive, isDisabled, icon: Icon, l
     );
 
     return (
-        <li
-            ref={setNodeRef}
-            style={style}
-            {...attributes}
-            className={cn(
-                "group/menu-item relative flex items-center rounded-md border text-sidebar-foreground",
-                isDragging
-                    ? "border-primary bg-sidebar-accent shadow-lg z-50 text-sidebar-accent-foreground"
-                    : "border-sidebar-border",
-                isActive && !isDragging && "bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-accent"
-            )}
-        >
-            <span {...listeners} className={cn("cursor-grab p-2 text-sidebar-foreground/50 hover:text-sidebar-foreground", (isActive || isDragging) && "text-sidebar-accent-foreground")}>
-                <GripVertical className="h-5 w-5" />
-            </span>
-             <Tooltip>
+        <li className="group/menu-item relative">
+            <Tooltip>
                 <TooltipTrigger asChild>
-                    {content}
+                    {linkContent}
                 </TooltipTrigger>
                 <TooltipContent side="right" align="center" hidden={state !== "collapsed" || isMobile}>
                     <p>{label}</p>
@@ -160,6 +128,7 @@ const SortableSidebarMenuItem = ({ id, href, isActive, isDisabled, icon: Icon, l
         </li>
     );
 };
+
 
 function AuthStatus() {
     const { user, loading, logout } = useAuth();
@@ -220,56 +189,13 @@ function AuthStatus() {
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, loading: authLoading } = useAuth();
-  const { settings, saveSettings, isLoaded: settingsLoaded } = useSettings();
+  const { settings, isLoaded: settingsLoaded } = useSettings();
   const { currentYear, isLoaded: yearsLoaded } = useTrainingYear();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
-  
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) {
-        return;
-    }
-
-    let activeGroupKey: string | null = null;
-    let overGroupKey: string | null = null;
-
-    for (const group of navGroups) {
-        const key = group.title || 'Main';
-        if (group.items.some(item => item.href === active.id)) activeGroupKey = key;
-        if (group.items.some(item => item.href === over.id)) overGroupKey = key;
-    }
-    
-    if (activeGroupKey !== overGroupKey) {
-        return; // Prevent dragging between groups
-    }
-
-    saveSettings(prevSettings => {
-        const groupKey = activeGroupKey as string;
-        const currentNavOrder = prevSettings.sidebarNavOrder || {};
-        const currentOrder = currentNavOrder[groupKey] || navGroups.find(g => (g.title || 'Main') === groupKey)?.items.map(i => i.href) || [];
-        
-        const oldIndex = currentOrder.indexOf(active.id as string);
-        const newIndex = currentOrder.indexOf(over.id as string);
-
-        if (oldIndex === -1 || newIndex === -1) return prevSettings;
-
-        const newOrder = arrayMove(currentOrder, oldIndex, newIndex);
-        
-        return {
-            sidebarNavOrder: {
-                ...currentNavOrder,
-                [groupKey]: newOrder,
-            }
-        };
-    });
-  }, [saveSettings]);
-
 
   const isReady = isMounted && settingsLoaded && !authLoading;
 
@@ -326,54 +252,33 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SidebarMenu className="px-2">
+        <SidebarMenu className="px-2">
             {navGroups.map((group, index) => {
-                const groupKey = group.title || 'Main';
-
-                const defaultHrefs = group.items.map(item => item.href);
-                const savedHrefs = settings.sidebarNavOrder?.[groupKey] || [];
-                
-                const defaultHrefSet = new Set(defaultHrefs);
-                const validSavedHrefs = savedHrefs.filter(href => defaultHrefSet.has(href));
-                const validSavedHrefSet = new Set(validSavedHrefs);
-                const newHrefs = defaultHrefs.filter(href => !validSavedHrefSet.has(href));
-                const orderedHrefs = [...validSavedHrefs, ...newHrefs];
-                
-                const itemsMap = new Map(group.items.map(item => [item.href, item]));
                 const groupTitle = group.title === 'Main' ? null : group.title;
-                
                 return (
-                <React.Fragment key={groupKey}>
-                    {groupTitle && <SidebarGroupLabel className="px-2 pt-4">{groupTitle}</SidebarGroupLabel>}
-                    <SortableContext items={orderedHrefs} strategy={verticalListSortingStrategy}>
-                    {orderedHrefs.map(href => {
-                        const item = itemsMap.get(href);
-                        if (!item) return null;
-                        
-                        const isActive = item.href === "/"
-                            ? pathname === item.href
-                            : pathname.startsWith(item.href) && item.href !== "/";
+                    <React.Fragment key={group.title}>
+                        {groupTitle && <SidebarGroupLabel className="px-2 pt-4">{groupTitle}</SidebarGroupLabel>}
+                        {group.items.map(item => {
+                            const isActive = item.href === "/"
+                                ? pathname === item.href
+                                : pathname.startsWith(item.href) && item.href !== "/";
                             
-                        return (
-                            <SortableSidebarMenuItem 
-                                key={item.href} 
-                                id={item.href}
-                                href={item.href}
-                                isActive={isActive}
-                                isDisabled={!user && !authLoading}
-                                icon={item.icon}
-                                label={item.label}
-                            />
-                        );
-                    })}
-                    </SortableContext>
-                    {index < navGroups.length - 1 && <SidebarSeparator className="my-2" />}
-                </React.Fragment>
-                )
+                            return (
+                                <StaticSidebarMenuItem 
+                                    key={item.href}
+                                    href={item.href}
+                                    isActive={isActive}
+                                    isDisabled={!user && !authLoading}
+                                    icon={item.icon}
+                                    label={item.label}
+                                />
+                            );
+                        })}
+                        {index < navGroups.length - 1 && <SidebarSeparator className="my-2" />}
+                    </React.Fragment>
+                );
             })}
-            </SidebarMenu>
-        </DndContext>
+        </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="items-center p-2 space-y-2">
          <AuthStatus />
@@ -381,4 +286,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
