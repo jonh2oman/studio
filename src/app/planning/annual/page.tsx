@@ -23,7 +23,7 @@ export default function AnnualPlannerPage() {
     const { toast } = useToast();
     
     const trainingDays = useMemo(() => {
-        if (!currentYear || !currentYearData?.firstTrainingNight || !settings?.trainingDay) return [];
+        if (!currentYear || !currentYearData?.firstTrainingNight || currentYearData.trainingDay === undefined) return [];
 
         const startYear = parseInt(currentYear.split('-')[0], 10);
         const endYear = startYear + 1;
@@ -36,9 +36,9 @@ export default function AnnualPlannerPage() {
         const firstNight = new Date(currentYearData.firstTrainingNight.replace(/-/g, '/'));
         
         return eachDayOfInterval({ start: ty.start, end: ty.end })
-            .filter(d => d.getDay() === settings.trainingDay && d >= firstNight);
+            .filter(d => d.getDay() === currentYearData.trainingDay && d >= firstNight);
 
-    }, [currentYear, currentYearData?.firstTrainingNight, settings?.trainingDay]);
+    }, [currentYear, currentYearData?.firstTrainingNight, currentYearData?.trainingDay]);
 
     const scheduledEoCounts = useMemo(() => {
         if (!scheduleLoaded || !yearLoaded) return {};
@@ -62,7 +62,7 @@ export default function AnnualPlannerPage() {
         (dayPlanners || []).forEach(planner => {
             Object.values(planner.schedule || {}).forEach(item => {
                 if (item?.eo?.id) {
-                    counts[item.eo.id] = (counts[item.eo.id] || 0) + 1;
+                     counts[item.eo.id] = (counts[item.eo.id] || 0) + 1;
                 }
             });
         });

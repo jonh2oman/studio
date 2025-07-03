@@ -160,7 +160,6 @@ export interface Transaction {
 
 export interface Settings {
   element: CadetElement;
-  trainingDay: number;
   corpsName: string;
   corpsLogo?: string;
   staff: StaffMember[];
@@ -360,6 +359,7 @@ export interface DayPlannerData {
 export interface TrainingYearData {
     firstTrainingNight: string;
     element: CadetElement;
+    trainingDay: number;
     dutySchedule: DutySchedule;
     schedule: Schedule;
     dayMetadata: DayMetadataState;

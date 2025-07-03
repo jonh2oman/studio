@@ -11,7 +11,6 @@ import { useToast } from './use-toast';
 
 const defaultSettings: Settings = {
     element: 'Sea',
-    trainingDay: 2, // Tuesday
     corpsName: "",
     corpsLogo: "",
     staff: [],

@@ -164,12 +164,17 @@ const TrainingYearManagementCard = ({ dragHandleListeners }: { dragHandleListene
 
 const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: any }) => {
     const { settings, saveSettings } = useSettings();
-    const { currentYearData, isLoaded: yearIsLoaded } = useTrainingYear();
+    const { currentYearData, isLoaded: yearIsLoaded, updateCurrentYearData } = useTrainingYear();
     const { toast } = useToast();
     const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     
     const handleSettingChange = (key: keyof Settings, value: any) => {
         saveSettings({ [key]: value });
+        toast({ title: "Settings Saved" });
+    };
+
+    const handleTrainingDayChange = (value: string) => {
+        updateCurrentYearData({ trainingDay: Number(value) });
         toast({ title: "Settings Saved" });
     };
 
@@ -242,7 +247,7 @@ const CorpsInformationCard = ({ dragHandleListeners }: { dragHandleListeners: an
                     </div>
                     <div className="space-y-2">
                         <Label>Weekly Training Night</Label>
-                        <Select value={String(settings.trainingDay)} onValueChange={(value) => handleSettingChange('trainingDay', Number(value))}>
+                        <Select value={String(currentYearData?.trainingDay)} onValueChange={handleTrainingDayChange} disabled={!currentYearData}>
                             <SelectTrigger><SelectValue placeholder="Select a day" /></SelectTrigger>
                             <SelectContent>{weekDays.map((day, index) => <SelectItem key={index} value={String(index)}>{day}</SelectItem>)}</SelectContent>
                         </Select>

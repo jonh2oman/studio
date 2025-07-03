@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useCadets } from "@/hooks/use-cadets";
-import { useSettings } from "@/hooks/use-settings";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -31,6 +30,7 @@ import {
 import { PrintableAttendanceSheet } from "@/components/attendance/printable-attendance-sheet";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { useTrainingYear } from "@/hooks/use-training-year";
 
 export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -42,7 +42,7 @@ export default function AttendancePage() {
   
   const pdfRef = useRef<HTMLDivElement>(null);
   const { cadets, isLoaded: cadetsLoaded, getAttendanceForDate, saveAttendanceForDate, deleteAttendanceForDate, attendance } = useCadets();
-  const { settings, isLoaded: settingsLoaded } = useSettings();
+  const { currentYearData, isLoaded: yearLoaded } = useTrainingYear();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -125,10 +125,10 @@ export default function AttendancePage() {
   const recordsExistForDate = selectedDate && !!attendance[format(selectedDate, "yyyy-MM-dd")];
 
   const trainingDaysFilter = (date: Date) => {
-    return date.getDay() === settings.trainingDay;
+    return date.getDay() === currentYearData?.trainingDay;
   };
   
-  const isLoading = !cadetsLoaded || !settingsLoaded;
+  const isLoading = !cadetsLoaded || !yearLoaded;
 
   return (
     <>

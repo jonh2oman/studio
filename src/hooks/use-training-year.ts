@@ -12,6 +12,7 @@ import { useSettings } from './use-settings';
 export const defaultYearData: Omit<TrainingYearData, 'cadets'> = {
     firstTrainingNight: '',
     element: 'Sea',
+    trainingDay: 2, // Default to Tuesday
     dutySchedule: {},
     schedule: {},
     dayMetadata: {},
@@ -139,22 +140,37 @@ export function useTrainingYear() {
 
             if (copyFrom && sourceData) {
                 const { cadets, ...sourceDataToCopy } = sourceData;
-                newYearData = { ...sourceDataToCopy, firstTrainingNight: startDate, element: sourceDataToCopy.element || settings.element };
+                newYearData = { 
+                    ...sourceDataToCopy, 
+                    firstTrainingNight: startDate, 
+                    element: sourceDataToCopy.element || settings.element,
+                    trainingDay: sourceDataToCopy.trainingDay,
+                };
                 
                 if (useAiForCopy) {
                     const result = await copyTrainingSchedule({
                         sourceScheduleJson: JSON.stringify(sourceDataToCopy.schedule),
                         sourceTrainingYearStart: sourceDataToCopy.firstTrainingNight,
                         targetTrainingYearStart: startDate,
-                        trainingDayOfWeek: settings?.trainingDay ?? 2,
+                        trainingDayOfWeek: sourceDataToCopy.trainingDay,
                     });
                     newYearData.schedule = JSON.parse(result.newScheduleJson);
                 }
             } else if (copyFromFileData) {
                  const { cadets, ...dataToCopy } = copyFromFileData;
-                newYearData = { ...dataToCopy, firstTrainingNight: startDate, element: dataToCopy.element || 'Sea' };
+                newYearData = { 
+                    ...dataToCopy, 
+                    firstTrainingNight: startDate, 
+                    element: dataToCopy.element || 'Sea',
+                    trainingDay: dataToCopy.trainingDay ?? 2,
+                };
             } else {
-                 newYearData = { ...defaultYearData, firstTrainingNight: startDate, element: settings.element };
+                 newYearData = { 
+                    ...defaultYearData, 
+                    firstTrainingNight: startDate, 
+                    element: settings.element,
+                    trainingDay: currentYearData?.trainingDay ?? 2,
+                };
             }
             
             updateTrainingYears(prevAllYears => ({
@@ -171,7 +187,7 @@ export function useTrainingYear() {
         } finally {
             setIsCreating(false);
         }
-    }, [user, trainingYears, allYearsData, toast, setCurrentYear, settings, updateTrainingYears]);
+    }, [user, trainingYears, allYearsData, toast, setCurrentYear, settings.element, currentYearData?.trainingDay, updateTrainingYears]);
     
     const deleteTrainingYear = useCallback(async (yearToDelete: string) => {
         if (!user || !allYearsData[yearToDelete]) {

@@ -22,8 +22,8 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
 
     useEffect(() => {
         if (planData.firstTrainingNight) {
-            const parts = planData.firstTrainingNight.split('-').map(Number);
-            const firstNight = new Date(parts[0], parts[1] - 1, parts[2]);
+            const [year, month, day] = planData.firstTrainingNight.split('-').map(Number);
+            const firstNight = new Date(year, month - 1, day);
             
             const startYear = firstNight.getMonth() >= 8 ? firstNight.getFullYear() : firstNight.getFullYear() - 1;
             const endYear = startYear + 1;
@@ -35,13 +35,13 @@ export function StaticCalendarView({ plan }: { plan: ZtoReviewedPlan }) {
             setTrainingYear(ty);
             setCurrentDate(firstNight);
 
-            // Get training day of week from first night
-            const trainingDayOfWeek = firstNight.getDay();
+            const trainingDayOfWeek = planData.trainingDay ?? firstNight.getDay();
+            
             const allDaysInYear = eachDayOfInterval({ start: ty.start, end: ty.end });
             const days = allDaysInYear.filter(d => d.getDay() === trainingDayOfWeek && d >= firstNight);
             setTrainingDays(days);
         }
-    }, [planData.firstTrainingNight]);
+    }, [planData.firstTrainingNight, planData.trainingDay]);
 
     const changeMonth = useCallback((amount: number) => {
         if (!currentDate) return;
