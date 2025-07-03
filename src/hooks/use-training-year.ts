@@ -246,6 +246,7 @@ export function useTrainingYear() {
 
     const addEoToAda = useCallback((plannerId: string, eo: EO) => {
         updateCurrentYearData(prevData => {
+            if (!prevData) return prevData;
             const updatedPlanners = (prevData.adaPlanners || []).map(p => {
                 if (p.id === plannerId) {
                     if (p.eos.length >= 60) {
@@ -262,6 +263,7 @@ export function useTrainingYear() {
 
     const removeEoFromAda = useCallback((plannerId: string, eoIndex: number) => {
         updateCurrentYearData(prevData => {
+            if (!prevData) return prevData;
             const updatedPlanners = (prevData.adaPlanners || []).map(p => {
                 if (p.id === plannerId) {
                     const newEos = [...p.eos];
@@ -313,13 +315,15 @@ export function useTrainingYear() {
 
     const addEoToDayPlanner = useCallback((plannerId: string, slotId: string, eo: EO) => {
         updateCurrentYearData(prevData => {
+            if (!prevData) return prevData;
             const updatedPlanners = (prevData.dayPlanners || []).map(p => {
                 if (p.id === plannerId) {
-                    if (p.schedule[slotId]) {
+                    const currentSchedule = p.schedule || {};
+                    if (currentSchedule[slotId]) {
                          toast({ variant: "destructive", title: "Slot Occupied", description: "This slot already has a lesson planned." });
                          return p;
                     }
-                    const newSchedule = { ...p.schedule, [slotId]: { eo, instructor: '', classroom: '' } };
+                    const newSchedule = { ...currentSchedule, [slotId]: { eo, instructor: '', classroom: '' } };
                     return { ...p, schedule: newSchedule };
                 }
                 return p;
@@ -330,9 +334,11 @@ export function useTrainingYear() {
 
     const removeEoFromDayPlanner = useCallback((plannerId: string, slotId: string) => {
         updateCurrentYearData(prevData => {
+            if (!prevData) return prevData;
             const updatedPlanners = (prevData.dayPlanners || []).map(p => {
                 if (p.id === plannerId) {
-                    const newSchedule = { ...p.schedule };
+                    const currentSchedule = p.schedule || {};
+                    const newSchedule = { ...currentSchedule };
                     delete newSchedule[slotId];
                     return { ...p, schedule: newSchedule };
                 }
