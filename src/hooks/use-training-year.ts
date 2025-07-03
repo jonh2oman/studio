@@ -97,21 +97,24 @@ export function useTrainingYear() {
         }
     }, [trainingYears, toast, user]);
 
-    const updateCurrentYearData = useCallback((updater: (prevData: TrainingYearData) => TrainingYearData) => {
+    const updateCurrentYearData = useCallback((updater: (prevData: TrainingYearData) => Partial<TrainingYearData>) => {
         if (!currentYear) return;
-
+        
         updateTrainingYears(prevAllYears => {
             const currentDataForYear = prevAllYears[currentYear];
             if (!currentDataForYear) {
                 console.error("Attempted to update a non-existent year:", currentYear);
-                return prevAllYears; // Return unchanged state
+                return prevAllYears;
             }
     
-            const updatedDataForYear = updater(currentDataForYear);
+            const dataUpdate = updater(currentDataForYear);
     
             return {
                 ...prevAllYears,
-                [currentYear]: updatedDataForYear,
+                [currentYear]: {
+                    ...currentDataForYear,
+                    ...dataUpdate
+                },
             };
         });
     }, [currentYear, updateTrainingYears]);
@@ -224,7 +227,7 @@ export function useTrainingYear() {
                 eos: []
             };
             const updatedPlanners = [...(prevData.adaPlanners || []), newPlanner];
-            return { ...prevData, adaPlanners: updatedPlanners };
+            return { adaPlanners: updatedPlanners };
         });
         toast({ title: "ADA Planner Added" });
     }, [currentYear, updateCurrentYearData, toast]);
@@ -232,7 +235,7 @@ export function useTrainingYear() {
     const removeAdaPlanner = useCallback((id: string) => {
         updateCurrentYearData(prevData => {
             const updatedPlanners = (prevData.adaPlanners || []).filter(p => p.id !== id);
-            return { ...prevData, adaPlanners: updatedPlanners };
+            return { adaPlanners: updatedPlanners };
         });
         toast({ title: "ADA Planner Removed", variant: "destructive" });
     }, [updateCurrentYearData, toast]);
@@ -240,13 +243,13 @@ export function useTrainingYear() {
     const updateAdaPlannerName = useCallback((id: string, name: string) => {
         updateCurrentYearData(prevData => {
             const updatedPlanners = (prevData.adaPlanners || []).map(p => p.id === id ? { ...p, name } : p);
-            return { ...prevData, adaPlanners: updatedPlanners };
+            return { adaPlanners: updatedPlanners };
         });
     }, [updateCurrentYearData]);
 
     const addEoToAda = useCallback((plannerId: string, eo: EO) => {
         updateCurrentYearData(prevData => {
-            if (!prevData) return prevData;
+            if (!prevData) return {};
             const updatedPlanners = (prevData.adaPlanners || []).map(p => {
                 if (p.id === plannerId) {
                     if (p.eos.length >= 60) {
@@ -257,13 +260,13 @@ export function useTrainingYear() {
                 }
                 return p;
             });
-            return { ...prevData, adaPlanners: updatedPlanners };
+            return { adaPlanners: updatedPlanners };
         });
     }, [updateCurrentYearData, toast]);
 
     const removeEoFromAda = useCallback((plannerId: string, eoIndex: number) => {
         updateCurrentYearData(prevData => {
-            if (!prevData) return prevData;
+            if (!prevData) return {};
             const updatedPlanners = (prevData.adaPlanners || []).map(p => {
                 if (p.id === plannerId) {
                     const newEos = [...p.eos];
@@ -272,7 +275,7 @@ export function useTrainingYear() {
                 }
                 return p;
             });
-            return { ...prevData, adaPlanners: updatedPlanners };
+            return { adaPlanners: updatedPlanners };
         });
     }, [updateCurrentYearData]);
 
@@ -293,7 +296,7 @@ export function useTrainingYear() {
                 schedule: {}
             };
             const updatedPlanners = [...(prevData.dayPlanners || []), newPlanner];
-            return { ...prevData, dayPlanners: updatedPlanners };
+            return { dayPlanners: updatedPlanners };
         });
         toast({ title: "Day Plan Added" });
     }, [currentYear, updateCurrentYearData, toast]);
@@ -301,7 +304,7 @@ export function useTrainingYear() {
     const removeDayPlanner = useCallback((id: string) => {
         updateCurrentYearData(prevData => {
             const updatedPlanners = (prevData.dayPlanners || []).filter(p => p.id !== id);
-            return { ...prevData, dayPlanners: updatedPlanners };
+            return { dayPlanners: updatedPlanners };
         });
         toast({ title: "Day Plan Removed", variant: "destructive" });
     }, [updateCurrentYearData, toast]);
@@ -309,13 +312,13 @@ export function useTrainingYear() {
     const updateDayPlanner = useCallback((id: string, name: string, date: string) => {
         updateCurrentYearData(prevData => {
             const updatedPlanners = (prevData.dayPlanners || []).map(p => p.id === id ? { ...p, name, date } : p);
-            return { ...prevData, dayPlanners: updatedPlanners };
+            return { dayPlanners: updatedPlanners };
         });
     }, [updateCurrentYearData]);
 
     const addEoToDayPlanner = useCallback((plannerId: string, slotId: string, eo: EO) => {
         updateCurrentYearData(prevData => {
-            if (!prevData) return prevData;
+            if (!prevData) return {};
             const updatedPlanners = (prevData.dayPlanners || []).map(p => {
                 if (p.id === plannerId) {
                     const currentSchedule = p.schedule || {};
@@ -328,23 +331,22 @@ export function useTrainingYear() {
                 }
                 return p;
             });
-            return { ...prevData, dayPlanners: updatedPlanners };
+            return { dayPlanners: updatedPlanners };
         });
     }, [updateCurrentYearData, toast]);
 
     const removeEoFromDayPlanner = useCallback((plannerId: string, slotId: string) => {
         updateCurrentYearData(prevData => {
-            if (!prevData) return prevData;
+            if (!prevData) return {};
             const updatedPlanners = (prevData.dayPlanners || []).map(p => {
                 if (p.id === plannerId) {
-                    const currentSchedule = p.schedule || {};
-                    const newSchedule = { ...currentSchedule };
+                    const newSchedule = { ...(p.schedule || {}) };
                     delete newSchedule[slotId];
                     return { ...p, schedule: newSchedule };
                 }
                 return p;
             });
-            return { ...prevData, dayPlanners: updatedPlanners };
+            return { dayPlanners: updatedPlanners };
         });
     }, [updateCurrentYearData]);
 
@@ -375,3 +377,5 @@ export function useTrainingYear() {
         removeEoFromDayPlanner,
     };
 }
+
+    

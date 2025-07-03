@@ -36,11 +36,12 @@ export default function DayPlannerPage() {
             });
         });
         
-        const dayPlannerEOs = (dayPlanners || []).flatMap(p => Object.values(p.schedule || {}).filter(Boolean).map(item => item!.eo));
-        dayPlannerEOs.forEach(eo => {
-            if (eo.id) {
-                counts[eo.id] = (counts[eo.id] || 0) + 1;
-            }
+        (dayPlanners || []).forEach(p => {
+            Object.values(p.schedule || {}).forEach(item => {
+                if (item?.eo?.id) {
+                     counts[item.eo.id] = (counts[item.eo.id] || 0) + 1;
+                }
+            });
         });
 
         return counts;
@@ -101,3 +102,5 @@ export default function DayPlannerPage() {
         </DndContext>
     );
 }
+
+    

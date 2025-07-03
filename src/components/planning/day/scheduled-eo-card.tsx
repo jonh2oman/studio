@@ -30,3 +30,5 @@ export function ScheduledDayEoCard({ item, plannerId, slotId }: ScheduledDayEoCa
         </div>
     );
 }
+
+    
