@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake, Store, Shirt } from 'lucide-react';
+import { Calendar, FileText, Users, ClipboardCheck, Settings, Loader2, Trophy, BookOpen, Info, CheckCircle, CalendarDays, CalendarPlus, LogIn, ClipboardList, Building2, GripVertical, Contact, ShoppingCart, FolderKanban, Target, ClipboardEdit, Handshake, Store, Shirt, Ship } from 'lucide-react';
 import { useSchedule } from '@/hooks/use-schedule';
 import { elementalTrainingData } from '@/lib/data';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -20,6 +20,8 @@ import { CSS } from '@dnd-kit/utilities';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { getPhaseDisplayName } from '@/lib/utils';
+import { useKonamiCode } from '@/hooks/use-konami-code';
+import { KonamiConfetti } from '@/components/konami-confetti';
 
 const dashboardCategories = [
     {
@@ -162,6 +164,15 @@ export default function DashboardPage() {
 
     const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
     const [itemOrders, setItemOrders] = useState<Record<string, string[]>>({});
+    const [showConfetti, setShowConfetti] = useState(false);
+
+    const onKonamiSuccess = useCallback(() => {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000); // Confetti lasts for 5 seconds
+    }, []);
+
+    useKonamiCode(onKonamiSuccess);
+
 
     useEffect(() => {
         const savedOrder = settings.dashboardCardOrder;
@@ -298,6 +309,7 @@ export default function DashboardPage() {
 
     return (
         <>
+            {showConfetti && <KonamiConfetti />}
             <PageHeader title="Dashboard" description={`Welcome back, ${user.email}!`} />
             <div className="mt-8 space-y-8">
                 <Card className="border">

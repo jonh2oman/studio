@@ -3,6 +3,18 @@ import type { ChangelogEntry } from './types';
 
 export const changelogData: ChangelogEntry[] = [
   {
+    version: "1.4.0",
+    date: "August 15, 2024",
+    changes: [
+      "New visual theme: Implemented a vibrant, animated 'liquid glass' UI throughout the application for a more modern aesthetic.",
+      "UI/UX Polish: Enhanced contrast on page headers and improved visibility of floating action buttons.",
+      "UI/UX Polish: Increased the font weight of main navigation headings for better readability.",
+      "Fix: Corrected a critical timezone bug in the ZTO Portal that caused incorrect training day display on imported plans.",
+      "The ZTO Plan Review Portal has been temporarily disabled with a tooltip to indicate it's a future feature, preventing confusion.",
+      "Added a fun easter egg for observant users to discover on the dashboard.",
+    ]
+  },
+  {
     version: "1.3.2",
     date: "August 13, 2024",
     changes: [
@@ -18,7 +30,7 @@ export const changelogData: ChangelogEntry[] = [
     version: "1.3.1",
     date: "August 12, 2024",
     changes: [
-      "Major Feature: Added a comprehensive Marksmanship Scoring module to record grouping and competition scores and track cadet achievements.",
+      "Major Feature: Added a comprehensive Marksmanship module to record grouping and competition scores and track cadet achievements.",
       "Fix: Resolved a critical issue causing the application to crash when using the search bar in the Help & Instructions panel.",
       "Fix: Corrected a race condition during login that could cause a user's data to be overwritten with a blank profile. This also resolves errors when creating a new training year.",
       "UI Fix: Added a dedicated 'Manage PO/NCM Ranks' and 'Manage PO/NCM Roles' card to the Staff Management page for better organization.",

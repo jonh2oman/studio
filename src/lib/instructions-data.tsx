@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { CardContent } from "@/components/ui/card";
-import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug, CalendarDays } from "lucide-react";
+import { List, Calendar, FileText, Users, ClipboardCheck, Trophy, Settings2, Sparkles, AlertTriangle, Database, Puzzle, Rocket, Info, ClipboardList, Building2, Contact, ShoppingCart, FolderKanban, Target, HelpCircle, Bug, CalendarDays, Palette } from "lucide-react";
 
 export const instructionsData = [
     { 
@@ -24,6 +24,18 @@ export const instructionsData = [
                     <h4 className="font-semibold text-foreground flex items-center gap-2"><Puzzle className="h-4 w-4"/>Everything is Organized by Training Year</h4>
                     <p>The application is designed around Training Years (e.g., "2024-2025"). All your schedules, cadets, and reports are specific to the currently selected year. You must create your first training year in Settings to begin.</p>
                 </div>
+            </CardContent>
+        )
+    },
+     { 
+        id: "ui-theme", 
+        title: "UI & Customization", 
+        icon: Palette, 
+        content: (
+            <CardContent className="space-y-4 text-muted-foreground">
+                <p>The application features a modern "liquid glass" visual style with a dynamic, animated background to make the interface feel layered and responsive.</p>
+                <h4 className="font-semibold text-foreground">Customization</h4>
+                <p>While the overall look is consistent, you can still customize aspects of the layout. The main dashboard cards and the settings page cards can be reordered using drag-and-drop to place the modules you use most frequently at the top.</p>
             </CardContent>
         )
     },
@@ -238,13 +250,9 @@ export const instructionsData = [
         content: (
             <CardContent className="space-y-4 text-muted-foreground">
                 <p>This module is for Zone Training Officers (ZTOs) or other supervisory staff to review multiple training plans from different corps/squadrons.</p>
-                <h4 className="font-semibold text-foreground">Importing and Viewing Plans</h4>
-                 <ol className="list-decimal list-inside space-y-1">
-                    <li>Click "Import Plan" to open the import dialog.</li>
-                    <li>Give the plan a recognizable name (e.g., "288 Ardent") and upload the `.json` file provided by the corps/squadron.</li>
-                    <li>Once imported, the plan will appear as a card on the main page.</li>
-                    <li>Click the "View Plan" button on a card to open a full-screen, read-only version of that unit's annual training calendar for review.</li>
-                </ol>
+                <div className='border-l-4 border-amber-500 pl-4 py-2 bg-amber-500/10'>
+                    <strong>Note:</strong> This feature is currently in development and will be enabled in a future release.
+                </div>
             </CardContent>
         )
     },
