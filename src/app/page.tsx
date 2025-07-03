@@ -230,8 +230,12 @@ export default function DashboardPage() {
         if (!trainingData) return [];
 
         const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
-        const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
-        const dayPlannerEOs = (dayPlanners || []).flatMap(p => p.eos);
+        const adaEOs = (adaPlanners || []).flatMap(p => p.eos).filter(Boolean);
+        const dayPlannerEOs = (dayPlanners || [])
+            .flatMap(p => Object.values(p.schedule || {}))
+            .map(item => item?.eo)
+            .filter(Boolean);
+            
         const allScheduledEOs = [...scheduleEOs, ...adaEOs, ...dayPlannerEOs];
         
         const scheduledCounts: { [key: string]: number } = {};
