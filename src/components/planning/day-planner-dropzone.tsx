@@ -97,7 +97,7 @@ export function DayPlannerDropzone({ planner }: { planner: DayPlannerData }) {
                             <div className="space-y-2">
                                 {periods.map(period => {
                                     const slotId = `${phaseId}-${period}`;
-                                    const scheduledItem = planner.schedule[slotId];
+                                    const scheduledItem = (planner.schedule || {})[slotId];
                                     const { setNodeRef, isOver } = useDroppable({
                                         id: `day-planner-${planner.id}-phase-${phaseId}-period-${period}`,
                                     });
