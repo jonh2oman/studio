@@ -17,7 +17,7 @@ export function DutyRoster() {
     const { dutySchedule, updateDutySchedule, currentYear, currentYearData, isLoaded: yearLoaded } = useTrainingYear();
 
     const trainingDays = useMemo(() => {
-        if (!currentYear || !currentYearData?.firstTrainingNight) return [];
+        if (!currentYear || !currentYearData?.firstTrainingNight || currentYearData.trainingDay === undefined) return [];
 
         const [startYearStr] = currentYear.split('-');
         const startYear = parseInt(startYearStr, 10);
@@ -31,9 +31,9 @@ export function DutyRoster() {
         const firstNight = new Date(currentYearData.firstTrainingNight.replace(/-/g, '/'));
 
         return eachDayOfInterval({ start: ty.start, end: ty.end })
-            .filter(d => d.getDay() === settings.trainingDay && d >= firstNight);
+            .filter(d => d.getDay() === currentYearData.trainingDay && d >= firstNight);
 
-    }, [currentYear, currentYearData?.firstTrainingNight, settings.trainingDay]);
+    }, [currentYear, currentYearData?.firstTrainingNight, currentYearData?.trainingDay]);
     
     const officers = useMemo(() => settings.staff.filter(s => s.type === 'Officer'), [settings.staff]);
     const pos = useMemo(() => settings.staff.filter(s => s.type === 'PO/NCM'), [settings.staff]);
