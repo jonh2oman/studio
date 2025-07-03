@@ -1,4 +1,3 @@
-
 "use client";
 import { useMemo, useState, useRef } from 'react';
 import { useSchedule } from '@/hooks/use-schedule';
@@ -12,6 +11,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useSettings } from '@/hooks/use-settings';
 import { getPhaseDisplayName } from '@/lib/utils';
+import type { EO, ScheduledItem } from '@/lib/types';
 
 export function TrainingCompletionReport() {
     const { schedule, isLoaded } = useSchedule();
@@ -28,7 +28,11 @@ export function TrainingCompletionReport() {
 
         const scheduleEOs = Object.values(schedule).filter(Boolean).map(item => item!.eo);
         const adaEOs = (adaPlanners || []).flatMap(p => p.eos);
-        const dayPlannerEOs = (dayPlanners || []).flatMap(p => p.eos);
+        const dayPlannerEOs = (dayPlanners || [])
+            .flatMap(p => Object.values(p.schedule || {}))
+            .filter((item): item is ScheduledItem => !!item)
+            .map(item => item.eo);
+
         const allScheduledEOs = [...scheduleEOs, ...adaEOs, ...dayPlannerEOs];
        
         return trainingData.map(phase => {
@@ -49,7 +53,7 @@ export function TrainingCompletionReport() {
             
             const scheduledCounts: { [key: string]: number } = {};
             allScheduledEOs.forEach(eo => {
-                if (eo.type === 'mandatory') {
+                if (eo && eo.type === 'mandatory') {
                     scheduledCounts[eo.id] = (scheduledCounts[eo.id] || 0) + 1;
                 }
             });
