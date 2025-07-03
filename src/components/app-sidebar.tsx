@@ -76,7 +76,7 @@ const navGroups = [
   {
     title: "ZTO Tools",
     items: [
-        { href: "/zto-portal", label: "Plan Review Portal", icon: FolderKanban },
+        { href: "/zto-portal", label: "Plan Review Portal", icon: FolderKanban, isComingSoon: true },
     ]
   },
   {
@@ -263,6 +263,27 @@ export function AppSidebar() {
                                 ? pathname === item.href
                                 : pathname.startsWith(item.href) && item.href !== "/";
                             
+                             if (item.isComingSoon) {
+                                return (
+                                    <Tooltip key={item.href} delayDuration={0}>
+                                        <TooltipTrigger asChild>
+                                            <div className="w-full">
+                                                <StaticSidebarMenuItem
+                                                    href="#"
+                                                    isActive={false}
+                                                    isDisabled={true}
+                                                    icon={item.icon}
+                                                    label={item.label}
+                                                />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" align="center">
+                                            <p>Coming in a future release!</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                );
+                            }
+
                             return (
                                 <StaticSidebarMenuItem 
                                     key={item.href}
